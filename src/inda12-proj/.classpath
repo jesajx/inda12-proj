@@ -10,5 +10,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Log4jUtils"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Settings"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/StandardUtils"/>
+	<classpathentry kind="lib" path="lib/libgdx/gdx-backend-lwjgl-natives.jar"/>
+	<classpathentry kind="lib" path="lib/libgdx/gdx-backend-lwjgl.jar" sourcepath="lib/libgdx/sources/gdx-backend-lwjgl-sources.jar"/>
+	<classpathentry kind="lib" path="lib/libgdx/gdx-natives.jar"/>
+	<classpathentry kind="lib" path="lib/libgdx/gdx-openal.jar" sourcepath="lib/libgdx/sources/gdx-openal-sources.jar"/>
+	<classpathentry kind="lib" path="lib/libgdx/gdx.jar" sourcepath="lib/libgdx/sources/gdx-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
