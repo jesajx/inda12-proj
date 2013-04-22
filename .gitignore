@@ -1,13 +1,8 @@
 *~
 
 # Package Files #
-*.jar
 *.war
 *.ear
 
 # eclipse and bin
-mainproj/bin
-mainproj/.metadata
-mainproj/.classpath
-mainproj/.settings
-mainproj/.project
+src/*/bin
