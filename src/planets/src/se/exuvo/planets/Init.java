@@ -5,6 +5,8 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
@@ -62,7 +64,14 @@ public class Init {
         	return;
         }
         
-//        gui = new GUI();
+        LwjglApplicationConfiguration lwjglApplicationConfiguration = new LwjglApplicationConfiguration();
+		lwjglApplicationConfiguration.fullscreen = Settings.getBol("GUI.Fullscreen");
+		lwjglApplicationConfiguration.width = Settings.getInt("GUI.Width");
+		lwjglApplicationConfiguration.height = Settings.getInt("GUI.Height");
+		lwjglApplicationConfiguration.useCPUSynch = Settings.getBol("GUI.CPUSync");
+		lwjglApplicationConfiguration.vSyncEnabled = Settings.getBol("GUI.VSync");
+		lwjglApplicationConfiguration.title = "Planets";
+		new LwjglApplication(new Planets(), lwjglApplicationConfiguration);
 	}
 	
 	private static final void arguments(JSAP jsap){

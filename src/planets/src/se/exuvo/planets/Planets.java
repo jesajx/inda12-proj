@@ -1,0 +1,82 @@
+package se.exuvo.planets;
+
+import se.exuvo.planets.systems.PlanetRenderSystem;
+
+import com.artemis.World;
+import com.artemis.managers.GroupManager;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+
+public class Planets extends Game implements Screen{
+	private World world;
+	private OrthographicCamera camera;
+
+	private PlanetRenderSystem planetRenderSystem;
+
+
+	@Override
+	public void create() {
+		setScreen(this);
+		this.camera = new OrthographicCamera(Settings.getInt("GUI.Width"), Settings.getInt("GUI.Height"));
+		
+		world = new World();
+
+		world.setManager(new GroupManager());
+
+//		world.setSystem(new InputSystem(camera));
+
+		planetRenderSystem = world.setSystem(new PlanetRenderSystem(), true);
+
+		world.initialize();
+
+		for(int i = 0; 5 > i; i++) {
+			EntityFactory.createPlanet(world, 1.0f).addToWorld();
+		}
+	}
+
+	@Override
+	public void render(float delta) {
+		Gdx.gl10.glClear(GL10.GL_COLOR_BUFFER_BIT);// ?
+		
+		camera.update();
+
+		world.setDelta(delta);
+		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+			for(int i = 0; 10 > i; i++) {
+				world.process();
+			}
+		}
+		world.process();
+		
+		planetRenderSystem.process();
+	}
+
+	@Override
+	public void resize(int width, int height) {
+	}
+
+	@Override
+	public void show() {
+	}
+
+	@Override
+	public void hide() {
+	}
+
+	@Override
+	public void pause() {
+	}
+
+	@Override
+	public void resume() {
+	}
+
+	@Override
+	public void dispose() {
+	}
+
+}
