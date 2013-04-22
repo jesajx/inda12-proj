@@ -1,6 +1,5 @@
-package planets;
+package se.exuvo.planets;
 
-import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
@@ -23,9 +22,6 @@ public class Init {
 	 * @param args
 	 * @return 	1=Invalid Params,
 	 * 			2=Invalid Config,
-	 * 		 	3=Unable to autoConnect,
-	 * 			4=Failed to find UI xml 
-	 * 			5=GUI died
 	 */
 	public static void main(String[] args) {
 		DOMConfigurator.configure("log4j.xml");

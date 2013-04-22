@@ -1,4 +1,4 @@
-package planets;
+package se.exuvo.planets;
 
 import com.martiansoftware.jsap.JSAPResult;
 
@@ -19,7 +19,7 @@ public class Settings extends se.exuvo.settings.Settings{
 		add("SoundVolume",1f);
 		add("MusicVolume",0.8f);
 		
-		if(!start(conf,"mmoClient")){
+		if(!start(conf,"planets")){
 			log.fatal("Failed to read settings from file, please fix. Exiting.");
 			System.exit(2);
 		}
