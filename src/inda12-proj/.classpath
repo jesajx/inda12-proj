@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="lib/junit-4.11.jar" sourcepath="lib/junit-4.11-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar" sourcepath="lib/commons-io-2.4-sources.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/artemis"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JSAP"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Log4j"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Log4jUtils"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Settings"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/StandardUtils"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
