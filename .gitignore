@@ -3,6 +3,3 @@
 # Package Files #
 *.war
 *.ear
-
-# eclipse and bin
-src/*/bin
