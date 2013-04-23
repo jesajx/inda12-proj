@@ -39,7 +39,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 			a.vec.set(Vector2.Zero); // reset
 		}
 		
-		//
+		// calculate gravity effects on gravity.
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
 			Acceleration a = am.get(e);
@@ -47,7 +47,6 @@ public class GravitationSystem extends IntervalEntitySystem {
 			Mass m = mm.get(e);
 			Position p = pm.get(e);
 			
-			// calculate gravity effects
 			for (int j = i+1; j < entities.size(); j++) {
 				Entity e2 = entities.get(j);
 				Acceleration a2 = am.get(e);
@@ -77,7 +76,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 				
 				// G/d^2
 				float k = G / distanceSquared;
-				FastMath
+				
 				// the accelerations are created as:
 				//
 				// <-----.-----> (0 angle)
@@ -85,12 +84,12 @@ public class GravitationSystem extends IntervalEntitySystem {
 				// and then rotated counter-clockwise.
 				
 				// acceleration for p towards p2
-				Vector2 v = new Vector2(m2.mass * k, 0).rotate(angle);
+				Vector2 v = new Vector2(m2.mass * k, 0);
 				rotate(v, angle);
 				a.vec.add(v);
 				
 				// acceleration for p2 towards p
-				Vector2 v2 = new Vector2(m.mass * k, 0).rotate(angle);
+				Vector2 v2 = new Vector2(m.mass * k, 0);
 				rotate(v2, angle);
 				a2.vec.add(v2);
 				
@@ -106,8 +105,9 @@ public class GravitationSystem extends IntervalEntitySystem {
 		// TODO use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
 	}
 	
+	// TODO it's possible there's an lib-implementation of this (NOT Vector2.rotate() -- it uses java.lang.Math)
 	/**
-	 * Rotates the given {@link Vector2} {@code angle} number of radians counter-clockwise.
+	 * Rotates the given {@link Vector2} {@code angle} number of radians counter-clockwise, using  {@link FastMath}.
 	 */
 	private static void rotate(Vector2 v, float angle) {
 		float cos = (float)FastMath.cos(angle);
@@ -116,5 +116,4 @@ public class GravitationSystem extends IntervalEntitySystem {
 		v.x = v.x * cos - v.y * sin;
 		v.y = v.x * sin + v.y * cos;
 	}
-	
 }
