@@ -28,9 +28,9 @@ public class HudRenderSystem extends VoidEntitySystem {
 		AtlasRegion fontRegion = textureAtlas.findRegion("normal.png");
 		font = new BitmapFont(Gdx.files.internal("resources/src/fonts/normal.fnt"), fontRegion, false);
 		font.setUseIntegerPositions(false);
-		
+
 		batch = new SpriteBatch();
-		
+
 		fps = Settings.getBol("GUI.ShowFPS");
 	}
 
@@ -45,12 +45,14 @@ public class HudRenderSystem extends VoidEntitySystem {
 		batch.setColor(1, 1, 1, 1);
 		int width = Gdx.graphics.getWidth();
 		int height = Gdx.graphics.getHeight();
-		if(fps) font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), -(width / 2) + 20, height / 2 - 20);
-		font.draw(batch, "Active entities: " + world.getEntityManager().getActiveEntityCount(), -(width / 2) + 20, height / 2 - 40);
-		font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), -(width / 2) + 20, height / 2 - 60);
-		font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), -(width / 2) + 20, height / 2 - 80);
+		if (fps) {
+			font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), -(width / 2) + 20, height / 2 - 20);
+			font.draw(batch, "Active entities: " + world.getEntityManager().getActiveEntityCount(), -(width / 2) + 20, height / 2 - 40);
+			font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), -(width / 2) + 20, height / 2 - 60);
+			font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), -(width / 2) + 20, height / 2 - 80);
+		}
 	}
-	
+
 	@Override
 	protected void end() {
 		batch.end();
