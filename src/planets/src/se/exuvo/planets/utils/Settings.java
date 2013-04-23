@@ -1,4 +1,5 @@
-package se.exuvo.planets;
+package se.exuvo.planets.utils;
+
 
 import com.martiansoftware.jsap.JSAPResult;
 

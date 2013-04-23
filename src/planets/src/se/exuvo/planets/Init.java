@@ -5,6 +5,9 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+import se.exuvo.planets.utils.ImagePacker;
+import se.exuvo.planets.utils.Settings;
+
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.martiansoftware.jsap.FlaggedOption;
@@ -63,6 +66,8 @@ public class Init {
         	//net.java.games.input.test.ControllerReadTest.main(null);
         	return;
         }
+        
+        ImagePacker.run();
         
         LwjglApplicationConfiguration lwjglApplicationConfiguration = new LwjglApplicationConfiguration();
 		lwjglApplicationConfiguration.fullscreen = Settings.getBol("GUI.Fullscreen");

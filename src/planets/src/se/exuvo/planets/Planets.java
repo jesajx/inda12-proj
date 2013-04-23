@@ -1,6 +1,8 @@
 package se.exuvo.planets;
 
+import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
+import se.exuvo.planets.utils.Settings;
 
 import com.artemis.World;
 import com.artemis.managers.GroupManager;
@@ -16,6 +18,7 @@ public class Planets extends Game implements Screen{
 	private OrthographicCamera camera;
 
 	private PlanetRenderSystem planetRenderSystem;
+	private HudRenderSystem hudRenderSystem;
 
 
 	@Override
@@ -30,6 +33,7 @@ public class Planets extends Game implements Screen{
 //		world.setSystem(new InputSystem(camera));
 
 		planetRenderSystem = world.setSystem(new PlanetRenderSystem(), true);
+		hudRenderSystem = world.setSystem(new HudRenderSystem(camera), true);
 
 		world.initialize();
 
@@ -53,6 +57,7 @@ public class Planets extends Game implements Screen{
 		world.process();
 		
 		planetRenderSystem.process();
+		hudRenderSystem.process();
 	}
 
 	@Override

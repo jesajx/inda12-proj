@@ -1,7 +1,8 @@
-package se.exuvo.planets;
+package se.exuvo.planets.utils;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
 
 public class logger {
 	

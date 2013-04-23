@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib/libgdx/gdx-natives.jar"/>
 	<classpathentry kind="lib" path="lib/libgdx/gdx-openal.jar" sourcepath="lib/libgdx/sources/gdx-openal-sources.jar"/>
 	<classpathentry kind="lib" path="lib/libgdx/gdx.jar" sourcepath="lib/libgdx/sources/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="lib/libgdx/extensions/gdx-tools/gdx-tools.jar" sourcepath="lib/libgdx/extensions/gdx-tools/sources/gdx-tools-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
