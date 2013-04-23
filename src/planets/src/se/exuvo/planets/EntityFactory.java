@@ -1,10 +1,12 @@
 package se.exuvo.planets;
 
+import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 
 import com.artemis.Entity;
 import com.artemis.World;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -18,6 +20,9 @@ public class EntityFactory {
 		
 		Size s = new Size(MathUtils.random(1.0f, 10.0f));
 		e.addComponent(s);
+		
+		Colour c = new Colour(new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
+		e.addComponent(c);
 
 		return e;
 	}

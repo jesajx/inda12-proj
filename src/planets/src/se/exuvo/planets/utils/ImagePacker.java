@@ -10,8 +10,6 @@ import com.badlogic.gdx.tools.imagepacker.TexturePacker2.Settings;;
 public class ImagePacker {
 
 	public static void run() {
-		
-		
 		String path1 = "resources/src/textures";
 		if(new File(path1).exists()){
 			TexturePacker2.process(path1, "resources", "textures");

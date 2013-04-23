@@ -27,7 +27,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 		
 		// calculate gravity effects
 		
-		// use FastMath TrigLUT Utils from artemis ?
+		// use FastMath TrigLUT Utils from artemis  or MathUtils from libgdx?
 
 	}
 
