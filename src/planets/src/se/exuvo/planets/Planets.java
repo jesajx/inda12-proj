@@ -16,19 +16,18 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
-public class Planets extends Game implements Screen{
+public class Planets extends Game implements Screen {
 	private World world;
 	private OrthographicCamera camera;
 
 	private PlanetRenderSystem planetRenderSystem;
 	private HudRenderSystem hudRenderSystem;
 
-
 	@Override
 	public void create() {
 		setScreen(this);
 		this.camera = new OrthographicCamera(Settings.getInt("GUI.Width"), Settings.getInt("GUI.Height"));
-		
+
 		world = new World();
 
 		world.setManager(new GroupManager());
@@ -43,7 +42,7 @@ public class Planets extends Game implements Screen{
 
 		world.initialize();
 
-		for(int i = 0; 2 > i; i++) {
+		for (int i = 0; 20 > i; i++) {
 			EntityFactory.createPlanet(world, 1.0f).addToWorld();
 		}
 	}
@@ -51,43 +50,37 @@ public class Planets extends Game implements Screen{
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		
+
 		camera.update();
 
 		world.setDelta(delta);
-		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-			for(int i = 0; 10 > i; i++) {
+		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+			for (int i = 0; 10 > i; i++) {
 				world.process();
 			}
 		}
 		world.process();
-		
+
 		planetRenderSystem.process();
 		hudRenderSystem.process();
 	}
 
 	@Override
-	public void resize(int width, int height) {
-	}
+	public void resize(int width, int height) {}
 
 	@Override
-	public void show() {
-	}
+	public void show() {}
 
 	@Override
-	public void hide() {
-	}
+	public void hide() {}
 
 	@Override
-	public void pause() {
-	}
+	public void pause() {}
 
 	@Override
-	public void resume() {
-	}
+	public void resume() {}
 
 	@Override
-	public void dispose() {
-	}
+	public void dispose() {}
 
 }
