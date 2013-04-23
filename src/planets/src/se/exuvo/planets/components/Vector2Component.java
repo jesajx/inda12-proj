@@ -11,7 +11,7 @@ public class Vector2Component extends Component {
 	}
 	
 	public Vector2Component(){
-		
+		vec = new Vector2();
 	}
 	
 }

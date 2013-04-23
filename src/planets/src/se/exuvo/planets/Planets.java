@@ -42,7 +42,7 @@ public class Planets extends Game implements Screen {
 
 		world.initialize();
 
-		for (int i = 0; 20 > i; i++) {
+		for (int i = 0; 2 > i; i++) {
 			EntityFactory.createPlanet(world, 1.0f).addToWorld();
 		}
 	}
