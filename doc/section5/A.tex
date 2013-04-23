@@ -1,19 +1,34 @@
-Programmet ska använda opengl för det grafiska med hjälp av bibloteket libgdx. \footnote{http://libgdx.badlogicgames.com/features.html}
-Artemis entity system kommer användas för att lättare separera koduppgifter till mindre klasser där varje klass gör en(1) enskild sak. \footnote{http://gamadu.com/artemis/index.html}
-Artemis använder sig av komponenter och system, där komponenter håller data och systemen bearbetar dom. Ett system använder endast några få komponenter och arbetar endast på objekt som har dom komponenterna.
+Programmet ska använda opengl för det grafiska med hjälp av bibloteket
+libgdx\footnote{http://libgdx.badlogicgames.com/features.html}.
+Artemis entity system kommer användas för att lättare separera
+koduppgifter till mindre klasser där varje klass gör en(1) enskild
+sak\footnote{http://gamadu.com/artemis/index.html}.
 
+Artemis använder sig av komponenter och system,
+där komponenter håller data och systemen bearbetar dom.
+Ett system använder endast några få komponenter och
+arbetar endast på objekt som har dom komponenterna.
+
+\noindent
 Planeterna ska ha följande komponenter:
-\begin{enumerate}
+\begin{itemize}
     \item Position
     \item Hastighet
     \item Acceleration
     \item Massa
     \item Storlek
-\end{enumerate}
+\end{itemize}
+
+\noindent
 De system som behövs är:
-\begin{enumerate}
-\item Gravitation behöver använda \textit{massa} och \textit{acceleration} för att räkna ut gravitations krafterna mellan planeter.
-\item Acceleration behöver \textit{acceleration} och \textit{hastighet} för att förändra hastigheten.
-\item Hastighet behöver \textit{position} och \textit{hastighet} för att uppdatera positionen.
-\item Ritande behöver \textit{position} och \textit{storlek} för att rita planeterna på skärmen.
-\end{enumerate}
+\begin{itemize}
+    \item Gravitation behöver använda \textit{massa} och \textit{acceleration}
+        för att räkna ut gravitations krafterna mellan planeter.
+    \item Acceleration behöver \textit{acceleration} och \textit{hastighet}
+        för att förändra hastigheten.
+    \item Hastighet behöver \textit{position} och \textit{hastighet}
+        för att uppdatera positionen.
+    \item Ritande behöver \textit{position} och \textit{storlek}
+        för att rita planeterna på skärmen.
+\end{itemize}
+
