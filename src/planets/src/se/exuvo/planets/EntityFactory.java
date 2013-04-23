@@ -4,8 +4,8 @@ import se.exuvo.planets.components.Position;
 
 import com.artemis.Entity;
 import com.artemis.World;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 
 public class EntityFactory {
 	
@@ -13,8 +13,7 @@ public class EntityFactory {
 		Entity e = world.createEntity();
 		
 		Position position = new Position();
-		position.x = 0;
-		position.y = 0;
+		position.vec = new Vector2(MathUtils.random(100, 300), MathUtils.random(100, 300));
 		e.addComponent(position);
 
 		return e;

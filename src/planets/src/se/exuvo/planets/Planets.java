@@ -1,7 +1,10 @@
 package se.exuvo.planets;
 
+import se.exuvo.planets.systems.AccelerationSystem;
+import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
+import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.planets.utils.Settings;
 
 import com.artemis.World;
@@ -31,20 +34,23 @@ public class Planets extends Game implements Screen{
 		world.setManager(new GroupManager());
 
 //		world.setSystem(new InputSystem(camera));
+		world.setSystem(new VelocitySystem());
+		world.setSystem(new AccelerationSystem());
+		world.setSystem(new GravitationSystem());
 
-		planetRenderSystem = world.setSystem(new PlanetRenderSystem(), true);
+		planetRenderSystem = world.setSystem(new PlanetRenderSystem(camera), true);
 		hudRenderSystem = world.setSystem(new HudRenderSystem(camera), true);
 
 		world.initialize();
 
-		for(int i = 0; 5 > i; i++) {
+		for(int i = 0; 2 > i; i++) {
 			EntityFactory.createPlanet(world, 1.0f).addToWorld();
 		}
 	}
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl10.glClear(GL10.GL_COLOR_BUFFER_BIT);// ?
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
 		camera.update();
 

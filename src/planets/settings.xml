@@ -11,5 +11,6 @@
 <GUI.VSync type="b">false</GUI.VSync>
 <GUI.Height type="i">768</GUI.Height>
 <GUI.Fullscreen type="b">false</GUI.Fullscreen>
+<PhysicsStep type="f">0.1</PhysicsStep>
 </settings>
 </planets>

@@ -16,6 +16,7 @@ public class Settings extends se.exuvo.settings.Settings{
 		add("GUI.ShowFPS", true);
 		add("SoundVolume",1f);
 		add("MusicVolume",0.8f);
+		add("PhysicsStep", 0.1f);
 		
 		if(!start(conf,"planets")){
 			log.fatal("Failed to read settings from file, please fix. Exiting.");
