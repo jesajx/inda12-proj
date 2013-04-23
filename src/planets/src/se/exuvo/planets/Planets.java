@@ -3,6 +3,7 @@ package se.exuvo.planets;
 import se.exuvo.planets.systems.AccelerationSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
+import se.exuvo.planets.systems.InputSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
 import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.planets.utils.Settings;
@@ -32,7 +33,7 @@ public class Planets extends Game implements Screen {
 
 		world.setManager(new GroupManager());
 
-//		world.setSystem(new InputSystem(camera));
+		world.setSystem(new InputSystem(camera));
 		world.setSystem(new VelocitySystem());
 		world.setSystem(new AccelerationSystem());
 		world.setSystem(new GravitationSystem());
@@ -43,7 +44,7 @@ public class Planets extends Game implements Screen {
 		world.initialize();
 
 		for (int i = 0; 2 > i; i++) {
-			EntityFactory.createPlanet(world, 1.0f).addToWorld();
+			EntityFactory.createPlanet(world).addToWorld();
 		}
 	}
 
