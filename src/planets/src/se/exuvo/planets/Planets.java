@@ -14,8 +14,10 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
 
 public class Planets extends Game implements Screen {
 	private World world;
@@ -42,10 +44,11 @@ public class Planets extends Game implements Screen {
 		hudRenderSystem = world.setSystem(new HudRenderSystem(camera), true);
 
 		world.initialize();
-
-		for (int i = 0; 2 > i; i++) {
-			EntityFactory.createPlanet(world).addToWorld();
-		}
+		
+		float r = 50f;
+		float v = 1f;
+		EntityFactory.createPlanet(world, 10f, 1e9f, new Vector2(r,0), new Vector2(0, v), Color.WHITE).addToWorld();
+		EntityFactory.createPlanet(world, 10f, 1e9f, new Vector2(-r,0), new Vector2(0, -v), Color.YELLOW).addToWorld();
 	}
 
 	@Override

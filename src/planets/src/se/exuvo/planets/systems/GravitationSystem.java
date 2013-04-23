@@ -10,8 +10,9 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntitySystem;
+import com.artemis.utils.FastMath;
 import com.artemis.utils.ImmutableBag;
-import com.artemis.utils.Utils;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class GravitationSystem extends IntervalEntitySystem {
@@ -19,7 +20,9 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Acceleration> am;
 	@Mapper ComponentMapper<Position> pm;
 	
-	private float G = (float) (6.6726 * Math.pow(10.0,-11.0));
+	// TODO make somehow settable by user?
+	// TODO calculate this realtive to fps.
+	private float G = 1E16f;//(float) (6.6726 * Math.pow(10.0,-11.0));
 
 	public GravitationSystem() {
 		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
@@ -27,35 +30,91 @@ public class GravitationSystem extends IntervalEntitySystem {
 
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
+		
+		// TODO do we need an acceleration-system if we do clear here? we could update the velocity directly. unless the user wants to see the acceleration...
+		// clear old accelerations
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			Mass m = mm.get(e);
 			Acceleration a = am.get(e);
+			a.vec.set(Vector2.Zero); // reset
+		}
+		
+		//
+		for (int i = 0; i < entities.size(); i++) {
+			Entity e = entities.get(i);
+			Acceleration a = am.get(e);
+			
+			Mass m = mm.get(e);
 			Position p = pm.get(e);
 			
-			// clear old accel
-			a.vec.set(Vector2.Zero);
-			
 			// calculate gravity effects
-			for (int j = 0; j < entities.size(); j++) {
+			for (int j = i+1; j < entities.size(); j++) {
 				Entity e2 = entities.get(j);
-				if(e2 == e) continue;
+				Acceleration a2 = am.get(e);
 				
 				Mass m2 = mm.get(e2);
 				Position p2 = pm.get(e2);
 				
-				Vector2 positionDiff = p2.vec.cpy().sub(p.vec);
+				// F = G*m*M/d^2
+				// F = ma
+				// a = G*M/d^2 = M * G/d^2
+				// where:
+				// m = e.mass
+				// M = e2.mass
+				// G = grav. constant
+				// d = distance between e and e2
 				
-				float distance = positionDiff.len2();
-				Vector2 v = new Vector2(1 * (m.mass * m2.mass) / distance, 0);
-				System.out.println(positionDiff.angle());
-				a.vec.add(v.rotate(positionDiff.angle()));
 				
+				
+				// vector from p to p2
+				Vector2 posDiff = p2.vec.cpy().sub(p.vec);
+				
+				// distance from p to p2
+				float distanceSquared = posDiff.len2(); // distance squared
+				
+				// angle from p to p2
+				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
+				
+				// G/d^2
+				float k = G / distanceSquared;
+				FastMath
+				// the accelerations are created as:
+				//
+				// <-----.-----> (0 angle)
+				//
+				// and then rotated counter-clockwise.
+				
+				// acceleration for p towards p2
+				Vector2 v = new Vector2(m2.mass * k, 0).rotate(angle);
+				rotate(v, angle);
+				a.vec.add(v);
+				
+				// acceleration for p2 towards p
+				Vector2 v2 = new Vector2(m.mass * k, 0).rotate(angle);
+				rotate(v2, angle);
+				a2.vec.add(v2);
+				
+				//System.out.println("d^2: " + distanceSquared); 
+				//System.out.println("G: " + G); 
+				//System.out.println("k: " + k); 
+				//System.out.println("degrees: " + angle); 
+				//System.out.println("v: " + v.x +" "+ v.y);
+				//System.out.println("v2: " + v2.x +" "+ v2.y);
 			}
 		}
 
-		// use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
-
+		// TODO use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
 	}
+	
+	/**
+	 * Rotates the given {@link Vector2} {@code angle} number of radians counter-clockwise.
+	 */
+	private static void rotate(Vector2 v, float angle) {
+		float cos = (float)FastMath.cos(angle);
+		float sin = (float)FastMath.sin(angle);
 
+		v.x = v.x * cos - v.y * sin;
+		v.y = v.x * sin + v.y * cos;
+	}
+	
 }
