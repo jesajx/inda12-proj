@@ -46,8 +46,8 @@ public class Planets extends Game implements Screen {
 		world.initialize();
 		
 		float d = 50f;
-		float v = 1f;
-		float m = 1e35f;
+		float v = 2f;
+		float m = 1e13f;
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(d,0), new Vector2(0, v), Color.WHITE).addToWorld();
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(-d,0), new Vector2(0, -v), Color.YELLOW).addToWorld();
 	}

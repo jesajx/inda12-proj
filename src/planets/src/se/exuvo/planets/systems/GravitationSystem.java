@@ -83,7 +83,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 			
 			for (int j = i+1; j < entities.size(); j++) {
 				Entity e2 = entities.get(j);
-				Acceleration a2 = am.get(e);
+				Acceleration a2 = am.get(e2);
 				
 				Mass m2 = mm.get(e2);
 				Position p2 = pm.get(e2);
@@ -106,42 +106,32 @@ public class GravitationSystem extends IntervalEntitySystem {
 				float distanceSquared = posDiff.len2(); // distance squared
 				// angle from p to p2
 				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
-				if (angle < 0) {
-					angle = (float) FastMath.HALF_PI;
-				}
-				angle %= FastMath.PI;
 				
 				// G/d^2
 				float k = G / distanceSquared;
 				
-				if (!Double.isNaN(k)) { // TODO necessary?
+				// TODO NaN-guard?
 				
-					// the accelerations are created as:
-					//
-					// <-----.-----> (0 angle)
-					//
-					// and then rotated counter-clockwise.
-					
-					// acceleration for p towards p2
-					Vector2 v = pol(angle, m2.mass * k); // vector from angle and magnitude
-					a.vec.add(v);
-					
-					// acceleration for p2 towards p
-					Vector2 v2 = pol(angle, -m.mass * k);
-					a2.vec.add(v2);
-					
-					//DEBUGGING.
-					System.out.println("m2*k:" + m2.mass * k);
-					System.out.println("m*k:" + m.mass * k);
-					System.out.println("d^2: " + distanceSquared); 
-					System.out.println("G: " + G); 
-					System.out.println("k: " + k); 
-					System.out.println("rads: " + angle); 
-					System.out.println("v: " + v.x +" "+ v.y);
-					System.out.println("v2: " + v2.x +" "+ v2.y);
-					System.out.println("a: " + a.vec.x +" "+ a.vec.y);
-					System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
-				}
+				
+				// acceleration for p towards p2
+				Vector2 v = pol(angle, m2.mass * k); // vector from angle and magnitude
+				a.vec.add(v);
+				
+				// acceleration for p2 towards p
+				Vector2 v2 = pol(angle, -m.mass * k);
+				a2.vec.add(v2);
+				
+				//DEBUGGING.
+//				System.out.println("m2*k:" + m2.mass * k);
+//				System.out.println("m*k:" + m.mass * k);
+//				System.out.println("d^2: " + distanceSquared); 
+//				System.out.println("G: " + G); 
+//				System.out.println("k: " + k); 
+//				System.out.println("rads: " + angle); 
+//				System.out.println("v: " + v.x +" "+ v.y);
+//				System.out.println("v2: " + v2.x +" "+ v2.y);
+//				System.out.println("a: " + a.vec.x +" "+ a.vec.y);
+//				System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
 			}
 		}
 		
