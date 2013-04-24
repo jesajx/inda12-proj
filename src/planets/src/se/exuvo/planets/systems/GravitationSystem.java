@@ -110,7 +110,8 @@ public class GravitationSystem extends IntervalEntitySystem {
 				float k = G / distanceSquared;
 				
 				// TODO NaN-guard? i.e. check for distanceSquared==0 ?
-				
+				if (distanceSquared == 0)
+						continue;
 				// magnitudes of accelerations between p and p2.
 				float mag1 = m2.mass*k;
 				float mag2 = -m.mass*k;

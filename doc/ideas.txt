@@ -1,4 +1,9 @@
 
+option för att programmet ska beräkna parametrar för att planeter ska orbitera.
+
+kunna makera och arbeta med flera planter samtidigt.
+På så sätt kan man hjälpa användaren skapa fungerande solsystem.
+
 svarta hål
 
 super novor

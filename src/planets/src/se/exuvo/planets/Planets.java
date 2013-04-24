@@ -60,10 +60,10 @@ public class Planets extends Game implements Screen {
 		// v^2 = G*M
 		// 
 		float m = 1e15f;
-		float v = 6.5f;
+		float v = 0;//6.5f;
 		float r = v*v*v;
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(r,0), new Vector2(0, -v), Color.WHITE).addToWorld();
-		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r,0), new Vector2(0, v), Color.YELLOW).addToWorld();
+		//EntityFactory.createPlanet(world, 10f, m, new Vector2(-r,0), new Vector2(0, v), Color.YELLOW).addToWorld();
 	}
 
 	@Override
