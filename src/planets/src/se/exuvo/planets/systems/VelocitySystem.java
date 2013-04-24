@@ -34,13 +34,14 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		// apply speed to position
 		p.vec.add(v.vec);
 		
+		// TODO easier to create systems without.
 //		if(p.vec.x < minX) p.vec.x = minX;
 //		if(p.vec.y < minY) p.vec.y = minY;
 //		if(p.vec.x > maxX) p.vec.x = maxX;
 //		if(p.vec.y > maxY) p.vec.y = maxY;
 		
 		//DEBUG:
-		System.out.println(e+"v:"+v.vec.x +" "+ v.vec.y);
+//		System.out.println(e+"v:"+v.vec.x +" "+ v.vec.y);
 	}
 	
 	@Override

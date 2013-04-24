@@ -144,6 +144,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private void setPaused(boolean newValue){
 		paused = newValue;
 		world.getSystem(VelocitySystem.class).setPaused(paused);
+		// TODO other systems?
 	}
 	
 	@Override
@@ -193,7 +194,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean scrolled(int amount) {
+		// forward-scroll makes amount negative.
 		camera.zoom += amount;
+		if (camera.zoom < 1) {
+			camera.zoom = 1;
+		}
+		
+		// DEBUG
+		System.out.println("zoom: "+camera.zoom);
 		return true;
 	}
 
