@@ -36,7 +36,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;
 
-	private boolean paused;
+	private boolean paused, wasPaused;
 
 	public InputSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
@@ -99,6 +99,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			mouseStartVector.set(mouseVector.x, mouseVector.y);
 			lastPlanet = EntityFactory.createHollowPlanet(world, new Position(new Vector2(mouseVector.x, mouseVector.y)));
 			lastPlanet.addToWorld();
+			wasPaused = paused;
+			if(!wasPaused){
+				setPaused(true);
+			}
 			createPlanet = false;
 		}
 
@@ -120,6 +124,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 						- mouseStartVector.y).div(10f)));
 				lastPlanet = null;
 				releasePlanet = false;
+				if(!wasPaused){
+					setPaused(false);
+				}
 			}
 		}
 	}
@@ -133,11 +140,15 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		return paused;
 	}
 
+	private void setPaused(boolean newValue){
+		paused = newValue;
+		world.getSystem(VelocitySystem.class).setPaused(paused);
+	}
+	
 	@Override
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.SPACE) {
-			paused = !paused;
-			world.getSystem(VelocitySystem.class).setPaused(paused);
+			setPaused(!paused);
 			return true;
 		}
 		return false;
