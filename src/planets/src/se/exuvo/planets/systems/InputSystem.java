@@ -36,6 +36,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;
 
+	private boolean paused;
+
 	public InputSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
@@ -63,11 +65,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			selectedPlanet = null;
 			Vector2 mouse = new Vector2().set(mouseVector.x, mouseVector.y);
 
-			for (int i=0; i < entities.size(); i++) {
+			for (int i = 0; i < entities.size(); i++) {
 				Entity e = entities.get(i);
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-				if (mouse.cpy().sub(p.vec).len2() < s.radius*s.radius) {
+				if (mouse.cpy().sub(p.vec).len2() < s.radius * s.radius) {
 					selectedPlanet = e;
 					break;
 				}
@@ -84,9 +86,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				render.begin(ShapeType.Triangle);
 				render.setColor(Color.CYAN);
 				float r = s.radius * 2f;
-				render.triangle(	p.vec.x + r * MathUtils.cosDeg(90), p.vec.y + r * MathUtils.sinDeg(90),
-										p.vec.x + r * MathUtils.cosDeg(210), p.vec.y + r * MathUtils.sinDeg(210),
-										p.vec.x + r * MathUtils.cosDeg(330), p.vec.y + r * MathUtils.sinDeg(330));
+				render.triangle(p.vec.x + r * MathUtils.cosDeg(90), p.vec.y + r * MathUtils.sinDeg(90),
+								p.vec.x + r * MathUtils.cosDeg(210), p.vec.y + r * MathUtils.sinDeg(210),
+								p.vec.x + r * MathUtils.cosDeg(330), p.vec.y + r * MathUtils.sinDeg(330));
 				render.end();
 			} else {
 				selectedPlanet = null;
@@ -124,11 +126,20 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	protected void end() {
-		
+
+	}
+
+	public boolean isPaused() {
+		return paused;
 	}
 
 	@Override
 	public boolean keyDown(int keycode) {
+		if (keycode == Input.Keys.SPACE) {
+			paused = !paused;
+			world.getSystem(VelocitySystem.class).setPaused(paused);
+			return true;
+		}
 		return false;
 	}
 

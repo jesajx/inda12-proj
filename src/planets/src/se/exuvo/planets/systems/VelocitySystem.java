@@ -16,6 +16,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	@Mapper	ComponentMapper<Position> pm;
 
 	private float maxX, maxY, minX, minY;
+	private boolean paused;
 	
 	public VelocitySystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
@@ -37,6 +38,19 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		if(p.vec.y < minY) p.vec.y = minY;
 		if(p.vec.x > maxX) p.vec.x = maxX;
 		if(p.vec.y > maxY) p.vec.x = maxY;
+	}
+	
+	@Override
+	protected boolean checkProcessing() {
+		if(paused){
+			return false;
+		}else{
+			return super.checkProcessing();
+		}
+	}
+	
+	public void setPaused(boolean newState){
+		paused = newState;
 	}
 
 }

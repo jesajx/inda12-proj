@@ -25,7 +25,7 @@ public class Planets extends Game implements Screen {
 
 	private PlanetRenderSystem planetRenderSystem;
 	private HudRenderSystem hudRenderSystem;
-
+	
 	@Override
 	public void create() {
 		setScreen(this);
@@ -59,7 +59,7 @@ public class Planets extends Game implements Screen {
 		camera.update();
 
 		world.setDelta(delta);
-		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)) {
 			for (int i = 0; 10 > i; i++) {
 				world.process();
 			}
