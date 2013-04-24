@@ -38,6 +38,9 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		if(p.vec.y < minY) p.vec.y = minY;
 		if(p.vec.x > maxX) p.vec.x = maxX;
 		if(p.vec.y > maxY) p.vec.y = maxY;
+		
+		//DEBUG:
+		System.out.println(e+"v:"+v.vec.x +" "+ v.vec.y);
 	}
 	
 	@Override

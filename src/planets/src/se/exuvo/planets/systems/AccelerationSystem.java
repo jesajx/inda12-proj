@@ -25,6 +25,9 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem {
 		
 		// apply accel to speed
 		v.vec.add(a.vec);
+		
+		//DEBUG:
+		System.out.println(e+"a:"+a.vec.x +" "+ a.vec.y);
 	}
 
 }
