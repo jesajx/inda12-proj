@@ -193,7 +193,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean scrolled(int amount) {
-		return false;
+		camera.zoom += amount;
+		return true;
 	}
 
 	@Override
