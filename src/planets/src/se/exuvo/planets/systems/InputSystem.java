@@ -4,6 +4,7 @@ import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
@@ -100,7 +101,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			lastPlanet = EntityFactory.createHollowPlanet(world, new Position(new Vector2(mouseVector.x, mouseVector.y)));
 			lastPlanet.addToWorld();
 			wasPaused = paused;
-			if(!wasPaused){
+			if(Settings.getBol("pauseWhenCreatingPlanets")){
 				setPaused(true);
 			}
 			createPlanet = false;
