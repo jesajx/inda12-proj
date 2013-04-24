@@ -114,7 +114,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 				// magnitudes of accelerations between p and p2.
 				float mag1 = m2.mass*k;
 				float mag2 = -m.mass*k;
-				float cos = (float)MathUtils.cos(angle);
+				float cos = (float)MathUtils.cos(angle); // TODO perhaps its better to use double if we're calculating everything in it anyway?
 				float sin = (float)MathUtils.sin(angle);
 				
 				// acceleration for p towards p2
@@ -126,16 +126,16 @@ public class GravitationSystem extends IntervalEntitySystem {
 				a2.vec.add(v2);
 				
 				//DEBUGGING.
-				System.out.println("m2*k:" + m2.mass * k);
-				System.out.println("m*k:" + m.mass * k);
-				System.out.println("d^2: " + distanceSquared); 
-				System.out.println("G: " + G); 
-				System.out.println("k: " + k); 
-				System.out.println("rads: " + angle); 
-				System.out.println("v: " + v.x +" "+ v.y);
-				System.out.println("v2: " + v2.x +" "+ v2.y);
-				System.out.println("a: " + a.vec.x +" "+ a.vec.y);
-				System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
+//				System.out.println("m2*k:" + m2.mass * k);
+//				System.out.println("m*k:" + m.mass * k);
+//				System.out.println("d^2: " + distanceSquared); 
+//				System.out.println("G: " + G); 
+//				System.out.println("k: " + k); 
+//				System.out.println("rads: " + angle); 
+//				System.out.println("v: " + v.x +" "+ v.y);
+//				System.out.println("v2: " + v2.x +" "+ v2.y);
+//				System.out.println("a: " + a.vec.x +" "+ a.vec.y);
+//				System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
 			}
 		}
 		
