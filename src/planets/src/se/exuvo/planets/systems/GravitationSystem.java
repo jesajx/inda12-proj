@@ -110,44 +110,40 @@ public class GravitationSystem extends IntervalEntitySystem {
 				// G/d^2
 				float k = G / distanceSquared;
 				
-				// TODO NaN-guard?
+				// TODO NaN-guard? i.e. check for distanceSquared==0 ?
 				
+				// magnitudes of accelerations between p and p2.
+				float mag1 = m2.mass*k;
+				float mag2 = -m.mass*k;
+				float cos = (float)MathUtils.cos(angle);
+				float sin = (float)MathUtils.sin(angle);
 				
 				// acceleration for p towards p2
-				Vector2 v = pol(angle, m2.mass * k); // vector from angle and magnitude
+				Vector2 v = new Vector2(mag1*cos, mag1*sin);
 				a.vec.add(v);
 				
 				// acceleration for p2 towards p
-				Vector2 v2 = pol(angle, -m.mass * k);
+				Vector2 v2 = new Vector2(mag2*cos, mag2*sin);
 				a2.vec.add(v2);
 				
 				//DEBUGGING.
-//				System.out.println("m2*k:" + m2.mass * k);
-//				System.out.println("m*k:" + m.mass * k);
-//				System.out.println("d^2: " + distanceSquared); 
-//				System.out.println("G: " + G); 
-//				System.out.println("k: " + k); 
-//				System.out.println("rads: " + angle); 
-//				System.out.println("v: " + v.x +" "+ v.y);
-//				System.out.println("v2: " + v2.x +" "+ v2.y);
-//				System.out.println("a: " + a.vec.x +" "+ a.vec.y);
-//				System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
+				System.out.println("m2*k:" + m2.mass * k);
+				System.out.println("m*k:" + m.mass * k);
+				System.out.println("d^2: " + distanceSquared); 
+				System.out.println("G: " + G); 
+				System.out.println("k: " + k); 
+				System.out.println("rads: " + angle); 
+				System.out.println("v: " + v.x +" "+ v.y);
+				System.out.println("v2: " + v2.x +" "+ v2.y);
+				System.out.println("a: " + a.vec.x +" "+ a.vec.y);
+				System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
 			}
 		}
 		
 		// TODO use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
-		// NOTE: I've used libgdx's MathUtils for fast sin,cos and atan2. Vector2 doesn't have that good support of pol and angles on it's own.
+		// NOTE: I've used libgdx's MathUtils for fast sin,cos and atan2.
 		// NOTE: libgdx's MathUtils uses lookuptables created using java.lang.Math -> java.lang.StrictMath -> C-code.
 		// NOTE: artemis's FastMath uses some other lookup-method. Probably faster, but less accurate, than gdx's.
 		// NOTE: artemis's FastMath had more accurate PI-variables.
-	}
-	
-	/**
-	 * Creates a {@link Vector2} from the given polar arguments.
-	 */
-	private static Vector2 pol(float angle, float magnitude) {
-		float cos = (float)MathUtils.cos(angle);
-		float sin = (float)MathUtils.sin(angle);
-		return new Vector2(magnitude*cos, magnitude*sin);
 	}
 }
