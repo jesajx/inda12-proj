@@ -45,10 +45,11 @@ public class Planets extends Game implements Screen {
 
 		world.initialize();
 		
-		float r = 50f;
+		float d = 50f;
 		float v = 1f;
-		EntityFactory.createPlanet(world, 10f, 1e9f, new Vector2(r,0), new Vector2(0, v), Color.WHITE).addToWorld();
-		EntityFactory.createPlanet(world, 10f, 1e9f, new Vector2(-r,0), new Vector2(0, -v), Color.YELLOW).addToWorld();
+		float m = 1e35f;
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(d,0), new Vector2(0, v), Color.WHITE).addToWorld();
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(-d,0), new Vector2(0, -v), Color.YELLOW).addToWorld();
 	}
 
 	@Override

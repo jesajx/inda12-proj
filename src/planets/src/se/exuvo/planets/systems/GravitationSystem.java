@@ -16,14 +16,49 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class GravitationSystem extends IntervalEntitySystem {
+	
+	//--variables--
+	// TODO move to separate Constants-class?
+	/**
+	 * The Gravitational Constant.
+	 * TODO Should have the same value as in reality if we want to use realistic masses/distances/times/etc. for planets.
+	 * 		This means planets need to have gigantic masses, distances and time to properly orbit. We may need to change this.
+	 */
+	private float G = 6.6726e-11f;
+	
+	/**
+	 * The kg-mass of Terra - Earth.
+	 * Useful reference when setting other planets' masses.
+	 */
+	private float earth_mass = 5.9376e24f;
+	
+	/**
+	 * The kg-mass of Sol, the realworld sun.
+	 * Useful reference when setting other stars' masses.
+	 */
+	private float sol_mass = 1.9891e30f;
+	
+	
+	/**
+	 * Gives the system access to components with the Mass-Aspect.
+	 */
 	@Mapper ComponentMapper<Mass> mm;
+	
+	/**
+	 * Gives the system access to components with the Acceleration-Aspect.
+	 */
 	@Mapper ComponentMapper<Acceleration> am;
+	
+	/**
+	 * Gives the system access to components with the Position-Aspect.
+	 */
 	@Mapper ComponentMapper<Position> pm;
 	
-	// TODO make somehow settable by user?
-	// TODO calculate this realtive to fps.
-	private float G = 1E16f;//(float) (6.6726 * Math.pow(10.0,-11.0));
+	
 
+	/**
+	 * Creates a new GravitationSystem.
+	 */
 	public GravitationSystem() {
 		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
 	}
@@ -31,7 +66,6 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		
-		// TODO do we need an acceleration-system if we do clear here? we could update the velocity directly. unless the user wants to see the acceleration...
 		// clear old accelerations
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
@@ -70,50 +104,60 @@ public class GravitationSystem extends IntervalEntitySystem {
 				
 				// distance from p to p2
 				float distanceSquared = posDiff.len2(); // distance squared
-				
 				// angle from p to p2
 				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
+				if (angle < 0) {
+					angle = (float) FastMath.HALF_PI;
+				}
+				angle %= FastMath.PI;
 				
 				// G/d^2
 				float k = G / distanceSquared;
 				
-				// the accelerations are created as:
-				//
-				// <-----.-----> (0 angle)
-				//
-				// and then rotated counter-clockwise.
+				if (!Double.isNaN(k)) { // TODO necessary?
 				
-				// acceleration for p towards p2
-				Vector2 v = new Vector2(m2.mass * k, 0);
-				rotate(v, angle);
-				a.vec.add(v);
-				
-				// acceleration for p2 towards p
-				Vector2 v2 = new Vector2(m.mass * k, 0);
-				rotate(v2, angle);
-				a2.vec.add(v2);
-				
-				//System.out.println("d^2: " + distanceSquared); 
-				//System.out.println("G: " + G); 
-				//System.out.println("k: " + k); 
-				//System.out.println("degrees: " + angle); 
-				//System.out.println("v: " + v.x +" "+ v.y);
-				//System.out.println("v2: " + v2.x +" "+ v2.y);
+					// the accelerations are created as:
+					//
+					// <-----.-----> (0 angle)
+					//
+					// and then rotated counter-clockwise.
+					
+					// acceleration for p towards p2
+					Vector2 v = pol(angle, m2.mass * k); // vector from angle and magnitude
+					a.vec.add(v);
+					
+					// acceleration for p2 towards p
+					Vector2 v2 = pol(angle, -m.mass * k);
+					a2.vec.add(v2);
+					
+					//DEBUGGING.
+					System.out.println("m2*k:" + m2.mass * k);
+					System.out.println("m*k:" + m.mass * k);
+					System.out.println("d^2: " + distanceSquared); 
+					System.out.println("G: " + G); 
+					System.out.println("k: " + k); 
+					System.out.println("rads: " + angle); 
+					System.out.println("v: " + v.x +" "+ v.y);
+					System.out.println("v2: " + v2.x +" "+ v2.y);
+					System.out.println("a: " + a.vec.x +" "+ a.vec.y);
+					System.out.println("a2: " + a2.vec.x +" "+ a2.vec.y);
+				}
 			}
 		}
-
+		
 		// TODO use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
+		// NOTE: I've used libgdx's MathUtils for fast sin,cos and atan2. Vector2 doesn't have that good support of pol and angles on it's own.
+		// NOTE: libgdx's MathUtils uses lookuptables created using java.lang.Math -> java.lang.StrictMath -> C-code.
+		// NOTE: artemis's FastMath uses some other lookup-method. Probably faster, but less accurate, than gdx's.
+		// NOTE: artemis's FastMath had more accurate PI-variables.
 	}
 	
-	// TODO it's possible there's an lib-implementation of this (NOT Vector2.rotate() -- it uses java.lang.Math)
 	/**
-	 * Rotates the given {@link Vector2} {@code angle} number of radians counter-clockwise, using  {@link FastMath}.
+	 * Creates a {@link Vector2} from the given polar arguments.
 	 */
-	private static void rotate(Vector2 v, float angle) {
-		float cos = (float)FastMath.cos(angle);
-		float sin = (float)FastMath.sin(angle);
-
-		v.x = v.x * cos - v.y * sin;
-		v.y = v.x * sin + v.y * cos;
+	private static Vector2 pol(float angle, float magnitude) {
+		float cos = (float)MathUtils.cos(angle);
+		float sin = (float)MathUtils.sin(angle);
+		return new Vector2(magnitude*cos, magnitude*sin);
 	}
 }
