@@ -1,0 +1,34 @@
+
+svarta hål
+
+super novor
+
+explissioner och kolissioner
+
+achievementsystem eller på annat sätt "challenges" till användaren.
+
+template solsystem
+
+spara vad man gjort i en fil.
+
+simplificera mass-systemet. t.ex. vi har planetsorlekar 1-10 och densisteter
+1-10. Detta gör det lättare för folk som kan fysik. att jag säger densitet
+istället för massa är för att det ger fler veriationer om de olika
+inställningarna sammspelar (mer såännande/intressant så).
+
+varma solar
+
+bigbang - autogenererande system. (med snabbspolning)
+
+kunna zooma in och ut.
+radar/karta uppe i högra hörnet. universum blir lätt väldigt stora.
+
+
+(3D-universum) <-- tar nog för lång tid och kan behöva göra om ganska mycket.
+Alternativt att vi har "layers". se spaceship warrior (man flyger
+framför vissa skepp, men bakom andra).
+
+
+kunna välja bakgrund?
+"kanten" på planterna kan vara inversen till bakgrundsfärgen.
+
