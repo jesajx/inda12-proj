@@ -21,7 +21,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	// TODO move to separate Constants-class?
 	/**
 	 * The Gravitational Constant.
-	 * TODO Should have the same value as in reality if we want to use realistic masses/distances/times/etc. for planets. This doesn't however mean that planets need to have gigantic masses, distances and time to properly orbit.
+	 * TODO Should have the same value as in reality if we want to use realistic masses/distances/times/etc. for planets. This does however mean that planets need to have GIGANTIC masses, distances and time to properly orbit.
 	 */
 	private float G = 6.6726e-11f;
 	
