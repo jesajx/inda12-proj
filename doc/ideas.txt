@@ -8,20 +8,20 @@ svarta hål
 
 super novor
 
-explissioner och kolissioner
+explosioner och kollisioner
+
+varma solar
 
 achievementsystem eller på annat sätt "challenges" till användaren.
 
-template solsystem
+template-solsystem
 
 spara vad man gjort i en fil.
 
-simplificera mass-systemet. t.ex. vi har planetsorlekar 1-10 och densisteter
+simplificera mass-systemet. t.ex. vi har planetsorlekar 1-10 och densiteter
 1-10. Detta gör det lättare för folk som kan fysik. att jag säger densitet
 istället för massa är för att det ger fler veriationer om de olika
-inställningarna sammspelar (mer såännande/intressant så).
-
-varma solar
+inställningarna samspelar (mer spännande/intressant så).
 
 bigbang - autogenererande system. (med snabbspolning)
 
@@ -34,6 +34,6 @@ Alternativt att vi har "layers". se spaceship warrior (man flyger
 framför vissa skepp, men bakom andra).
 
 
-kunna välja bakgrund?
+kunna välja bakgrundsfärg?
 "kanten" på planterna kan vara inversen till bakgrundsfärgen.
 
