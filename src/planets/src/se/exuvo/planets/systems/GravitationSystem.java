@@ -29,19 +29,6 @@ public class GravitationSystem extends IntervalEntitySystem {
 	 */
 	private float G = 6.6726e-11f;
 	
-	/**
-	 * The kg-mass of Terra - Earth.
-	 * Useful reference when setting other planets' masses.
-	 */
-	private float earth_mass = 5.9376e24f;
-	
-	/**
-	 * The kg-mass of Sol, the realworld sun.
-	 * Useful reference when setting other stars' masses.
-	 */
-	private float sol_mass = 1.9891e30f;
-	
-	
 	/** Gives the system access to components with the Mass-Aspect. */
 	@Mapper ComponentMapper<Mass> mm;
 	

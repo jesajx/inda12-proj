@@ -23,7 +23,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	/** Mapper for entities with the Position-Aspect. */
 	@Mapper	ComponentMapper<Position> pm;
 
-	private float maxX, maxY, minX, minY; // TODO use some sort of rectangle-class instead?
+	private float maxX, maxY, minX, minY; // TODO use some sort of rectangle-object instead?
 	
 	/** Whether this system is paused. */
 	private boolean paused; // TODO use a global variable instead (in e.g. Planets)? that way we can easier pause e.g. the AccelerationSystem too.
@@ -58,7 +58,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 //		if(p.vec.y > maxY) p.vec.y = maxY;
 		
 		//DEBUG:
-//		System.out.println(e+"v:"+v.vec.x +" "+ v.vec.y);
+		System.out.println(e+"v:"+v.vec.len2()+": "+v.vec.x +" "+ v.vec.y);
 	}
 	
 	/**
