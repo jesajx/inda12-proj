@@ -15,6 +15,10 @@ import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * System responsible for updating the acceleration on planets,
+ * by calculating gravity between planets.
+ */
 public class GravitationSystem extends IntervalEntitySystem {
 	
 	//--variables--
@@ -38,19 +42,13 @@ public class GravitationSystem extends IntervalEntitySystem {
 	private float sol_mass = 1.9891e30f;
 	
 	
-	/**
-	 * Gives the system access to components with the Mass-Aspect.
-	 */
+	/** Gives the system access to components with the Mass-Aspect. */
 	@Mapper ComponentMapper<Mass> mm;
 	
-	/**
-	 * Gives the system access to components with the Acceleration-Aspect.
-	 */
+	/** Gives the system access to components with the Acceleration-Aspect. */
 	@Mapper ComponentMapper<Acceleration> am;
 	
-	/**
-	 * Gives the system access to components with the Position-Aspect.
-	 */
+	/** Gives the system access to components with the Position-Aspect. */
 	@Mapper ComponentMapper<Position> pm;
 	
 	
@@ -62,6 +60,13 @@ public class GravitationSystem extends IntervalEntitySystem {
 		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
 	}
 
+	/**
+	 * Updates the acceleration of the given entities by calculating gravitational effects.
+	 * The acceleration of the planets are reset to (0,0).
+	 * Then each planet is compared to all other planets once, and the gravitational acceleration
+	 * between each pair is calculated and added to respective planet.
+	 * The method has the time complexity of this method is O(n<sup>2</sup>) and may change in the future.
+	 */
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		
@@ -72,21 +77,24 @@ public class GravitationSystem extends IntervalEntitySystem {
 			a.vec.set(Vector2.Zero); // reset
 		}
 		
-		// calculate gravity effects on gravity.
+		// calculate gravity effects on each pair of planets.
 		for (int i = 0; i < entities.size(); i++) {
+			
+			// planet A
 			Entity e = entities.get(i);
 			Acceleration a = am.get(e);
-			
 			Mass m = mm.get(e);
-			Position p = pm.get(e);
+			Position p = pm.get(e); //TODO center of planet A? or top left corner?
 			
 			for (int j = i+1; j < entities.size(); j++) {
+				
+				// planet B
 				Entity e2 = entities.get(j);
 				Acceleration a2 = am.get(e2);
-				
 				Mass m2 = mm.get(e2);
-				Position p2 = pm.get(e2);
+				Position p2 = pm.get(e2);//TODO center of planet B? or top left corner?
 				
+				// TODO put the rest in separate method?
 				// F = G*m*M/d^2
 				// F = ma
 				// a = G*M/d^2 = M * G/d^2
@@ -96,33 +104,34 @@ public class GravitationSystem extends IntervalEntitySystem {
 				// G = grav. constant
 				// d = distance between e and e2
 				
-				
-				
 				// vector from p to p2
 				Vector2 posDiff = p2.vec.cpy().sub(p.vec);
 				
 				// distance from p to p2
 				float distanceSquared = posDiff.len2(); // distance squared
-				// angle from p to p2
+				
+				// angle (in radians) from p to p2
 				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
 				
 				// G/d^2
 				float k = G / distanceSquared;
 				
-				// TODO NaN-guard? i.e. check for distanceSquared==0 ?
-				if (distanceSquared == 0)
+				// incase the planets are overlapping exactly.
+				if (distanceSquared == 0) {
 						continue;
-				// magnitudes of accelerations between p and p2.
+				}
+				
+				// magnitudes of accelerations between planets A and B
 				float mag1 = m2.mass*k;
-				float mag2 = -m.mass*k;
-				float cos = (float)MathUtils.cos(angle); // TODO perhaps its better to use double if we're calculating everything in it anyway?
+				float mag2 = -m.mass*k; // negative because it goes in the opposite direction.
+				float cos = (float)MathUtils.cos(angle);
 				float sin = (float)MathUtils.sin(angle);
 				
-				// acceleration for p towards p2
+				// create and set acceleration for p towards p2
 				Vector2 v = new Vector2(mag1*cos, mag1*sin);
 				a.vec.add(v);
 				
-				// acceleration for p2 towards p
+				// create and set acceleration for p2 towards p
 				Vector2 v2 = new Vector2(mag2*cos, mag2*sin);
 				a2.vec.add(v2);
 				
@@ -143,7 +152,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 		// TODO use FastMath TrigLUT Utils from artemis or MathUtils from libgdx?
 		// NOTE: I've used libgdx's MathUtils for fast sin,cos and atan2.
 		// NOTE: libgdx's MathUtils uses lookuptables created using java.lang.Math -> java.lang.StrictMath -> C-code.
-		// NOTE: artemis's FastMath uses some other lookup-method. Probably faster, but less accurate, than gdx's.
+		// NOTE: artemis's FastMath uses some other lookup-method. Possibly faster but less accurate than gdx's.
 		// NOTE: artemis's FastMath had more accurate PI-variables.
 	}
 }

@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 
+// TODO will this class be necessary? only prints text we will likely remove.
+// TODO use to render menu and clock?
 public class HudRenderSystem extends VoidEntitySystem {
 
 	private SpriteBatch batch;

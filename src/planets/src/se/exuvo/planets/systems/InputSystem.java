@@ -50,7 +50,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	 */
 	private Vector2 mouseStartVector;
 
-	// TODO generalize bool vars. i.e. call it something like RIGHT_MOUSE_DOWN rather than 'createPlanet'? i.e. let processing handle the logic, not the input-methods.
+	// TODO generalize bool vars. i.e. call it something like RIGHT_MOUSE_DOWN rather than 'createPlanet'? i.e. let processing handle the logic, not the input.
 	private boolean createPlanet, releasePlanet, selectPlanet;
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;

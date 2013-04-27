@@ -12,7 +12,7 @@ import com.artemis.systems.IntervalEntityProcessingSystem;
 import com.badlogic.gdx.Gdx;
 
 /**
- * System responisble for "moving" planets (usually)
+ * System responsible for "moving" planets (usually)
  * - updating their positions using their velocities.
  */
 public class VelocitySystem extends IntervalEntityProcessingSystem {
@@ -24,7 +24,9 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	@Mapper	ComponentMapper<Position> pm;
 
 	private float maxX, maxY, minX, minY; // TODO use some sort of rectangle-class instead?
-	private boolean paused;
+	
+	/** Whether this system is paused. */
+	private boolean paused; // TODO use a global variable instead (in e.g. Planets)? that way we can easier pause e.g. the AccelerationSystem too.
 	
 	// --constructor--
 	/**
