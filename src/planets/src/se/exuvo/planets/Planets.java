@@ -19,6 +19,9 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * The game and main application screen. This class holds the contents of the gameloop.
+ */
 public class Planets extends Game implements Screen {
 	private World world;
 	private OrthographicCamera camera;
@@ -26,6 +29,9 @@ public class Planets extends Game implements Screen {
 	private PlanetRenderSystem planetRenderSystem;
 	private HudRenderSystem hudRenderSystem;
 	
+	/**
+	 * Initializes the game.
+	 */
 	@Override
 	public void create() {
 		setScreen(this);
@@ -66,6 +72,10 @@ public class Planets extends Game implements Screen {
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r,0), new Vector2(0, v), Color.YELLOW).addToWorld();
 	}
 
+	/**
+	 * The main part of the game loop.
+	 * Processes all systems and renders the screen.
+	 */
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
@@ -84,6 +94,9 @@ public class Planets extends Game implements Screen {
 		hudRenderSystem.process();
 	}
 
+	
+	// --Screen--
+	
 	@Override
 	public void resize(int width, int height) {}
 

@@ -14,20 +14,32 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
+/**
+ * EntittySystem responsible for drawing planets on the screen.
+ */
 public class PlanetRenderSystem extends EntityProcessingSystem {
 	
+	// --variables--
+	/** Mapper for entities with the Position-aspect. */
 	@Mapper	ComponentMapper<Position> pm;
+	/** Mapper for entities with the Size-aspect. */
 	@Mapper	ComponentMapper<Size> sm;
+	/** Mapper for entities with the Colour-aspect. */
 	@Mapper	ComponentMapper<Colour> cm;
 
+	/** The gameworld camera. */
 	private OrthographicCamera camera;
+	
+	/** Used to draw shaped (circles). */
 	private ShapeRenderer render;
 
+	// --constructor--
 	public PlanetRenderSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
 	}
 
+	// --system--
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();
@@ -35,12 +47,19 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 
 	@Override
 	protected void begin() {
+		// initialize rendering
 		render.setProjectionMatrix(camera.combined);
 		render.begin(ShapeType.FilledCircle);
 	}
 
+	/**
+	 * Draws the given Entity.
+	 */
 	@Override
 	protected void process(Entity e) {
+		// for each planet...
+		
+		// get relevant planet-components
 		Position p = pm.get(e);
 		Size s = sm.get(e);
 		Colour c = cm.getSafe(e);
@@ -48,12 +67,13 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 		if(c != null){
 			render.setColor(c.color);
 		}
-		
+		// ...draw the planet.
 		render.filledCircle(p.vec.x, p.vec.y, s.radius);
 	}
 
 	@Override
 	protected void end() {
+		// end rendering.
 		render.end();
 	}
 

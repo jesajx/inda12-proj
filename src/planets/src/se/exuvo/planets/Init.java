@@ -16,6 +16,10 @@ import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 
+/**
+ * Class responsible for the main-method which starts the game.
+ * @see Planets
+ */
 public class Init {
 	protected static final Logger log = Logger.getLogger(Init.class);
 	public static final long serialVersionUID = 1;;
@@ -67,8 +71,10 @@ public class Init {
         	return;
         }
         
+        // load images.
         ImagePacker.run();
         
+        // create windows and main game-screen (which happens to manage the mainloop)
         LwjglApplicationConfiguration lwjglApplicationConfiguration = new LwjglApplicationConfiguration();
 		lwjglApplicationConfiguration.fullscreen = Settings.getBol("GUI.Fullscreen");
 		lwjglApplicationConfiguration.width = Settings.getInt("GUI.Width");
@@ -82,7 +88,7 @@ public class Init {
 	}
 	
 	private static final void arguments(JSAP jsap){
-		
+		// TODO clean? do we use all these options?
 		Switch list = new Switch("list")
 			.setShortFlag('l')
 			.setLongFlag("list");
