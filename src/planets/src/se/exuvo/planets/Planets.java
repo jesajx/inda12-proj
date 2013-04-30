@@ -18,6 +18,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 /**
  * The game and main application screen. This class holds the contents of the gameloop.
@@ -40,8 +43,10 @@ public class Planets extends Game implements Screen {
 		world = new World();
 
 		world.setManager(new GroupManager());
+		
+		Stage stage = createUI();
 
-		world.setSystem(new InputSystem(camera));
+		world.setSystem(new InputSystem(camera, stage));
 		world.setSystem(new AccelerationSystem());
 		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
@@ -83,6 +88,24 @@ public class Planets extends Game implements Screen {
 //		float earth_aphelion = 152098232e3f;// m // 1.496e8f
 //		float earth_avg_speed = 29.78e3f; // m/s
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
+	}
+	
+	/**
+	 * Creates the UI-layer of the game.
+	 * TODO It creates an Menu on the left
+	 * side of the screen and an "clock" in the bottom middle of the screen.
+	 * @return the ui
+	 */
+	private static Stage createUI() {
+	    Stage stage = new Stage();
+		Skin skin = new Skin(Gdx.files.internal("uiskin.json"));	    
+		
+        TextButton button = new TextButton("Click me!", skin);
+        button.setX(0);
+        button.setY(0);
+        stage.addActor(button);
+        
+	    return stage;
 	}
 
 	/**

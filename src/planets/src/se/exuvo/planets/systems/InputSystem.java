@@ -56,16 +56,17 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	private boolean paused, wasPaused;
 	
-//	Stage ui; // TODO
+	private Stage ui;
 
 	
 	// --constructor--
-	public InputSystem(OrthographicCamera camera) {
+	public InputSystem(OrthographicCamera camera, Stage stage) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
 		mouseVector = new Vector3();
 		mouseStartVector = new Vector2();
 		Gdx.input.setInputProcessor(this);
+		this.ui = stage;
 	}
 
 	
@@ -83,7 +84,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
-		
+	    ui.act(Gdx.graphics.getDeltaTime());
+	    ui.draw();
 		// TODO separate the various operations into methods.
 		
 		// mouse position on screen
@@ -216,9 +218,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	
 	@Override
 	public boolean keyDown(int keycode) {
-//	    if (ui.keyDown(keycode)) {
-//	        return true;
-//	    }
+	    if (ui.keyDown(keycode)) {
+	        return true;
+	    }
 		if (keycode == Input.Keys.SPACE) {
 			setPaused(!paused);
 			return true;
@@ -228,25 +230,25 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean keyUp(int keycode) {
-//	    if (ui.keyUp(keycode)) {
-//	        return true;
-//	    }
+	    if (ui.keyUp(keycode)) {
+	        return true;
+	    }
 		return false;
 	}
 
 	@Override
 	public boolean keyTyped(char c) {
-//	    if (ui.keyTyped(c)) {
-//	        return true;
-//	    }
+	    if (ui.keyTyped(c)) {
+	        return true;
+	    }
 		return false;
 	}
 
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button) {
-//	    if (ui.touchDown(x, y, pointer, button)) {
-//	        return true;
-//	    }
+	    if (ui.touchDown(x, y, pointer, button)) {
+	        return true;
+	    }
 		// TODO use something like a bitmap to handle many inputs? if map.contains(input) /*could be in map but mapped to false*/ then map.put(input, true)
 		if (button == Input.Buttons.RIGHT) {
 			createPlanet = true;
@@ -260,9 +262,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean touchUp(int x, int y, int pointer, int button) {
-//	    if (ui.touchUp(x, y, pointer, button)) {
-//	        return true;
-//	    }
+	    if (ui.touchUp(x, y, pointer, button)) {
+	        return true;
+	    }
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
 			return true;
@@ -272,17 +274,17 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean touchDragged(int x, int y, int pointer) {
-//	    if (ui.touchDragged(x, y, pointer)) {
-//	        return true;
-//	    }
+	    if (ui.touchDragged(x, y, pointer)) {
+	        return true;
+	    }
 		return false;
 	}
 
 	@Override
 	public boolean scrolled(int amount) {
-//	    if (ui.scrolled(amount)) {
-//	        return true;
-//	    }
+	    if (ui.scrolled(amount)) {
+	        return true;
+	    }
 		// forward-scroll makes amount negative.
 		camera.zoom += amount;
 		if (camera.zoom < 1) {
@@ -296,9 +298,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-//	    if (ui.mouseMoved(screenX, screenY)) {
-//	        return true;
-//	    }
+	    if (ui.mouseMoved(screenX, screenY)) {
+	        return true;
+	    }
 		return false;
 	}
 }
