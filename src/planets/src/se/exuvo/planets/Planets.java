@@ -98,7 +98,7 @@ public class Planets extends Game implements Screen {
 	 */
 	private static Stage createUI() {
 	    Stage stage = new Stage();
-		Skin skin = new Skin(Gdx.files.internal("uiskin.json"));	    
+		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));	    
 		
         TextButton button = new TextButton("Click me!", skin);
         button.setX(0);
