@@ -332,7 +332,13 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private float readFloatFromField(TextField tf) {
 		String s = readStringFromField(tf);
 		if (s != null) {
-			return Float.parseFloat(s);
+			try{
+				return Float.parseFloat(s);
+			}catch(RuntimeException e){
+				// TODO error message
+				e.printStackTrace();
+				return Float.NaN;
+			}
 		} else {
 			return Float.NaN;
 		}
@@ -358,8 +364,13 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	public Color getColor() {
 		String s = readStringFromField(color);
 		if (s != null) {
-			return Color.valueOf(s);
-			// TODO
+			try{
+				return Color.valueOf(s);
+			}catch(RuntimeException e){
+				// TODO error message
+				e.printStackTrace();
+				return Color.WHITE;
+			}
 		} else {
 			return new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1);
 		}

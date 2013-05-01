@@ -94,9 +94,9 @@ public class EntityFactory {
 	 * @param e the planet.
 	 * @param v the velocity to set.
 	 */
-	public static void fillPlanet(Entity e, Vector2 velocity, Vector2 acceleration) {
+	public static void fillPlanet(Entity e, Vector2 velocity) {
 		e.addComponent(new Velocity(velocity));
-		e.addComponent(new Acceleration(acceleration));
+		e.addComponent(new Acceleration());
 
 		e.changedInWorld();
 	}
