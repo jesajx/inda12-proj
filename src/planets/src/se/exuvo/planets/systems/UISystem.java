@@ -224,6 +224,32 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 		});
 		
+		addTextFieldEnterListener(velocity.x, new Runnable() {
+			@Override
+			public void run() {
+				Velocity v = vm.get(selectedPlanet);
+				float f =  readFloatFromField(velocity.x);
+				if(!Float.isNaN(f)){
+					v.vec.x = f;
+				}else{
+					new RuntimeException().printStackTrace();
+				}
+			}
+		});
+		
+		addTextFieldEnterListener(velocity.y, new Runnable() {
+			@Override
+			public void run() {
+				Velocity v = vm.get(selectedPlanet);
+				float f =  readFloatFromField(velocity.y);
+				if(!Float.isNaN(f)){
+					v.vec.y = f;
+				}else{
+					new RuntimeException().printStackTrace();
+				}
+			}
+		});
+		
 		addTextFieldEnterListener(radius, new Runnable() {
 			@Override
 			public void run() {
