@@ -110,5 +110,13 @@ public class EntityFactory {
 		
 		return e;
 	}
-
+	
+    public static Entity createParticleEffect(World world, Vector2 p){
+		Entity e = world.createEntity();
+		
+		e.addComponent(new Position(p));
+		e.addComponent(new Particle());
+		
+		return e;
+	}
 }
