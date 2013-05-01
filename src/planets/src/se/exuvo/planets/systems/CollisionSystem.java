@@ -49,7 +49,6 @@ public class CollisionSystem extends IntervalEntitySystem {
                                                           
         Collision c;
         
-        
         // TODO what if already colliding?
         
         while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
@@ -75,16 +74,17 @@ public class CollisionSystem extends IntervalEntitySystem {
         Collision c = null;
         for (int i = 0; i < entities.size(); ++i) {
 			Entity e1 = entities.get(i);
-			Position p1 = pm.get(e1);
+			Vector2 p1 = pm.get(e1).vec;
 			Size s1 = sm.get(e1);
-			Velocity v1 = vm.get(e1);
+			Vector2 v1 = vm.get(e1).vec;
 			
 			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
     			Entity e2 = entities.get(j);
-    			Position p2 = pm.get(e2);
+    			Vector2 p2 = pm.get(e2).vec;
     			Size s2 = sm.get(e2);
-    			Velocity v2 = vm.get(e2);
+    			Vector2 v2 = vm.get(e2).vec;
     			
+    			// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
     			// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
     			// http://en.wikipedia.org/wiki/Elastic_collision
     			
@@ -95,14 +95,14 @@ public class CollisionSystem extends IntervalEntitySystem {
     			// where:
     			//   p = p1-p2
     			//   v = v1-v2
-    			
-    			Vector2 po1 = p1.vec.cpy(), po2 = p2.vec.cpy();
-    			
+    			if (!movingTowardsEachOther(p1, v1, p2, v2)) {
+    			    continue;
+    			}
     			
     			// TODO check if p.len2()>large to speed up?
     			// TODO time offsets
-    			Vector2 p = po1.cpy().sub(po2);
-    			Vector2 v = v1.vec.cpy().sub(v2.vec);
+    			Vector2 p = p1.cpy().sub(p2);
+    			Vector2 v = v1.cpy().sub(v2);
     			float pLen = p.len();
 			    float vLen = v.len();
     			float r1 = s1.radius;
@@ -139,7 +139,6 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 v2 = vm.get(e2).vec;
         float r1 = sm.get(e1).radius;
         float r2 = sm.get(e2).radius;
-        
         
         
         System.out.println("p1:"+p1.len()+" "+p1);
@@ -190,6 +189,11 @@ public class CollisionSystem extends IntervalEntitySystem {
         return 0f;
     }
     
+    private boolean movingTowardsEachOther(Vector2 p1, Vector2 v1, Vector2 p2, Vector2 v2) {
+        // TODO does this really work?
+        Vector2 p = p1.cpy().sub(p2);
+        return v1.cpy().sub(v2).dot(p) <= 0;
+    }
     
     
     /**
