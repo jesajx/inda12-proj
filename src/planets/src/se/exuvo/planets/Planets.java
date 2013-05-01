@@ -1,6 +1,5 @@
 package se.exuvo.planets;
 
-import se.exuvo.planets.systems.AccelerationSystem;
 import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
@@ -8,23 +7,17 @@ import se.exuvo.planets.systems.InputSystem;
 import se.exuvo.planets.systems.ParticleSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
 import se.exuvo.planets.systems.UISystem;
-import se.exuvo.planets.systems.VelocitySystem;
-import se.exuvo.planets.utils.Settings;
 
 import com.artemis.World;
 import com.artemis.managers.GroupManager;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 /**
  * The game and main application screen. This class holds the contents of the gameloop.
@@ -33,8 +26,6 @@ public class Planets extends Game implements Screen {
 	private World world;
 	private OrthographicCamera camera;
 
-	private PlanetRenderSystem planetRenderSystem;
-	private HudRenderSystem hudRenderSystem;
 	private InputSystem inputSystem;
 	private UISystem uiSystem;
 	
@@ -58,16 +49,15 @@ public class Planets extends Game implements Screen {
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
 
-		world.setSystem(inputSystem);
-		world.setSystem(uiSystem, true);
 //		world.setSystem(new AccelerationSystem());
 //		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
 		world.setSystem(new CollisionSystem());
+		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
-
-		planetRenderSystem = world.setSystem(new PlanetRenderSystem(camera), true);
-		hudRenderSystem = world.setSystem(new HudRenderSystem(), true);
+		world.setSystem(uiSystem);
+		world.setSystem(inputSystem);
+		world.setSystem(new HudRenderSystem());
 
 		world.initialize();
 
@@ -123,13 +113,7 @@ public class Planets extends Game implements Screen {
 			}
 		}
 		world.process();
-
-		planetRenderSystem.process();
-		uiSystem.process();
-		hudRenderSystem.process();
 	}
-
-	// --Screen--
 
 	@Override
 	public void resize(int width, int height) {}
