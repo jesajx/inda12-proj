@@ -1,9 +1,6 @@
 package se.exuvo.planets.systems;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
@@ -23,16 +20,11 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class CollisionSystem extends IntervalEntitySystem {
 
-    /** Mapper for entities with the Position-component. */
 	@Mapper ComponentMapper<Position> pm;
-    /** Mapper for entities with the Size-component. */
 	@Mapper ComponentMapper<Size> sm;
-    /** Mapper for entities with the Velocity-component. */
 	@Mapper ComponentMapper<Velocity> vm;
-    /** Mapper for entities with the Mass-component. */
 	@Mapper ComponentMapper<Mass> mm;
-	
-	// TODO involve Acceleration?
+	@Mapper ComponentMapper<Acceleration> am;
 	
 	
     public CollisionSystem() {
@@ -44,12 +36,14 @@ public class CollisionSystem extends IntervalEntitySystem {
      */
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
-        
         // TODO space partitioning? quadtree?
         
 		// TODO optimize!
 		// TODO clean!
-        
+        for (int i = 0; i < entities.size(); i++) {
+            Entity e = entities.get(i);
+            vm.get(e).vec.add(am.get(e).vec);
+        }
         // times>0 if planets are moved due to collisions.
         float timeLimit = 1f;
                                                           
@@ -59,10 +53,10 @@ public class CollisionSystem extends IntervalEntitySystem {
         // TODO what if already colliding?
         
         while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
-            timeLimit -= c.t;
-            updatePlanetPositions(entities, c.t);
-            
-            handleCollision(c.e1, c.e2);
+            float t = c.t;
+            t += handleCollision(c.e1, c.e2);
+            updatePlanetPositions(entities, t);
+            timeLimit -= t;
         }
         updatePlanetPositions(entities, timeLimit);
     }
@@ -123,7 +117,8 @@ public class CollisionSystem extends IntervalEntitySystem {
 //			    System.out.println("tn:"+t);
 			    
 			    // TODO check for vLen==0 instead?
-			    if (!Float.isNaN(t) && t > 0.001 && t < timeLimit && (c == null || t < c.t)) {
+			    // TODO does t have to be >= 0
+			    if (!Float.isNaN(t) && t >= 0 && t < timeLimit && (c == null || t < c.t)) {
     			    System.out.println("t:"+t);
 			        c = new Collision(e1, e2, t);
 			    }
@@ -146,6 +141,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         float r2 = sm.get(e2).radius;
         
         
+        
         System.out.println("p1:"+p1.len()+" "+p1);
         System.out.println("p2:"+p2.len()+" "+p2);
 		// http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling?rq=1
@@ -158,6 +154,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 p = p1.cpy().sub(p2);
         System.out.println("p:"+p.len()+" "+p2);
         System.out.println("r:"+(r1+r2));
+        
+        
         Vector2 un = p.cpy().nor();
         Vector2 ut = new Vector2(-un.y, un.x);
         
@@ -170,7 +168,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         float t1 = ut.dot(v1);
         float t2 = ut.dot(v2);
         
-        float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2); // TODO remove ugly hack
+        float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2);
         float nn2 = (n2 * (m2-m1) + 2*m1*n1)/(m1+m2);
         // t1 and t2 don't change.
         

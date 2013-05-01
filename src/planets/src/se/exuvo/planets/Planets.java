@@ -59,7 +59,7 @@ public class Planets extends Game implements Screen {
 
 		world.setSystem(inputSystem);
 		world.setSystem(uiSystem, true);
-		world.setSystem(new AccelerationSystem());
+//		world.setSystem(new AccelerationSystem());
 //		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
 		world.setSystem(new CollisionSystem());
@@ -85,7 +85,7 @@ public class Planets extends Game implements Screen {
 
 		float m = 1e16f;// 1e15f;
 		float v = 0;//10f;// 6.f;
-		float r = 0;//10 * 6 * 6 * 6;// v*v*v;
+		float r = 10 * 6 * 6 * 6;// v*v*v;
 //		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 //		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
 
