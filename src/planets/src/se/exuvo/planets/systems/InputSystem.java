@@ -174,7 +174,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				if (selectedPlanet != null) {
 					vm.get(selectedPlanet).vec.add(push);
 				} else {
-					EntityFactory.fillPlanet(lastPlanet, uisystem.getVelocity().add(push), uisystem.getAcceleration());
+					EntityFactory.fillPlanet(lastPlanet, uisystem.getVelocity().add(push));
 				}
 				lastPlanet = null;
 				releasePlanet = false;

@@ -28,8 +28,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
+import com.badlogic.gdx.scenes.scene2d.utils.FocusListener.FocusEvent;
 import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 
 /**
@@ -46,7 +46,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private Window table;
 	private static int debug = 0;
 
-	private TextField mass, size, color;
+	private TextField mass, radius, color;
 	private TextFields velocity, acceleration, position;
 	private Entity selectedPlanet;
 
@@ -88,25 +88,57 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		table.setPosition(-width / 2, -height / 2);
 		stage.addActor(table);
 
-		// Massa hastighet xy accel xy volym
-
 		mass = addField("Mass", table, skin);
-		size = addField("Size", table, skin);
+		radius = addField("Radius", table, skin);
 		color = addField("Color", table, skin);
 		velocity = addField2("Velocity", table, skin);
 		acceleration = addField2("Acceleration", table, skin);
 		position = addField2("Position", table, skin);
 
-		TextButton removeButton = new TextButton("Remove", skin);
-		removeButton.addListener(new ChangeListener() {
+		acceleration.x.setDisabled(true);
+		acceleration.y.setDisabled(true);
+		
+		Table buttonTable = new Table(skin);
+		table.add(buttonTable).expandX().fillX().row();
+
+		TextButton remove = addButton("Remove", buttonTable, skin);
+		remove.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				selectedPlanet.deleteFromWorld();
 			}
 		});
-		table.add(removeButton);
-		
+
+		TextButton copy = addButton("Copy", buttonTable, skin);
+		copy.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				copyFieldText(mass);
+				copyFieldText(radius);
+				copyFieldText(color);
+				copyFieldText(velocity.x);
+				copyFieldText(velocity.y);
+				copyFieldText(position.x);
+				copyFieldText(position.y);
+			}
+		});
+
+		TextButton clear = addButton("Clear", buttonTable, skin);
+		clear.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				clearUI();
+				planetSelectionChanged(null);
+			}
+		});
+
 		return stage;
+	}
+
+	private TextButton addButton(String name, Table table, Skin skin) {
+		TextButton button = new TextButton(name, skin);
+		table.add(button);
+		return button;
 	}
 
 	private TextField addField(String name, Table table, Skin skin) {
@@ -149,11 +181,17 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		f.addListener(new FocusListener() {
 			@Override
 			public void keyboardFocusChanged(FocusEvent event, Actor actor, boolean focused) {
-				if (focused && f.getText().equals("")) {
-					f.setText(f.getMessageText());
+				if (focused) {
+					copyFieldText(f);
 				}
 			}
 		});
+	}
+
+	private void copyFieldText(TextField f) {
+		if (f.getText().equals("") && f.getMessageText() != null) {
+			f.setText(f.getMessageText());
+		}
 	}
 
 	private static class TextFields {
@@ -270,7 +308,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			Acceleration a = am.get(selectedPlanet);
 
 			mass.setMessageText("" + m.mass);
-			size.setMessageText("" + s.radius);
+			radius.setMessageText("" + s.radius);
 			color.setMessageText("" + c.color.toString());
 			velocity.x.setMessageText("" + v.vec.x);
 			velocity.y.setMessageText("" + v.vec.y);
@@ -309,7 +347,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	}
 
 	public float getRadius() {
-		float f = readFloatFromField(size, 2f, 10f);
+		float f = readFloatFromField(radius, 2f, 10f);
 		return f;
 	}
 
@@ -321,6 +359,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		String s = readStringFromField(color);
 		if (s != null) {
 			return Color.valueOf(s);
+			// TODO
 		} else {
 			return new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1);
 		}
@@ -333,6 +372,18 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	public Vector2 getAcceleration() {
 		return new Vector2(readFloatFromField(acceleration.x, 0f, 0f), readFloatFromField(acceleration.y, 0f, 0f));
 	}
+	
+	private void clearUI(){
+		mass.setText("");
+		radius.setText("");
+		color.setText("");
+		velocity.x.setText("");
+		velocity.y.setText("");
+		acceleration.x.setText("");
+		acceleration.y.setText("");
+		position.x.setText("");
+		position.y.setText("");
+	}
 
 	@Override
 	public void planetSelectionChanged(Entity planet) {
@@ -344,7 +395,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			refreshUI();
 		} else {
 			mass.setMessageText("");
-			size.setMessageText("");
+			radius.setMessageText("");
 			color.setMessageText("");
 			velocity.x.setMessageText("");
 			velocity.y.setMessageText("");
