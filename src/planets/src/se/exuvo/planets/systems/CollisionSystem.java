@@ -36,6 +36,9 @@ public class CollisionSystem extends IntervalEntitySystem {
         super(Aspect.getAspectForAll(Position.class, Size.class, Velocity.class), Settings.getFloat("PhysicsStep"));
     }
 
+    /**
+     * Detects and handles collisions.
+     */
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
         
@@ -43,7 +46,6 @@ public class CollisionSystem extends IntervalEntitySystem {
         
         for (int i = 0; i < entities.size(); i++) {
 			
-			// planet A
 			Entity e1 = entities.get(i);
 			Position p1 = pm.get(e1);
 			Size s1 = sm.get(e1);
@@ -51,6 +53,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			Mass m1 = mm.get(e1);
 			
 		    float min_t = Float.POSITIVE_INFINITY;
+		    Entity min_e = null;
 			
 			for (int j = i+1; j < entities.size(); j++) {
     			Entity e2 = entities.get(i);
@@ -86,10 +89,21 @@ public class CollisionSystem extends IntervalEntitySystem {
 			    
 			    // TODO check for vLen==0 instead?
 			    if (!Float.isNaN(t) && t < min_t) {
-			        min_t = t;
+			        min_t = t; // TODO
 			    }
 			}
         }
+        
+        // TODO handle collisions
     }
-
+    
+    private class Collision {
+        float time;
+        Entity p1, p2;
+        public Collision(Entity p1, Entity p2, float time) {
+            this.p1 = p1;
+            this.p2 = p2;
+            this.time = time;
+        }
+    }
 }
