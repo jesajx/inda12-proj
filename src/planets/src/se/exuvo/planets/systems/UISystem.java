@@ -1,11 +1,13 @@
 package se.exuvo.planets.systems;
 
-import com.artemis.Aspect;
 import com.artemis.systems.VoidEntitySystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 /**
@@ -29,6 +31,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor {
 	protected void processSystem() {
 		ui.act(Gdx.graphics.getDeltaTime());
 		ui.draw();
+		Table.drawDebug(ui);
 	}
 
 	/**
@@ -40,11 +43,23 @@ public class UISystem extends VoidEntitySystem implements InputProcessor {
 	private static Stage createUI() {
 		Stage stage = new Stage();
 		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));
+		
+		Table table = new Table();
+		table.setFillParent(true);
+		stage.addActor(table);
 
 		TextButton button = new TextButton("Click me!", skin);
 		button.setX(0);
 		button.setY(0);
-		stage.addActor(button);
+		button.addListener(new EventListener() {
+			@Override
+			public boolean handle(Event event) {
+				// TODO Auto-generated method stub
+				System.out.println("clicked me!");
+				return false;
+			}
+		});
+		table.addActor(button);
 
 		return stage;
 	}

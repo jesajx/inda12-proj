@@ -28,34 +28,33 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
  * The system responsible for handling user input (keyboard and mouse).
  */
 public class InputSystem extends EntitySystem implements InputProcessor {
-	
+
 	// --variables--
 	/** Mapper for components with the Size-aspect. */
 	@Mapper ComponentMapper<Size> sm;
-	
+
 	/** Mapper for compontents with the Position-aspect. */
 	@Mapper ComponentMapper<Position> pm;
-	
+
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
 	/** Holds the mouse position during processing. */
 	private Vector3 mouseVector; // TODO only used inside processEntities. move there completely?
-	
+
 	/**
-	 * Used to hold the mouseposition where the user last placed a planet.
-	 * It is used for when the user rightclick-drags the mouse,
-	 * creating a planet at the rightclick and giving it an
-	 * velocity in the dragged-to direction.
+	 * Used to hold the mouseposition where the user last placed a planet. It is used for when the user rightclick-drags the mouse, creating
+	 * a planet at the rightclick and giving it an velocity in the dragged-to direction.
 	 */
 	private Vector2 mouseStartVector;
 
-	// TODO generalize bool vars. i.e. call it something like RIGHT_MOUSE_DOWN rather than 'createPlanet'? i.e. let processing handle the logic, not the input.
+	// TODO generalize bool vars. i.e. call it something like RIGHT_MOUSE_DOWN rather than 'createPlanet'? i.e. let processing handle the
+// logic, not the input.
 	private boolean createPlanet, releasePlanet, selectPlanet;
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;
 
 	private boolean paused, wasPaused;
-	
+
 	// --constructor--
 	public InputSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
@@ -64,9 +63,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		mouseStartVector = new Vector2();
 	}
 
-	
 	// --system--
-	
+
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();
@@ -80,23 +78,24 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		// TODO separate the various operations into methods.
-		
+
 		// mouse position on screen
 		mouseVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-		
+
 		// update to corresponding mouse position in world
 		camera.unproject(mouseVector);
 
 		// if a planet is TO BE selected
 		if (selectPlanet) { // TODO perhaps clearer with a "LEFT_MOUSE_CLICKED"-variable?
-			
+
 			// unselect any already selected planet. (the user might have clicked between planets)
 			selectedPlanet = null;
-			
+
 			// convert 3D mousePos to 2D
 			Vector2 mouse = new Vector2().set(mouseVector.x, mouseVector.y);
 
-			// TODO would it be better to let the planets themselves check if they were clicked? that might perhaps not be artemis-style though.
+			// TODO would it be better to let the planets themselves check if they were clicked? that might perhaps not be artemis-style
+// though.
 			// compare each planet to the mousePos to see if it was clicked.
 			for (int i = 0; i < entities.size(); i++) {
 				Entity e = entities.get(i);
@@ -112,14 +111,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			selectPlanet = false;
 		}
 
-		// if a planets IS selectd 
+		// if a planets IS selectd
 		if (selectedPlanet != null) {
-			
+
 			// if the planet hasn't died or something.
 			if (selectedPlanet.isActive()) {
 				Position p = pm.get(selectedPlanet);
 				Size s = sm.get(selectedPlanet);
-				
+
 				// draw a triangle around the planet (showing that it's selected)
 				render.begin(ShapeType.Triangle);
 				render.setColor(Color.CYAN);
@@ -141,19 +140,19 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			// add new (random) planet to the world.
 			lastPlanet = EntityFactory.createHollowPlanet(world, new Position(new Vector2(mouseVector.x, mouseVector.y)));
 			lastPlanet.addToWorld();
-			
+
 			wasPaused = paused;
-			if(Settings.getBol("pauseWhenCreatingPlanets")){
+			if (Settings.getBol("pauseWhenCreatingPlanets")) {
 				setPaused(true);
 			}
-			
+
 			// the planet has been created (so don't redo it)
 			createPlanet = false;
 		}
 
 		// if the user dragged the mouse in a direction after creating a planet.
 		if (lastPlanet != null) {
-			
+
 			// from where the planet was created (old mousePos) to the current mousePos
 			float angle = MathUtils.atan2(mouseVector.x - mouseStartVector.x, mouseStartVector.y - mouseVector.y);
 
@@ -173,12 +172,12 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				// give the planet a velocity. (with the angle and magnitude the user showed)
 				EntityFactory.fillPlanet(lastPlanet, new Velocity(new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y
 						- mouseStartVector.y).div(10f)));
-				
+
 				// release the planet from processing
 				lastPlanet = null;
 				releasePlanet = false; // (and don't re-release it)
-				
-				if(!wasPaused){
+
+				if (!wasPaused) {
 					setPaused(false);
 				}
 			}
@@ -195,20 +194,22 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		return true;
 	}
 
-
 	public boolean isPaused() {
 		return paused;
 	}
 
-	private void setPaused(boolean newValue){
+	private void setPaused(boolean newValue) {
 		paused = newValue;
 		world.getSystem(VelocitySystem.class).setPaused(paused);
 		// TODO other systems?
 	}
-	
-	
+
+	public boolean isSpeedup() {
+		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
+	}
+
 	// --input--
-	
+
 	@Override
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.SPACE) {
@@ -230,7 +231,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button) {
-		// TODO use something like a bitmap to handle many inputs? if map.contains(input) /*could be in map but mapped to false*/ then map.put(input, true)
+		// TODO use something like a bitmap to handle many inputs? if map.contains(input) /*could be in map but mapped to false*/ then
+// map.put(input, true)
 		if (button == Input.Buttons.RIGHT) {
 			createPlanet = true;
 			return true;
@@ -262,7 +264,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (camera.zoom < 1) {
 			camera.zoom = 1;
 		}
-		
+
 		// DEBUG
 //		System.out.println("zoom: "+camera.zoom);
 		return true;

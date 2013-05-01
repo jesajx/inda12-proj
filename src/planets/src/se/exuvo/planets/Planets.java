@@ -42,7 +42,7 @@ public class Planets extends Game implements Screen {
 	@Override
 	public void create() {
 		setScreen(this);
-		this.camera = new OrthographicCamera(Settings.getInt("GUI.Width"), Settings.getInt("GUI.Height"));
+		this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		world = new World();
 
@@ -63,7 +63,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(new GravitationSystem());
 
 		planetRenderSystem = world.setSystem(new PlanetRenderSystem(camera), true);
-		hudRenderSystem = world.setSystem(new HudRenderSystem(camera), true);
+		hudRenderSystem = world.setSystem(new HudRenderSystem(), true);
 
 		world.initialize();
 		
@@ -112,7 +112,7 @@ public class Planets extends Game implements Screen {
 		camera.update();
 
 		world.setDelta(delta);
-		if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)) {
+		if (inputSystem.isSpeedup()) {
 			for (int i = 0; 10 > i; i++) {
 				world.process();
 			}

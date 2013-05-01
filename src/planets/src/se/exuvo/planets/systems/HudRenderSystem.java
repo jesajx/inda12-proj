@@ -6,21 +6,24 @@ import com.artemis.systems.VoidEntitySystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 
 // TODO will this class be necessary? only prints text we will likely remove.
-// TODO use to render menu and clock?
 public class HudRenderSystem extends VoidEntitySystem {
 
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 	private BitmapFont font;
 	private boolean fps;
+	private InputSystem insys;
+	private TextBounds pauseBounds, speedBounds;
+	private String pause = "Paused", speed = "speed x10";
 
-	public HudRenderSystem(OrthographicCamera camera) {
-		this.camera = camera;
+	public HudRenderSystem() {
+		this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 	}
 
 	@Override
@@ -34,6 +37,10 @@ public class HudRenderSystem extends VoidEntitySystem {
 		batch = new SpriteBatch();
 
 		fps = Settings.getBol("GUI.ShowFPS");
+		
+		insys = world.getSystem(InputSystem.class);
+		pauseBounds = font.getBounds(pause);
+		speedBounds = font.getBounds(speed);
 	}
 
 	@Override
@@ -52,6 +59,12 @@ public class HudRenderSystem extends VoidEntitySystem {
 			font.draw(batch, "Active entities: " + world.getEntityManager().getActiveEntityCount(), -(width / 2) + 20, height / 2 - 40);
 			font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), -(width / 2) + 20, height / 2 - 60);
 			font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), -(width / 2) + 20, height / 2 - 80);
+		}
+		if (insys.isPaused()) {
+			font.draw(batch, pause, -pauseBounds.width / 4, -height / 2 + 2*pauseBounds.height);
+		}
+		if (insys.isSpeedup()) {
+			font.draw(batch, speed, -speedBounds.width / 4, -height / 2 + 2*speedBounds.height);
 		}
 	}
 
