@@ -26,7 +26,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	private float maxX, maxY, minX, minY; // TODO use some sort of rectangle-object instead?
 	
 	/** Whether this system is paused. */
-	private boolean paused; // TODO use a global variable instead (in e.g. Planets)? that way we can easier pause e.g. the AccelerationSystem too.
+	private InputSystem insys;
 	
 	// --constructor--
 	/**
@@ -38,6 +38,11 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		maxY = Gdx.graphics.getHeight()/2;
 		minX = -maxX;
 		minY = -maxY;
+	}
+	
+	@Override
+	protected void initialize() {
+		insys = world.getSystem(InputSystem.class);
 	}
 
 	/**
@@ -73,19 +78,10 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		// 0		0    0
 		//return !paused && super.checkProcessing();
 		
-		if (paused) {
+		if (insys.isPaused()) {
 			return false;
 		}
 		return super.checkProcessing();
 	}
 	
-	/**
-	 * Sets this system to paused or not paused.
-	 * @param pause <code>true</code> if this system
-	 *  should be paused, otherwise <code>false</code>.
-	 */
-	public void setPaused(boolean pause){
-		paused = pause;
-	}
-
 }

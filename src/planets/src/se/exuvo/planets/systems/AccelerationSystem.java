@@ -9,6 +9,7 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntityProcessingSystem;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
  * System responsible for updating the {@link Velocity} of planets (usually),
@@ -19,12 +20,19 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem {
 	@Mapper	ComponentMapper<Velocity> vm;
 	/** Mapper for Entities with the Acceleration-aspect. */
 	@Mapper	ComponentMapper<Acceleration> am;
+	
+	private InputSystem insys;
 
 	/**
 	 * Creates a new AccelerationSystem.
 	 */
 	public AccelerationSystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
+	}
+	
+	@Override
+	protected void initialize() {
+		insys = world.getSystem(InputSystem.class);
 	}
 
 	/**
@@ -40,5 +48,16 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem {
 		
 		//DEBUG:
 //		System.out.println(e+"a:"+a.ec.len2()+": "+a.vec.x +" "+ a.vec.y);
+	}
+	
+	/**
+	 * Checks whether this system is set to pause.
+	 */
+	@Override
+	protected boolean checkProcessing() {
+		if (insys.isPaused()) {
+			return false;
+		}
+		return super.checkProcessing();
 	}
 }
