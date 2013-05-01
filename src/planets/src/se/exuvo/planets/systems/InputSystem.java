@@ -39,7 +39,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
 	/** Holds the mouse position during processing. */
-	private Vector3 mouseVector; // TODO only used inside processEntities. move there completely?
+	private Vector3 mouseVector;
 
 	/**
 	 * Used to hold the mouseposition where the user last placed a planet. It is used for when the user rightclick-drags the mouse, creating
@@ -260,9 +260,24 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	public boolean scrolled(int amount) {
 		// forward-scroll makes amount negative.
+		float oldZoom = camera.zoom;
+
 		camera.zoom += amount;
 		if (camera.zoom < 1) {
 			camera.zoom = 1;
+		}
+
+//		 Det som var under musen innan scroll ska fortsätta vara där efter zoom
+//
+//		http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
+//		newX = (oldX - Xoffset) / Xscale;
+//		newY = (oldY - Yoffset) / Yscale;
+//		Xoffset += (newX * oldXscale) - (newX * Xscale);
+//		Yoffset += (newY * oldYscale) - (newY * Yscale);
+
+		if (amount < 0) {
+			Vector3 diff = camera.position.cpy().sub(mouseVector);
+			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 
 		// DEBUG
