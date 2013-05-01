@@ -86,8 +86,8 @@ public class Planets extends Game implements Screen {
 		float m = 1e16f;// 1e15f;
 		float v = 0;//10f;// 6.f;
 		float r = 10 * 6 * 6 * 6;// v*v*v;
-//		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
-//		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
 
 		// these radii causes the game to crash.
 //		// sun
