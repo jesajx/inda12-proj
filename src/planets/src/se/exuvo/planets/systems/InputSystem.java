@@ -37,6 +37,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
+	private Vector3 cameraVelocity;
+	private float cameraMoveSpeed = 20f;
 
 	private Vector2 mouseVector;
 
@@ -61,6 +63,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		this.camera = camera;
 		mouseVector = new Vector2();
 		mouseStartVector = new Vector2();
+		cameraVelocity = new Vector3();
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		// TODO separate the various operations into methods.
-
+	    camera.position.add(cameraVelocity);
 		updateMouse();
 
 		if (selectPlanet) {
@@ -213,12 +216,38 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (keycode == Input.Keys.SPACE) {
 			setPaused(!paused);
 			return true;
+		} else if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {
+		    cameraVelocity.y += cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.S || keycode == Input.Keys.DOWN) {
+		    cameraVelocity.y += -cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.D || keycode == Input.Keys.RIGHT) {
+		    cameraVelocity.x += cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.A || keycode == Input.Keys.LEFT) {
+		    cameraVelocity.x += -cameraMoveSpeed;
+		    return true;
 		}
+
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
+	    if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {
+		    cameraVelocity.y -= cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.S || keycode == Input.Keys.DOWN) {
+		    cameraVelocity.y -= -cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.D || keycode == Input.Keys.RIGHT) {
+		    cameraVelocity.x -= cameraMoveSpeed;
+		    return true;
+		} else if (keycode == Input.Keys.A || keycode == Input.Keys.LEFT) {
+		    cameraVelocity.x -= -cameraMoveSpeed;
+		    return true;
+		}
 		return false;
 	}
 
