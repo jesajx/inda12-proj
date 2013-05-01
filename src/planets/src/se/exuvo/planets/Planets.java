@@ -5,6 +5,7 @@ import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.InputSystem;
+import se.exuvo.planets.systems.ParticleSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
 import se.exuvo.planets.systems.UISystem;
 import se.exuvo.planets.systems.VelocitySystem;
@@ -63,6 +64,7 @@ public class Planets extends Game implements Screen {
 //		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
 		world.setSystem(new CollisionSystem());
+		world.setSystem(new ParticleSystem(camera));
 
 		planetRenderSystem = world.setSystem(new PlanetRenderSystem(camera), true);
 		hudRenderSystem = world.setSystem(new HudRenderSystem(), true);
@@ -101,6 +103,8 @@ public class Planets extends Game implements Screen {
 //		float earth_aphelion = 152098232e3f;// m // 1.496e8f
 //		float earth_avg_speed = 29.78e3f; // m/s
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
+		
+		EntityFactory.createParticleEffect(world).addToWorld();
 	}
 
 	/**

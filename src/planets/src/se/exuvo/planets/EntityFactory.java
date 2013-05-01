@@ -3,6 +3,7 @@ package se.exuvo.planets;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
+import se.exuvo.planets.components.Particle;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
@@ -99,6 +100,15 @@ public class EntityFactory {
 		e.addComponent(new Acceleration());
 
 		e.changedInWorld();
+	}
+	
+	public static Entity createParticleEffect(World world){
+		Entity e = world.createEntity();
+		
+		e.addComponent(new Position());
+		e.addComponent(new Particle());
+		
+		return e;
 	}
 
 }

@@ -14,6 +14,8 @@ public class ImagePacker {
 		if(new File(path1).exists()){
 			TexturePacker2.process(path1, "resources", "textures");
 		}
+		
+		TexturePacker2.process("resources/src/particles", "resources", "particles");
         
         Settings s = new Settings();
 		s.filterMin = TextureFilter.Linear;
