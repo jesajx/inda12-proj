@@ -3,6 +3,3 @@
 # Package Files #
 *.war
 *.ear
-
-src/planets/resources/*.atlas
-src/planets/resources/*.png
