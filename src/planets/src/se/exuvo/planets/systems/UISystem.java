@@ -291,6 +291,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	private float readFloatFromField(TextField tf) {
 		String s = readStringFromField(tf);
+		System.out.println("s " + s);
 		if (s != null) {
 			return Float.parseFloat(s);
 		} else {
@@ -300,14 +301,17 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	private float readFloatFromField(TextField tf, float min, float max) {
 		float f = readFloatFromField(tf);
-		if (f == Float.NaN) {
+		if (Float.isNaN(f)) {
+			System.out.println("nan");
 			f = MathUtils.random(min, max);
 		}
 		return f;
 	}
 
 	public float getRadius() {
-		return readFloatFromField(size, 2f, 10f);
+		float f = readFloatFromField(size, 2f, 10f);
+		System.out.println(f);
+		return f;
 	}
 
 	public float getMass() {
