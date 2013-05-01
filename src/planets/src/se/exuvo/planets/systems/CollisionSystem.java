@@ -50,44 +50,46 @@ public class CollisionSystem extends IntervalEntitySystem {
 		// TODO optimize!
 		// TODO clean!
         
-        List<Collision> collisions = new ArrayList<Collision>(entities.size()); // TODO "SortedList" instead?
-        
         // times>0 if planets are moved due to collisions.
-        float[] timeOffsets = new float[entities.size()]; // init. 0.0
+        float timeLimit = 1f;
                                                           
+        Collision c;
         
-        getCollisions(entities, collisions, timeOffsets);
-        while (!collisions.isEmpty()) {
-            // TODO store collisions differently somehow so we don't have to sort?
-            Collections.sort(collisions); // TODO inverse-sort instead?
+        
+        // TODO what if already colliding?
+        
+        while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
+            timeLimit -= c.t;
+            updatePlanetPositions(entities, c.t);
             
-            // handle the earliest collision.
-            Collision c = collisions.remove(0);
-            
-            handleCollision(c, entities, timeOffsets);
-            
-            timeOffsets[c.i] = c.t; 
-            timeOffsets[c.j] = c.t;
-            
-            collisions.clear(); // TODO reuse found collisions to simplify getCollisions() accordingly
-            getCollisions(entities, collisions, timeOffsets);
+            handleCollision(c.e1, c.e2);
+        }
+        updatePlanetPositions(entities, timeLimit);
+    }
+    
+    private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) {
+        for (int i = 0; i < entities.size(); i++) {
+            Entity e = entities.get(i);
+            Vector2 p = pm.get(e).vec;
+            Vector2 v = vm.get(e).vec;
+            // P = p + v*t
+            p.add(v.cpy().mul(time));
         }
     }
     
-    private void getCollisions(ImmutableBag<Entity> entities, List<Collision> collisions, float[] timeOffsets) {
+    private Collision getEarliestCollisions(ImmutableBag<Entity> entities, float timeLimit) {
+        Collision c = null;
         for (int i = 0; i < entities.size(); ++i) {
 			Entity e1 = entities.get(i);
 			Position p1 = pm.get(e1);
 			Size s1 = sm.get(e1);
 			Velocity v1 = vm.get(e1);
-			Mass m1 = mm.get(e1);
 			
 			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
     			Entity e2 = entities.get(j);
     			Position p2 = pm.get(e2);
     			Size s2 = sm.get(e2);
     			Velocity v2 = vm.get(e2);
-    			Mass m2 = mm.get(e2);
     			
     			// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
     			// http://en.wikipedia.org/wiki/Elastic_collision
@@ -101,14 +103,6 @@ public class CollisionSystem extends IntervalEntitySystem {
     			//   v = v1-v2
     			
     			Vector2 po1 = p1.vec.cpy(), po2 = p2.vec.cpy();
-    			float offset;
-    			if (timeOffsets[i] < timeOffsets[j]) {
-    			    offset = timeOffsets[i];
-    			    po2.mul(offset);
-    			} else {
-    			    offset = timeOffsets[j];
-    			    po1.mul(offset);
-    			}
     			
     			
     			// TODO check if p.len2()>large to speed up?
@@ -125,52 +119,58 @@ public class CollisionSystem extends IntervalEntitySystem {
 //			    System.out.println("v:"+vLen+" "+v);
 			    
     			// TODO can formula be changed to use len2 instead?
-			    float t = (pLen - (r1+r2)) / vLen + offset;
+			    float t = (pLen - (r1+r2)) / vLen;
+//			    System.out.println("tn:"+t);
 			    
 			    // TODO check for vLen==0 instead?
-			    // t=1 is the next update, so we're not interested in times beyond that.
-			    if (!Float.isNaN(t) && t >= 0 && t < 1) {
-			        collisions.add(new Collision(i, j, t));
+			    if (!Float.isNaN(t) && t > 0.001 && t < timeLimit && (c == null || t < c.t)) {
+    			    System.out.println("t:"+t);
+			        c = new Collision(e1, e2, t);
 			    }
 			}
         }
+        return c;
     }
     
-    private void handleCollision(Collision c, ImmutableBag<Entity> entities, float[] timeOffsets) {
-        Entity e1 = entities.get(c.i);
-        Entity e2 = entities.get(c.j);
+    /**
+     * Updates the velocities of two colliding planets.
+     */
+    private float handleCollision(Entity e1, Entity e2) {
         Vector2 p1 = pm.get(e1).vec;
         Vector2 p2 = pm.get(e2).vec;
         float m1 = mm.get(e1).mass;
         float m2 = mm.get(e2).mass;
-        Vector2 v1 = pm.get(e1).vec;
-        Vector2 v2 = pm.get(e2).vec;
+        Vector2 v1 = vm.get(e1).vec;
+        Vector2 v2 = vm.get(e2).vec;
         float r1 = sm.get(e1).radius;
         float r2 = sm.get(e2).radius;
         
+        
+        System.out.println("p1:"+p1.len()+" "+p1);
+        System.out.println("p2:"+p2.len()+" "+p2);
 		// http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling?rq=1
         // http://www.vobarian.com/collisions/2dcollisions2.pdf
         
         // TODO optimize.
         // elastic collision:
         
-        // move planets to the collision
-        p1.add(v1.cpy().mul(c.t - timeOffsets[c.i]));
-        p2.add(v2.cpy().mul(c.t- timeOffsets[c.j]));
-        
         // normal and tangent
-        Vector2 un = p1.cpy().sub(p2).nor();
-        Vector2 ut = new Vector2(-un.y, un.x); // TODO method to do this?
+        Vector2 p = p1.cpy().sub(p2);
+        System.out.println("p:"+p.len()+" "+p2);
+        System.out.println("r:"+(r1+r2));
+        Vector2 un = p.cpy().nor();
+        Vector2 ut = new Vector2(-un.y, un.x);
         
-        System.out.println("un:"+un);
-        System.out.println("ut:"+ut);
+//        System.out.println("un:"+un);
+//        System.out.println("ut:"+ut);
+        
         // projection magnitudes
         float n1 = un.dot(v1);
         float n2 = un.dot(v2);
         float t1 = ut.dot(v1);
         float t2 = ut.dot(v2);
         
-        float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2);
+        float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2); // TODO remove ugly hack
         float nn2 = (n2 * (m2-m1) + 2*m1*n1)/(m1+m2);
         // t1 and t2 don't change.
         
@@ -180,11 +180,16 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 tv1 = ut.cpy().mul(t1);
         Vector2 tv2 = ut.cpy().mul(t2);
         
-        // new velocities
-        v1.set(nv1).add(tv1);
-        v1.set(nv2).add(tv2);
         System.out.println(e1+" "+v1);
         System.out.println(e2+" "+v2);
+        // new velocities
+        v1.set(nv1).add(tv1);
+        v2.set(nv2).add(tv2);
+        System.out.println(e1+" "+v1);
+        System.out.println(e2+" "+v2);
+        
+        // TODO if already colliding, move away.
+        return 0f;
     }
     
     
@@ -195,11 +200,11 @@ public class CollisionSystem extends IntervalEntitySystem {
      */
     private class Collision implements Comparable<Collision> {
         public final float t;
-        public final int i, j; // planets
+        public final Entity e1, e2; // planets
         
-        public Collision(int i, int j, float t) {
-            this.i = i;
-            this.j = j;
+        public Collision(Entity e1, Entity e2, float t) {
+            this.e1 = e1;
+            this.e2 = e2;
             this.t = t;
         }
 
