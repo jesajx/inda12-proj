@@ -6,6 +6,7 @@ import java.util.List;
 import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Velocity;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -32,11 +33,12 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Mapper ComponentMapper<Size> sm;
 	@Mapper ComponentMapper<Position> pm;
+	@Mapper ComponentMapper<Velocity> vm;
 
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
 
-	private Vector3 mouseVector;
+	private Vector2 mouseVector;
 
 	/**
 	 * Used to hold the mouseposition where the user last placed a planet. It is used for when the user rightclick-drags the mouse, creating
@@ -44,7 +46,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	 */
 	private Vector2 mouseStartVector;
 
-	//Buffers due to gui has to be done in the correct thread.
+	// Buffers due to gui has to be done in the correct thread.
 	private boolean createPlanet, releasePlanet, selectPlanet;
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;
@@ -57,7 +59,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	public InputSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
-		mouseVector = new Vector3();
+		mouseVector = new Vector2();
 		mouseStartVector = new Vector2();
 	}
 
@@ -72,14 +74,19 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		render.setProjectionMatrix(camera.combined);
 	}
 
+	private void updateMouse() {
+		Vector3 mouseTmp = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+
+		// unproject screen coordinates to corresponding world position
+		camera.unproject(mouseTmp);
+		mouseVector.set(mouseTmp.x, mouseTmp.y);
+	}
+
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		// TODO separate the various operations into methods.
 
-		mouseVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-
-		// unproject screen coordinates to corresponding world position
-		camera.unproject(mouseVector);
+		updateMouse();
 
 		if (selectPlanet) {
 			selectedPlanet = null; // unselect any already selected planet. (the user might have clicked between planets)
@@ -127,9 +134,13 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		if (createPlanet) {
 			mouseStartVector.set(mouseVector.x, mouseVector.y);
-			lastPlanet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
-					mouseVector.y), uisystem.getColor());
-			lastPlanet.addToWorld();
+			if (selectedPlanet != null) {
+				lastPlanet = selectedPlanet;
+			} else {
+				lastPlanet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
+						mouseVector.y), uisystem.getColor());
+				lastPlanet.addToWorld();
+			}
 
 			wasPaused = paused;
 			if (Settings.getBol("pauseWhenCreatingPlanets")) {
@@ -158,11 +169,13 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 			if (releasePlanet) {
 				// give the planet a velocity. (with the angle and magnitude the user showed)
-				EntityFactory
-						.fillPlanet(lastPlanet,
-									uisystem.getVelocity().add(	new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y
-																		- mouseStartVector.y).div(10f)), uisystem.getAcceleration());
+				Vector2 push = new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y - mouseStartVector.y).div(10f);
 
+				if (selectedPlanet != null) {
+					vm.get(selectedPlanet).vec.add(push);
+				} else {
+					EntityFactory.fillPlanet(lastPlanet, uisystem.getVelocity().add(push));
+				}
 				lastPlanet = null;
 				releasePlanet = false;
 
@@ -255,8 +268,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (amount < 0) {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
 //			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
-			
-			Vector3 diff = camera.position.cpy().sub(mouseVector);
+
+			Vector3 diff = camera.position.cpy().sub(new Vector3(mouseVector.x, mouseVector.y, 0));
 			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 
