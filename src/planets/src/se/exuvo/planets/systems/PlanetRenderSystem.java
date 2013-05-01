@@ -18,7 +18,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
  */
 public class PlanetRenderSystem extends EntityProcessingSystem {
 	
-	// --variables--
 	/** Mapper for entities with the Position-aspect. */
 	@Mapper	ComponentMapper<Position> pm;
 	/** Mapper for entities with the Size-aspect. */
@@ -32,13 +31,11 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 	/** Used to draw shaped (circles). */
 	private ShapeRenderer render;
 
-	// --constructor--
 	public PlanetRenderSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
 	}
 
-	// --system--
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();

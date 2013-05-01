@@ -1,6 +1,7 @@
 package se.exuvo.planets;
 
 import se.exuvo.planets.systems.AccelerationSystem;
+import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.InputSystem;
@@ -61,6 +62,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(new AccelerationSystem());
 		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
+		world.setSystem(new CollisionSystem());
 
 		planetRenderSystem = world.setSystem(new PlanetRenderSystem(camera), true);
 		hudRenderSystem = world.setSystem(new HudRenderSystem(), true);
@@ -82,7 +84,7 @@ public class Planets extends Game implements Screen {
 		// v^2 = G*M
 
 		float m = 1e16f;// 1e15f;
-		float v = 10f;// 6.f;
+		float v = 0;//10f;// 6.f;
 		float r = 10 * 6 * 6 * 6;// v*v*v;
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();

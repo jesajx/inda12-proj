@@ -9,8 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 public class Acceleration extends Vector2Component {
 
 	/**
-	 * Creates an 0-Acceleration.
-	 * The vector is  by default (0,0).
+	 * Creates a new Acceleration set to (0,0).
 	 */
 	public Acceleration() { 
 		super();

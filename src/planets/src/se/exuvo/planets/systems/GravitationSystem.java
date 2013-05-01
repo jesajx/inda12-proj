@@ -21,7 +21,6 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class GravitationSystem extends IntervalEntitySystem {
 	
-	//--variables--
 	// TODO move to separate Constants-class?
 	/**
 	 * The Gravitational Constant.
@@ -40,9 +39,6 @@ public class GravitationSystem extends IntervalEntitySystem {
 	
 	
 
-	/**
-	 * Creates a new GravitationSystem.
-	 */
 	public GravitationSystem() {
 		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
 	}

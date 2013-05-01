@@ -17,7 +17,6 @@ import com.badlogic.gdx.Gdx;
  */
 public class VelocitySystem extends IntervalEntityProcessingSystem {
 	
-	// --variables--
 	/** Mapper for entities with the Velocity-Aspect. */
 	@Mapper	ComponentMapper<Velocity> vm;
 	/** Mapper for entities with the Position-Aspect. */
@@ -28,10 +27,6 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	/** Whether this system is paused. */
 	private InputSystem insys;
 	
-	// --constructor--
-	/**
-	 * Creates a new VelocitySystem.
-	 */
 	public VelocitySystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
 		maxX = Gdx.graphics.getWidth()/2;
