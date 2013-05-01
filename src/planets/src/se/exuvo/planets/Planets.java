@@ -5,6 +5,7 @@ import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.InputSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
+import se.exuvo.planets.systems.UISystem;
 import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.planets.utils.Settings;
 
@@ -13,6 +14,7 @@ import com.artemis.managers.GroupManager;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
@@ -31,6 +33,8 @@ public class Planets extends Game implements Screen {
 
 	private PlanetRenderSystem planetRenderSystem;
 	private HudRenderSystem hudRenderSystem;
+	private InputSystem inputSystem;
+	private UISystem uiSystem;
 	
 	/**
 	 * Initializes the game.
@@ -44,9 +48,16 @@ public class Planets extends Game implements Screen {
 
 		world.setManager(new GroupManager());
 		
-		Stage stage = createUI();
-
-		world.setSystem(new InputSystem(camera, stage));
+		inputSystem = new InputSystem(camera);
+		uiSystem = new UISystem();
+		
+		InputMultiplexer multiplexer = new InputMultiplexer();
+		multiplexer.addProcessor(uiSystem);
+		multiplexer.addProcessor(inputSystem);
+		Gdx.input.setInputProcessor(multiplexer);
+		
+		world.setSystem(inputSystem);
+		world.setSystem(uiSystem);
 		world.setSystem(new AccelerationSystem());
 		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
@@ -90,24 +101,6 @@ public class Planets extends Game implements Screen {
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
 	}
 	
-	/**
-	 * Creates the UI-layer of the game.
-	 * TODO It creates an Menu on the left
-	 * side of the screen and an "clock" in the bottom middle of the screen.
-	 * @return the ui
-	 */
-	private static Stage createUI() {
-	    Stage stage = new Stage();
-		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));	    
-		
-        TextButton button = new TextButton("Click me!", skin);
-        button.setX(0);
-        button.setY(0);
-        stage.addActor(button);
-        
-	    return stage;
-	}
-
 	/**
 	 * The main part of the game loop.
 	 * Processes all systems and renders the screen.
