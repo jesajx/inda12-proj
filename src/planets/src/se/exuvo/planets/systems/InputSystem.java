@@ -38,7 +38,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
 	private Vector3 cameraVelocity;
-	private float cameraMoveSpeed = 20f;
+	private float cameraMoveSpeed = 1000f;
 
 	private Vector2 mouseVector;
 
@@ -88,7 +88,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		// TODO separate the various operations into methods.
-	    camera.position.add(cameraVelocity);
+	    camera.position.add(cameraVelocity.cpy().mul(camera.zoom*Gdx.graphics.getDeltaTime()));
 		updateMouse();
 
 		if (selectPlanet) {
