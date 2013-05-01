@@ -37,7 +37,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 		batch = new SpriteBatch();
 
 		fps = Settings.getBol("GUI.ShowFPS");
-		
+
 		insys = world.getSystem(InputSystem.class);
 		pauseBounds = font.getBounds(pause);
 		speedBounds = font.getBounds(speed);
@@ -55,16 +55,17 @@ public class HudRenderSystem extends VoidEntitySystem {
 		int width = Gdx.graphics.getWidth();
 		int height = Gdx.graphics.getHeight();
 		if (fps) {
-			font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), -(width / 2) + 20, height / 2 - 20);
-			font.draw(batch, "Active entities: " + world.getEntityManager().getActiveEntityCount(), -(width / 2) + 20, height / 2 - 40);
-			font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), -(width / 2) + 20, height / 2 - 60);
-			font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), -(width / 2) + 20, height / 2 - 80);
+			int x = -(width / 2) + 220;
+			font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), x, height / 2 - 20);
+			font.draw(batch, "Active entities: " + world.getEntityManager().getActiveEntityCount(), x, height / 2 - 40);
+			font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), x, height / 2 - 60);
+			font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), x, height / 2 - 80);
 		}
 		if (insys.isPaused()) {
-			font.draw(batch, pause, -pauseBounds.width / 4, -height / 2 + 2*pauseBounds.height);
+			font.draw(batch, pause, -pauseBounds.width / 4, -height / 2 + 2 * pauseBounds.height);
 		}
 		if (insys.isSpeedup()) {
-			font.draw(batch, speed, -speedBounds.width / 4, -height / 2 + 2*speedBounds.height);
+			font.draw(batch, speed, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 		}
 	}
 
