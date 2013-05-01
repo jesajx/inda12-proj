@@ -26,11 +26,18 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Mass> mm;
 	@Mapper ComponentMapper<Acceleration> am;
 	
+	/** Used to check if the game is paused. */
+	private InputSystem insys;
+	
 	
     public CollisionSystem() {
         super(Aspect.getAspectForAll(Position.class, Size.class, Velocity.class, Mass.class), Settings.getFloat("PhysicsStep"));
     }
-
+    
+    @Override
+	protected void initialize() {
+		insys = world.getSystem(InputSystem.class);
+	}
     /**
      * Detects and handles collisions.
      */
@@ -40,6 +47,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         
 		// TODO optimize!
 		// TODO clean!
+        
+        // update accelerations
         for (int i = 0; i < entities.size(); i++) {
             Entity e = entities.get(i);
             vm.get(e).vec.add(am.get(e).vec);
@@ -95,14 +104,17 @@ public class CollisionSystem extends IntervalEntitySystem {
     			// where:
     			//   p = p1-p2
     			//   v = v1-v2
-    			if (!movingTowardsEachOther(p1, v1, p2, v2)) {
-    			    continue;
-    			}
     			
     			// TODO check if p.len2()>large to speed up?
     			// TODO time offsets
     			Vector2 p = p1.cpy().sub(p2);
     			Vector2 v = v1.cpy().sub(v2);
+    			
+    			// if planets are already moving away from each other.
+			    if (v.dot(p) > 0) {
+			        continue;
+			    }
+			    
     			float pLen = p.len();
 			    float vLen = v.len();
     			float r1 = s1.radius;
@@ -119,7 +131,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			    // TODO check for vLen==0 instead?
 			    // TODO does t have to be >= 0
 			    if (!Float.isNaN(t) && t >= 0 && t < timeLimit && (c == null || t < c.t)) {
-    			    System.out.println("t:"+t);
+//    			    System.out.println("t:"+t);
 			        c = new Collision(e1, e2, t);
 			    }
 			}
@@ -141,8 +153,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         float r2 = sm.get(e2).radius;
         
         
-        System.out.println("p1:"+p1.len()+" "+p1);
-        System.out.println("p2:"+p2.len()+" "+p2);
+//        System.out.println("p1:"+p1.len()+" "+p1);
+//        System.out.println("p2:"+p2.len()+" "+p2);
 		// http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling?rq=1
         // http://www.vobarian.com/collisions/2dcollisions2.pdf
         
@@ -151,8 +163,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         
         // normal and tangent
         Vector2 p = p1.cpy().sub(p2);
-        System.out.println("p:"+p.len()+" "+p2);
-        System.out.println("r:"+(r1+r2));
+//        System.out.println("p:"+p.len()+" "+p2);
+//        System.out.println("r:"+(r1+r2));
         
         
         Vector2 un = p.cpy().nor();
@@ -177,22 +189,16 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 tv1 = ut.cpy().mul(t1);
         Vector2 tv2 = ut.cpy().mul(t2);
         
-        System.out.println(e1+" "+v1);
-        System.out.println(e2+" "+v2);
+//        System.out.println(e1+" "+v1);
+//        System.out.println(e2+" "+v2);
         // new velocities
         v1.set(nv1).add(tv1);
         v2.set(nv2).add(tv2);
-        System.out.println(e1+" "+v1);
-        System.out.println(e2+" "+v2);
+//        System.out.println(e1+" "+v1);
+//        System.out.println(e2+" "+v2);
         
         // TODO if already colliding, move away.
         return 0f;
-    }
-    
-    private boolean movingTowardsEachOther(Vector2 p1, Vector2 v1, Vector2 p2, Vector2 v2) {
-        // TODO does this really work?
-        Vector2 p = p1.cpy().sub(p2);
-        return v1.cpy().sub(v2).dot(p) <= 0;
     }
     
     
@@ -215,4 +221,13 @@ public class CollisionSystem extends IntervalEntitySystem {
             return Float.compare(t, o.t);
         }
     }
+    
+    
+    /**
+	 * Checks whether this system is paused.
+	 */
+	@Override
+	protected boolean checkProcessing() {
+		return !insys.isPaused() && super.checkProcessing();
+	}
 }
