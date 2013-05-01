@@ -23,9 +23,12 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
 import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 
@@ -94,16 +97,15 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		acceleration = addField2("Acceleration", table, skin);
 		position = addField2("Position", table, skin);
 
-//		TextButton button = new TextButton("Click me!", skin);
-//		button.addListener(new ChangeListener() {
-//			@Override
-//			public void changed(ChangeEvent event, Actor actor) {
-//				// TODO Auto-generated method stub
-//				System.out.println("clicked me! " + actor);
-//			}
-//		});
-//		table.addActor(button);
-
+		TextButton removeButton = new TextButton("Remove", skin);
+		removeButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				selectedPlanet.deleteFromWorld();
+			}
+		});
+		table.add(removeButton);
+		
 		return stage;
 	}
 
