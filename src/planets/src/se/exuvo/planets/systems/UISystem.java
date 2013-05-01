@@ -19,6 +19,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -29,7 +31,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
-import com.badlogic.gdx.scenes.scene2d.utils.FocusListener.FocusEvent;
 import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 
 /**
@@ -94,7 +95,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		velocity = addField2("Velocity", table, skin);
 		acceleration = addField2("Acceleration", table, skin);
 		position = addField2("Position", table, skin);
-
+		
+		addFieldEnterListeners();
+		
 		acceleration.x.setDisabled(true);
 		acceleration.y.setDisabled(true);
 		
@@ -187,7 +190,70 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 		});
 	}
-
+	
+	private void addTextFieldEnterListener(final TextField f, final Runnable callback){
+		if(f == null || callback == null){
+			throw new NullPointerException();
+		}
+		
+		f.addListener(new InputListener() {
+			@Override
+			public boolean keyDown (InputEvent event, int keycode) {
+				if(keycode == Input.Keys.ENTER){
+					if(selectedPlanet != null){
+						callback.run();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+	}
+	
+	private void addFieldEnterListeners(){
+		addTextFieldEnterListener(mass, new Runnable() {
+			@Override
+			public void run() {
+				Mass m = mm.get(selectedPlanet);
+				float f =  readFloatFromField(mass);
+				if(!Float.isNaN(f)){
+					m.mass = f;
+				}else{
+					new RuntimeException().printStackTrace();
+				}
+			}
+		});
+		
+		addTextFieldEnterListener(radius, new Runnable() {
+			@Override
+			public void run() {
+				Size s = sm.get(selectedPlanet);
+				float f =  readFloatFromField(radius);
+				if(!Float.isNaN(f)){
+					s.radius = f;
+				}else{
+					new RuntimeException().printStackTrace();
+				}
+			}
+		});
+		
+		addTextFieldEnterListener(color, new Runnable() {
+			@Override
+			public void run() {
+				Colour c = cm.get(selectedPlanet);
+				String s = readStringFromField(color);
+				if (s != null) {
+					try{
+						c.color = Color.valueOf(s);
+					}catch(RuntimeException e){
+						// TODO error message
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+	}
+	
 	private void copyFieldText(TextField f) {
 		if (f.getText().equals("") && f.getMessageText() != null) {
 			f.setText(f.getMessageText());

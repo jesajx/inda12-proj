@@ -15,6 +15,7 @@ public class Particle extends Component {
 		this(new ParticleEffect());
 		TextureAtlas textureAtlas = new TextureAtlas(Gdx.files.internal("resources/particles.atlas"));
 		effect.load(Gdx.files.internal("resources/src/particles/test.p"), textureAtlas);
+		effect.setDuration(1000);
 		effect.start();
 	}
 
