@@ -1,9 +1,11 @@
 package se.exuvo.planets.systems;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
-import se.exuvo.planets.components.Velocity;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -22,23 +24,18 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 
 /**
  * The system responsible for handling user input (keyboard and mouse).
  */
 public class InputSystem extends EntitySystem implements InputProcessor {
 
-	// --variables--
-	/** Mapper for components with the Size-aspect. */
 	@Mapper ComponentMapper<Size> sm;
-
-	/** Mapper for compontents with the Position-aspect. */
 	@Mapper ComponentMapper<Position> pm;
 
 	/** The gameworld-camera. */
 	private OrthographicCamera camera;
-	/** Holds the mouse position during processing. */
+
 	private Vector3 mouseVector;
 
 	/**
@@ -47,15 +44,16 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	 */
 	private Vector2 mouseStartVector;
 
-	// TODO generalize bool vars. i.e. call it something like RIGHT_MOUSE_DOWN rather than 'createPlanet'? i.e. let processing handle the
-// logic, not the input.
+	//Buffers due to gui has to be done in the correct thread.
 	private boolean createPlanet, releasePlanet, selectPlanet;
 	private Entity lastPlanet, selectedPlanet;
 	private ShapeRenderer render;
 
 	private boolean paused, wasPaused;
 
-	// --constructor--
+	private List<PlanetSelectionChanged> listeners = new ArrayList<PlanetSelectionChanged>();
+	private UISystem uisystem;
+
 	public InputSystem(OrthographicCamera camera) {
 		super(Aspect.getAspectForAll(Position.class, Size.class));
 		this.camera = camera;
@@ -63,11 +61,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		mouseStartVector = new Vector2();
 	}
 
-	// --system--
-
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();
+		uisystem = world.getSystem(UISystem.class);
 	}
 
 	@Override
@@ -79,24 +76,20 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		// TODO separate the various operations into methods.
 
-		// mouse position on screen
 		mouseVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 
-		// update to corresponding mouse position in world
+		// unproject screen coordinates to corresponding world position
 		camera.unproject(mouseVector);
 
-		// if a planet is TO BE selected
-		if (selectPlanet) { // TODO perhaps clearer with a "LEFT_MOUSE_CLICKED"-variable?
-
-			// unselect any already selected planet. (the user might have clicked between planets)
-			selectedPlanet = null;
+		if (selectPlanet) {
+			selectedPlanet = null; // unselect any already selected planet. (the user might have clicked between planets)
 
 			// convert 3D mousePos to 2D
 			Vector2 mouse = new Vector2().set(mouseVector.x, mouseVector.y);
 
 			// TODO would it be better to let the planets themselves check if they were clicked? that might perhaps not be artemis-style
 // though.
-			// compare each planet to the mousePos to see if it was clicked.
+			// compare each planets position to the mousePos to see if it was clicked.
 			for (int i = 0; i < entities.size(); i++) {
 				Entity e = entities.get(i);
 				Position p = pm.get(e);
@@ -107,11 +100,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				}
 			}
 
-			// planet has been selected. (so don't redo it)
+			fireSelectionChangeEvent();
 			selectPlanet = false;
 		}
 
-		// if a planets IS selectd
 		if (selectedPlanet != null) {
 
 			// if the planet hasn't died or something.
@@ -122,23 +114,21 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				// draw a triangle around the planet (showing that it's selected)
 				render.begin(ShapeType.Triangle);
 				render.setColor(Color.CYAN);
-				float r = s.radius * 2f;
+				float r = s.radius * 3f;
 				render.triangle(p.vec.x + r * MathUtils.cosDeg(90), p.vec.y + r * MathUtils.sinDeg(90),
 								p.vec.x + r * MathUtils.cosDeg(210), p.vec.y + r * MathUtils.sinDeg(210),
 								p.vec.x + r * MathUtils.cosDeg(330), p.vec.y + r * MathUtils.sinDeg(330));
 				render.end();
 			} else {
-				// unselect "dead" planet.
 				selectedPlanet = null;
+				fireSelectionChangeEvent();
 			}
 		}
 
-		// if a new planet should be created.
 		if (createPlanet) {
-			// remember we placed the planet. (incase the user then drags)
 			mouseStartVector.set(mouseVector.x, mouseVector.y);
-			// add new (random) planet to the world.
-			lastPlanet = EntityFactory.createHollowPlanet(world, new Position(new Vector2(mouseVector.x, mouseVector.y)));
+			lastPlanet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
+					mouseVector.y), uisystem.getColor());
 			lastPlanet.addToWorld();
 
 			wasPaused = paused;
@@ -146,7 +136,6 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				setPaused(true);
 			}
 
-			// the planet has been created (so don't redo it)
 			createPlanet = false;
 		}
 
@@ -167,15 +156,15 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 									mouseVector.x, mouseVector.y);
 			render.end();
 
-			// if the right mouse was released ("fly, planet!")
 			if (releasePlanet) {
 				// give the planet a velocity. (with the angle and magnitude the user showed)
-				EntityFactory.fillPlanet(lastPlanet, new Velocity(new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y
-						- mouseStartVector.y).div(10f)));
+				EntityFactory
+						.fillPlanet(lastPlanet,
+									uisystem.getVelocity().add(	new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y
+																		- mouseStartVector.y).div(10f)), uisystem.getAcceleration());
 
-				// release the planet from processing
 				lastPlanet = null;
-				releasePlanet = false; // (and don't re-release it)
+				releasePlanet = false;
 
 				if (!wasPaused) {
 					setPaused(false);
@@ -200,15 +189,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	private void setPaused(boolean newValue) {
 		paused = newValue;
-		world.getSystem(VelocitySystem.class).setPaused(paused);
-		// TODO other systems?
 	}
 
 	public boolean isSpeedup() {
 		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
 	}
-
-	// --input--
 
 	@Override
 	public boolean keyDown(int keycode) {
@@ -267,20 +252,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			camera.zoom = 1;
 		}
 
-//		 Det som var under musen innan scroll ska fortsätta vara där efter zoom
-//
-//		http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
-//		newX = (oldX - Xoffset) / Xscale;
-//		newY = (oldY - Yoffset) / Yscale;
-//		Xoffset += (newX * oldXscale) - (newX * Xscale);
-//		Yoffset += (newY * oldYscale) - (newY * Yscale);
-
 		if (amount < 0) {
+//			Det som var under musen innan scroll ska fortsätta vara där efter zoom
+//			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
+			
 			Vector3 diff = camera.position.cpy().sub(mouseVector);
 			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 
-		// DEBUG
 //		System.out.println("zoom: "+camera.zoom);
 		return true;
 	}
@@ -288,5 +267,19 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 		return false;
+	}
+
+	public void addListener(PlanetSelectionChanged psc) {
+		listeners.add(psc);
+	}
+
+	private void fireSelectionChangeEvent() {
+		for (PlanetSelectionChanged psc : listeners) {
+			psc.planetSelectionChanged(selectedPlanet);
+		}
+	}
+
+	public static interface PlanetSelectionChanged {
+		public void planetSelectionChanged(Entity planet);
 	}
 }

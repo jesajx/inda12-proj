@@ -47,17 +47,17 @@ public class Planets extends Game implements Screen {
 		world = new World();
 
 		world.setManager(new GroupManager());
-		
+
 		inputSystem = new InputSystem(camera);
 		uiSystem = new UISystem();
-		
+
 		InputMultiplexer multiplexer = new InputMultiplexer();
 		multiplexer.addProcessor(uiSystem);
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
-		
+
 		world.setSystem(inputSystem);
-		world.setSystem(uiSystem);
+		world.setSystem(uiSystem, true);
 		world.setSystem(new AccelerationSystem());
 		world.setSystem(new VelocitySystem());
 		world.setSystem(new GravitationSystem());
@@ -66,27 +66,27 @@ public class Planets extends Game implements Screen {
 		hudRenderSystem = world.setSystem(new HudRenderSystem(), true);
 
 		world.initialize();
-		
+
 		// F=G*m*M/d^2
 		// F=ma
 		// a = G*M/d^2
-		
+
 		// a = v^2/r
 		// v^2 = a*r
 		// v^2 = G*M/r
 		// r =a*v^2
-		
+
 		// F=m*v^2/r^2
 		// v^2 = F*r^2/m
 		// v^2 = a*r^2
 		// v^2 = G*M
-		
-		float m = 1e16f;//1e15f;
-		float v = 10f;//6.f;
-		float r = 10*6*6*6;//v*v*v;
-		EntityFactory.createPlanet(world, 10f, m, new Vector2(r,0), new Vector2(0, -v), Color.WHITE).addToWorld();
-		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r,0), new Vector2(0, v), Color.YELLOW).addToWorld();
-		
+
+		float m = 1e16f;// 1e15f;
+		float v = 10f;// 6.f;
+		float r = 10 * 6 * 6 * 6;// v*v*v;
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
+		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
+
 		// these radii causes the game to crash.
 //		// sun
 //		float sun_radius = 1.392684e9f/2/1e8f; // m
@@ -100,10 +100,9 @@ public class Planets extends Game implements Screen {
 //		float earth_avg_speed = 29.78e3f; // m/s
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
 	}
-	
+
 	/**
-	 * The main part of the game loop.
-	 * Processes all systems and renders the screen.
+	 * The main part of the game loop. Processes all systems and renders the screen.
 	 */
 	@Override
 	public void render(float delta) {
@@ -120,12 +119,12 @@ public class Planets extends Game implements Screen {
 		world.process();
 
 		planetRenderSystem.process();
+		uiSystem.process();
 		hudRenderSystem.process();
 	}
 
-	
 	// --Screen--
-	
+
 	@Override
 	public void resize(int width, int height) {}
 
