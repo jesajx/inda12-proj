@@ -64,24 +64,10 @@ public class EntityFactory {
 		return createPlanet(world, size, mass, pos, vel, color);
 	}
 
-	public static Entity createHollowPlanet(World world) {
-		return createHollowPlanet(	world, MathUtils.random(1.0f, 10.0f), MathUtils.random(10.0f, 100.0f), new Vector2(),
-									new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1));
-	}
-
-	public static Entity createHollowPlanet(World world, Vector2 pos) {
-		return createHollowPlanet(world, MathUtils.random(1.0f, 10.0f), MathUtils.random(10.0f, 100.0f), pos, new Color(MathUtils.random(),
-				MathUtils.random(), MathUtils.random(), 1));
-	}
-
-	public static Entity createHollowPlanet(World world, float radius, float mass, Vector2 pos, String colorHex) {
-		return createHollowPlanet(world, radius, mass, pos, Color.valueOf(colorHex));
-	}
-
-	public static Entity createHollowPlanet(World world, float radius, float mass, Vector2 pos, Color color) {
+	public static Entity createHollowPlanet(World world, float radius, float mass, Vector2 position, Color color) {
 		Entity e = world.createEntity();
 
-		e.addComponent(new Position(pos));
+		e.addComponent(new Position(position));
 		e.addComponent(new Size(radius));
 		e.addComponent(new Mass(mass));
 		e.addComponent(new Colour(color));
@@ -111,10 +97,10 @@ public class EntityFactory {
 		return e;
 	}
 	
-    public static Entity createParticleEffect(World world, Vector2 p){
+    public static Entity createParticleEffect(World world, Vector2 position){
 		Entity e = world.createEntity();
 		
-		e.addComponent(new Position(p));
+		e.addComponent(new Position(position));
 		e.addComponent(new Particle());
 		
 		return e;
