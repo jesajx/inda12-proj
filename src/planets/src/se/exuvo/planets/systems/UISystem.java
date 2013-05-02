@@ -1,5 +1,10 @@
 package se.exuvo.planets.systems;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.filefilter.RegexFileFilter;
+
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -95,12 +100,13 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		velocity = addField2("Velocity", table, skin);
 		acceleration = addField2("Acceleration", table, skin);
 		position = addField2("Position", table, skin);
-		
+
 		addFieldEnterListeners();
-		
+		addFieldChangeListeners();
+
 		acceleration.x.setDisabled(true);
 		acceleration.y.setDisabled(true);
-		
+
 		Table buttonTable = new Table(skin);
 		table.add(buttonTable).expandX().fillX().row();
 
@@ -131,7 +137,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				clearUI();
-				planetSelectionChanged(null);
 			}
 		});
 
@@ -158,7 +163,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private TextFields addField2(String name, Table rootTable, Skin skin) {
 		Table table = new Table(skin);
 		rootTable.add(table).expandX().fillX().row();
-//		table.debugWidget();
 
 		Label label = new Label(name, skin);
 		Label labelX = new Label("X", skin);
@@ -190,17 +194,17 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 		});
 	}
-	
-	private void addTextFieldEnterListener(final TextField f, final Runnable callback){
-		if(f == null || callback == null){
+
+	private void addTextFieldEnterListener(final TextField f, final Runnable callback) {
+		if (f == null || callback == null) {
 			throw new NullPointerException();
 		}
-		
+
 		f.addListener(new InputListener() {
 			@Override
-			public boolean keyDown (InputEvent event, int keycode) {
-				if(keycode == Input.Keys.ENTER){
-					if(selectedPlanet != null){
+			public boolean keyDown(InputEvent event, int keycode) {
+				if (keycode == Input.Keys.ENTER) {
+					if (selectedPlanet != null) {
 						callback.run();
 					}
 					return true;
@@ -209,77 +213,136 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 		});
 	}
-	
-	private void addFieldEnterListeners(){
+
+	// TODO make beautiful and shorter
+	private void addFieldEnterListeners() {
 		addTextFieldEnterListener(mass, new Runnable() {
 			@Override
 			public void run() {
 				Mass m = mm.get(selectedPlanet);
-				float f =  readFloatFromField(mass);
-				if(!Float.isNaN(f)){
+				float f = readFloatFromField(mass);
+				if (!Float.isNaN(f)) {
 					m.mass = f;
-				}else{
-					new RuntimeException().printStackTrace();
 				}
 			}
 		});
-		
+
 		addTextFieldEnterListener(velocity.x, new Runnable() {
 			@Override
 			public void run() {
 				Velocity v = vm.get(selectedPlanet);
-				float f =  readFloatFromField(velocity.x);
-				if(!Float.isNaN(f)){
+				float f = readFloatFromField(velocity.x);
+				if (!Float.isNaN(f)) {
 					v.vec.x = f;
-				}else{
-					new RuntimeException().printStackTrace();
 				}
 			}
 		});
-		
+
 		addTextFieldEnterListener(velocity.y, new Runnable() {
 			@Override
 			public void run() {
 				Velocity v = vm.get(selectedPlanet);
-				float f =  readFloatFromField(velocity.y);
-				if(!Float.isNaN(f)){
+				float f = readFloatFromField(velocity.y);
+				if (!Float.isNaN(f)) {
 					v.vec.y = f;
-				}else{
-					new RuntimeException().printStackTrace();
 				}
 			}
 		});
 		
+		addTextFieldEnterListener(position.x, new Runnable() {
+			@Override
+			public void run() {
+				Position p = pm.get(selectedPlanet);
+				float f = readFloatFromField(position.x);
+				if (!Float.isNaN(f)) {
+					p.vec.x = f;
+				}
+			}
+		});
+
+		addTextFieldEnterListener(position.y, new Runnable() {
+			@Override
+			public void run() {
+				Position p = pm.get(selectedPlanet);
+				float f = readFloatFromField(position.y);
+				if (!Float.isNaN(f)) {
+					p.vec.y = f;
+				}
+			}
+		});
+
 		addTextFieldEnterListener(radius, new Runnable() {
 			@Override
 			public void run() {
 				Size s = sm.get(selectedPlanet);
-				float f =  readFloatFromField(radius);
-				if(!Float.isNaN(f)){
+				float f = readFloatFromField(radius);
+				if (!Float.isNaN(f)) {
 					s.radius = f;
-				}else{
-					new RuntimeException().printStackTrace();
 				}
 			}
 		});
-		
+
 		addTextFieldEnterListener(color, new Runnable() {
 			@Override
 			public void run() {
 				Colour c = cm.get(selectedPlanet);
 				String s = readStringFromField(color);
 				if (s != null) {
-					try{
+					try {
 						c.color = Color.valueOf(s);
-					}catch(RuntimeException e){
-						// TODO error message
-						e.printStackTrace();
+					} catch (RuntimeException ignore) {
 					}
 				}
 			}
 		});
 	}
+
+	private void addTextFieldFloatValidator(final TextField f) {
+		f.addListener(new InputListener() {
+			@Override
+			public boolean keyTyped(InputEvent event, char character) {
+				String s = readStringFromField(f);
+				try {
+					if (s != null) {
+						Float.parseFloat(s);
+					}
+					f.setColor(Color.WHITE);
+				} catch (RuntimeException e) {
+					f.setColor(Color.RED);
+				}
+				return false;
+			}
+		});
+	}
 	
+	private void addTextFieldColorValidator(final TextField f) {
+		f.addListener(new InputListener() {
+			@Override
+			public boolean keyTyped(InputEvent event, char character) {
+				String s = readStringFromField(f);
+				try {
+					if (s != null) {
+						Color.valueOf(s);
+					}
+					f.setColor(Color.WHITE);
+				} catch (RuntimeException e) {
+					f.setColor(Color.RED);
+				}
+				return false;
+			}
+		});
+	}
+
+	private void addFieldChangeListeners() {
+		addTextFieldFloatValidator(mass);
+		addTextFieldFloatValidator(radius);
+		addTextFieldFloatValidator(velocity.x);
+		addTextFieldFloatValidator(velocity.y);
+		addTextFieldFloatValidator(position.x);
+		addTextFieldFloatValidator(position.y);
+		addTextFieldColorValidator(color);
+	}
+
 	private void copyFieldText(TextField f) {
 		if (f.getText().equals("") && f.getMessageText() != null) {
 			f.setText(f.getMessageText());
@@ -294,8 +357,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	protected void end() {
 
 	}
-
-	// --input--
 
 	private void d() {
 		switch (debug) {
@@ -424,11 +485,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private float readFloatFromField(TextField tf) {
 		String s = readStringFromField(tf);
 		if (s != null) {
-			try{
+			try {
 				return Float.parseFloat(s);
-			}catch(RuntimeException e){
-				// TODO error message
-				e.printStackTrace();
+			} catch (RuntimeException e) {
 				return Float.NaN;
 			}
 		} else {
@@ -456,11 +515,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	public Color getColor() {
 		String s = readStringFromField(color);
 		if (s != null) {
-			try{
+			try {
 				return Color.valueOf(s);
-			}catch(RuntimeException e){
-				// TODO error message
-				e.printStackTrace();
+			} catch (RuntimeException e) {
 				return Color.WHITE;
 			}
 		} else {
@@ -475,8 +532,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	public Vector2 getAcceleration() {
 		return new Vector2(readFloatFromField(acceleration.x, 0f, 0f), readFloatFromField(acceleration.y, 0f, 0f));
 	}
-	
-	private void clearUI(){
+
+	private void clearUI() {
 		mass.setText("");
 		radius.setText("");
 		color.setText("");
@@ -506,13 +563,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			acceleration.y.setMessageText("");
 			position.x.setMessageText("");
 			position.y.setMessageText("");
-
-//			mass.setText("");
-//			size.setText("");
-//			velocity.x.setText("");
-//			velocity.y.setText("");
-//			acceleration.x.setText("");
-//			acceleration.y.setText("");
 		}
 
 	}
