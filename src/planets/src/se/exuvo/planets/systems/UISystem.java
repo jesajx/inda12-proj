@@ -504,12 +504,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	}
 
 	public float getRadius() {
-		float f = readFloatFromField(radius, 2f, 10f);
+		float f = readFloatFromField(radius, 4f, 15f);
 		return f;
 	}
 
 	public float getMass() {
-		return readFloatFromField(mass, 10f, 100f);
+		return readFloatFromField(mass, 1E8f, 1E12f);
 	}
 
 	public Color getColor() {
