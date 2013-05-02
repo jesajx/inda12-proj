@@ -1,10 +1,5 @@
 package se.exuvo.planets.systems;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.filefilter.RegexFileFilter;
-
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
