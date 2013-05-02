@@ -30,7 +30,7 @@ public class Planets extends Game implements Screen {
 	private UISystem uiSystem;
 	private GravitationSystem gravSystem;
 	private CollisionSystem collSystem;
-	
+
 	/**
 	 * Initializes the game.
 	 */
@@ -78,7 +78,7 @@ public class Planets extends Game implements Screen {
 		// v^2 = G*M
 
 		float m = 1e16f;// 1e15f;
-		float v = 0;//10f;// 6.f;
+		float v = 0;// 10f;// 6.f;
 		float r = 10 * 6 * 6 * 6;// v*v*v;
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
@@ -95,7 +95,7 @@ public class Planets extends Game implements Screen {
 //		float earth_aphelion = 152098232e3f;// m // 1.496e8f
 //		float earth_avg_speed = 29.78e3f; // m/s
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
-		
+
 		EntityFactory.createParticleEffect(world).addToWorld();
 	}
 
@@ -110,10 +110,9 @@ public class Planets extends Game implements Screen {
 
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
-			for (int i = 0; 10 > i; i++) {
+			for (int i = 0; i < 9; i++) {
 				gravSystem.process();
 				collSystem.process();
-//				world.process();
 			}
 		}
 		world.process();
