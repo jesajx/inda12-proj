@@ -77,7 +77,7 @@ public class Init {
 		lwjglApplicationConfiguration.vSyncEnabled = Settings.getBol("GUI.VSync");
 		lwjglApplicationConfiguration.title = "Planets";
 		lwjglApplicationConfiguration.resizable = true;
-//		lwjglApplicationConfiguration.useGL20 = true;
+		lwjglApplicationConfiguration.useGL20 = true;
 		new LwjglApplication(new Planets(), lwjglApplicationConfiguration);
 	}
 

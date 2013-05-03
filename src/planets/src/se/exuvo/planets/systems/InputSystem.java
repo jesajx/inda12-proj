@@ -39,6 +39,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private OrthographicCamera camera;
 	private Vector3 cameraVelocity;
 	private float cameraMoveSpeed = 1000f;
+	private float zoomLevel = 1f;
 
 	private Vector2 mouseVector;
 
@@ -66,6 +67,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		cameraVelocity = new Vector3();
 	}
 
+	
+	// TODO dragging selected planet
+	
+	
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();
@@ -286,14 +291,22 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean scrolled(int amount) {
-		// forward-scroll makes amount negative.
+		// -1 for zoom-in. 1 for zoom out
 		float oldZoom = camera.zoom;
 
-		camera.zoom += amount*amount*amount;
-		if (camera.zoom < 1) {
+		zoomLevel += amount;
+		if (zoomLevel < 1) {
 			camera.zoom = 1;
 		}
-
+		System.out.println("zoomLevel:" + zoomLevel);
+//		camera.zoom = zoomLevel*zoomLevel;
+		camera.zoom = (float) Math.pow(2, zoomLevel);
+		System.out.println("zoom:" + camera.zoom);
+//		camera.zoom += amount;
+//		if (camera.zoom < 1) {
+//			camera.zoom = 1;
+//		}
+		
 		if (amount < 0) {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
 //			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
@@ -302,7 +315,6 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 
-//		System.out.println("zoom: "+camera.zoom);
 		return true;
 	}
 

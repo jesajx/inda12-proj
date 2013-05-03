@@ -58,6 +58,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
     // TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
 	// TODO shift-tab doesn't work
 	// TODO tab stops working near the Acceleration-fields (disabled textfield)
+	// TODO remove/change debug hotkey-bindings. (A and Z)
 
 
 	@Override
