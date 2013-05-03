@@ -56,7 +56,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	}
 
     // TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
-    // TODO pressing enter in a field (applies changes and) deselects/unfocuses the field
+	// TODO shift-tab doesn't work
+	// TODO tab stops working near the Acceleration-fields (disabled textfield)
 
 
 	@Override
@@ -114,6 +115,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				selectedPlanet.deleteFromWorld();
+				selectedPlanet = null;
 			}
 		});
 
@@ -207,7 +209,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 					if (selectedPlanet != null) {
 						callback.run();
 					}
-                    ui.unfocus(f); // TODO correct?
+                    ui.unfocus(f); // TODO let be specified by callback instead?
 					return true;
 				}
 				return false;
@@ -460,7 +462,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			Size s = sm.get(selectedPlanet);
 			Velocity v = vm.get(selectedPlanet);
 			Acceleration a = am.get(selectedPlanet);
-
+			
 			mass.setMessageText("" + m.mass);
 			radius.setMessageText("" + s.radius);
 			color.setMessageText("" + c.color.toString());
