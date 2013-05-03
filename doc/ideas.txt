@@ -1,3 +1,5 @@
+lista med alla planeter. som det är så måste man starta om speled om man satt
+ut en planet med t.ex. m=1e156
 
 option för att programmet ska beräkna parametrar för att planeter ska orbitera.
 
