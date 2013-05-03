@@ -55,6 +55,10 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		ui = createUI();
 	}
 
+    // TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
+    // TODO pressing enter in a field (applies changes and) deselects/unfocuses the field
+
+
 	@Override
 	protected void initialize() {
 		world.getSystem(InputSystem.class).addListener(this);
@@ -194,14 +198,16 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		if (f == null || callback == null) {
 			throw new NullPointerException();
 		}
+        f.setFocusTraversal(true);
 
-		f.addListener(new InputListener() {
+		f.addListener(new InputListener() { // TODO TextField.TextFieldListener?
 			@Override
 			public boolean keyDown(InputEvent event, int keycode) {
 				if (keycode == Input.Keys.ENTER) {
 					if (selectedPlanet != null) {
 						callback.run();
 					}
+                    ui.unfocus(f); // TODO correct?
 					return true;
 				}
 				return false;
