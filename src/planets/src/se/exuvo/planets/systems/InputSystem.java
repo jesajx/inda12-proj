@@ -289,7 +289,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		// forward-scroll makes amount negative.
 		float oldZoom = camera.zoom;
 
-		camera.zoom += amount;
+		camera.zoom += amount*amount*amount;
 		if (camera.zoom < 1) {
 			camera.zoom = 1;
 		}
