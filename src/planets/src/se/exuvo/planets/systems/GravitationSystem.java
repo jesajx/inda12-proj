@@ -16,7 +16,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 /**
- * System responsible for updating the acceleration on planets,
+ * System responsible for updating the acceleration of planets,
  * by calculating gravity between planets.
  */
 public class GravitationSystem extends IntervalEntitySystem {
@@ -52,6 +52,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	 */
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
+        // TODO quadtree
 		
 		// clear old accelerations
 		for (int i = 0; i < entities.size(); i++) {
@@ -77,7 +78,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 				Mass m2 = mm.get(e2);
 				Position p2 = pm.get(e2);//TODO center of planet B? or top left corner?
 				
-				// TODO put the rest in separate method?
+
 				// F = G*m*M/d^2
 				// F = ma
 				// a = G*M/d^2 = M * G/d^2
@@ -85,38 +86,55 @@ public class GravitationSystem extends IntervalEntitySystem {
 				// m = e.mass
 				// M = e2.mass
 				// G = grav. constant
-				// d = distance between e and e2
+				// d = distance from e and e2
+
 				
-				// vector from p to p2
-				Vector2 posDiff = p2.vec.cpy().sub(p.vec);
-				
-				// distance from p to p2
-				float distanceSquared = posDiff.len2(); // distance squared
-				
-				// angle (in radians) from p to p2
-				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
-				
-				// G/d^2
-				float k = G / distanceSquared;
-				
-				// incase the planets are overlapping exactly.
-				if (distanceSquared == 0) {
-						continue;
-				}
-				
-				// magnitudes of accelerations between planets A and B
-				float mag1 = m2.mass*k;
-				float mag2 = -m.mass*k; // negative because it goes in the opposite direction.
-				float cos = (float)MathUtils.cos(angle);
-				float sin = (float)MathUtils.sin(angle);
-				
-				// create and set acceleration for p towards p2
-				Vector2 v = new Vector2(mag1*cos, mag1*sin);
+                Vector2 diff = p2.vec.cpy().sub(p.vec);
+                float k = G / diff.len2();
+                if (Float.isNaN(k)) { // if distanceSquared==0
+                    continue;
+                }
+                diff.nor().mul(k);
+                Vector2 v = diff.cpy().mul(m2.mass);
+                Vector2 v2 = diff/*.cpy()*/.mul(-m.mass);
 				a.vec.add(v);
-				
-				// create and set acceleration for p2 towards p
-				Vector2 v2 = new Vector2(mag2*cos, mag2*sin);
 				a2.vec.add(v2);
+
+                
+                				
+
+				// TODO remove old algorithm (commented below)
+//				// vector from p to p2
+//				Vector2 posDiff = p2.vec.cpy().sub(p.vec);
+//				
+//				// distance from p to p2
+//				float distanceSquared = posDiff.len2(); // distance squared
+//				
+//				// angle (in radians) from p to p2
+//				float angle = MathUtils.atan2(posDiff.y, posDiff.x); // should be fast.
+//				
+//				// G/d^2
+//				float k = G / distanceSquared;
+//				
+//				// incase the planets are overlapping exactly.
+//				if (distanceSquared == 0) {
+//						continue;
+//				}
+//
+//
+//				// magnitudes of accelerations between planets A and B
+//				float mag1 = m2.mass*k;
+//				float mag2 = -m.mass*k; // negative because it goes in the opposite direction.
+//				float cos = (float)MathUtils.cos(angle);
+//				float sin = (float)MathUtils.sin(angle);
+//				
+//				// create and set acceleration for p towards p2
+//				Vector2 v = new Vector2(mag1*cos, mag1*sin);
+//				a.vec.add(v);
+//				
+//				// create and set acceleration for p2 towards p
+//				Vector2 v2 = new Vector2(mag2*cos, mag2*sin);
+//				a2.vec.add(v2);
 				
 				//DEBUGGING.
 //				System.out.println("m2*k:" + m2.mass * k);
