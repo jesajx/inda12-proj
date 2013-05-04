@@ -12,6 +12,7 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntitySystem;
+import com.artemis.utils.FastMath;
 import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.math.Vector2;
 
@@ -45,26 +46,22 @@ public class CollisionSystem extends IntervalEntitySystem {
     protected void processEntities(ImmutableBag<Entity> entities) {
         // TODO space partitioning? quadtree?
         
-		// TODO optimize!
-		// TODO clean!
+		// TODO IMPORTANT: optimize!
         
         // update accelerations
         for (int i = 0; i < entities.size(); i++) {
             Entity e = entities.get(i);
             vm.get(e).vec.add(am.get(e).vec);
         }
-        // times>0 if planets are moved due to collisions.
+        
         float timeLimit = 1f;
                                                           
         Collision c;
         
-        // TODO what if already colliding?
-        
         while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
-            float t = c.t;
-            t += handleCollision(c.e1, c.e2);
-            updatePlanetPositions(entities, t);
-            timeLimit -= t;
+            updatePlanetPositions(entities, c.t);
+            handleCollision(c.e1, c.e2);
+            timeLimit -= c.t;
         }
         updatePlanetPositions(entities, timeLimit);
     }
@@ -74,12 +71,14 @@ public class CollisionSystem extends IntervalEntitySystem {
             Entity e = entities.get(i);
             Vector2 p = pm.get(e).vec;
             Vector2 v = vm.get(e).vec;
-            // P = p + v*t
+            // p += v*t
             p.add(v.cpy().mul(time));
         }
     }
     
     private Collision getEarliestCollisions(ImmutableBag<Entity> entities, float timeLimit) {
+    	// TODO selectively check planets. quadtree.
+    	// TODO reuse found collision (not just the most immediate
         Collision c = null;
         for (int i = 0; i < entities.size(); ++i) {
 			Entity e1 = entities.get(i);
@@ -115,6 +114,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			        continue;
 			    }
 			    
+    			// TODO can formula be changed to use len2 instead?
     			float pLen = p.len();
 			    float vLen = v.len();
     			float r1 = s1.radius;
@@ -124,7 +124,6 @@ public class CollisionSystem extends IntervalEntitySystem {
 //			    System.out.println("p:"+pLen+" "+p);
 //			    System.out.println("v:"+vLen+" "+v);
 			    
-    			// TODO can formula be changed to use len2 instead?
 			    float t = (pLen - (r1+r2)) / vLen;
 //			    System.out.println("tn:"+t);
 			    
@@ -142,7 +141,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     /**
      * Updates the velocities of two colliding planets.
      */
-    private float handleCollision(Entity e1, Entity e2) {
+    private void handleCollision(Entity e1, Entity e2) {
         Vector2 p1 = pm.get(e1).vec;
         Vector2 p2 = pm.get(e2).vec;
         float m1 = mm.get(e1).mass;
@@ -159,15 +158,16 @@ public class CollisionSystem extends IntervalEntitySystem {
         // http://www.vobarian.com/collisions/2dcollisions2.pdf
         
         // TODO optimize.
-        // elastic collision:
+        // elastic collision: // TODO add other types of collision-handling. melding, breaking, exploding, etc.
         
-        // normal and tangent
         Vector2 p = p1.cpy().sub(p2);
 //        System.out.println("p:"+p.len()+" "+p2);
 //        System.out.println("r:"+(r1+r2));
         
         
-        Vector2 un = p.cpy().nor();
+        // normal and tangent
+//        Vector2 un = p.cpy().nor();
+        Vector2 un = p.cpy().mul((float) FastMath.inverseSqrt(p.len2())); // normalize
         Vector2 ut = new Vector2(-un.y, un.x);
         
 //        System.out.println("un:"+un);
@@ -179,6 +179,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         float t1 = ut.dot(v1);
         float t2 = ut.dot(v2);
         
+        // TODO use a percentage to generate heat?
         float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2);
         float nn2 = (n2 * (m2-m1) + 2*m1*n1)/(m1+m2);
         // t1 and t2 don't change.
@@ -196,9 +197,6 @@ public class CollisionSystem extends IntervalEntitySystem {
         v2.set(nv2).add(tv2);
 //        System.out.println(e1+" "+v1);
 //        System.out.println(e2+" "+v2);
-        
-        // TODO if already colliding, move away.
-        return 0f;
     }
     
     
@@ -206,7 +204,7 @@ public class CollisionSystem extends IntervalEntitySystem {
      * Holds the data of an detected Collision:
      * the indices of the involved planets and the time (0 <= t < 1) that it happens.
      */
-    private class Collision implements Comparable<Collision> {
+    private class Collision {
         public final float t;
         public final Entity e1, e2; // planets
         
@@ -214,11 +212,6 @@ public class CollisionSystem extends IntervalEntitySystem {
             this.e1 = e1;
             this.e2 = e2;
             this.t = t;
-        }
-
-        @Override
-        public int compareTo(Collision o) {
-            return Float.compare(t, o.t);
         }
     }
     
