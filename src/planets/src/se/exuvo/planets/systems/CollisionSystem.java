@@ -44,7 +44,11 @@ public class CollisionSystem extends IntervalEntitySystem {
      */
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
-        // TODO space partitioning? quadtree?
+    	long time = System.nanoTime();
+        // TODO space partitioning. quadtree. barnes-hut
+    	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
+    	// http://arborjs.org/docs/barnes-hut
+    	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
         
 		// TODO IMPORTANT: optimize!
         
@@ -55,7 +59,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         }
         
         float timeLimit = 1f;
-                                                          
+         
         Collision c;
         
         while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
@@ -64,6 +68,10 @@ public class CollisionSystem extends IntervalEntitySystem {
             timeLimit -= c.t;
         }
         updatePlanetPositions(entities, timeLimit);
+        
+    	time = System.nanoTime() - time;
+    	System.out.println("colproc: "+time*1e-6+" ms");
+    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) {
@@ -77,6 +85,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     }
     
     private Collision getEarliestCollisions(ImmutableBag<Entity> entities, float timeLimit) {
+    	long time = System.nanoTime();
     	// TODO selectively check planets. quadtree.
     	// TODO reuse found collision (not just the most immediate
         Collision c = null;
@@ -135,6 +144,8 @@ public class CollisionSystem extends IntervalEntitySystem {
 			    }
 			}
         }
+    	time = System.nanoTime()-time;
+    	System.out.println("colFind: "+time*1e-6+" ms");
         return c;
     }
     
@@ -142,6 +153,8 @@ public class CollisionSystem extends IntervalEntitySystem {
      * Updates the velocities of two colliding planets.
      */
     private void handleCollision(Entity e1, Entity e2) {
+    	long time = System.nanoTime();
+    	
         Vector2 p1 = pm.get(e1).vec;
         Vector2 p2 = pm.get(e2).vec;
         float m1 = mm.get(e1).mass;
@@ -190,13 +203,15 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 tv1 = ut.cpy().mul(t1);
         Vector2 tv2 = ut.cpy().mul(t2);
         
-//        System.out.println(e1+" "+v1);
-//        System.out.println(e2+" "+v2);
+//      System.out.println(e1+" "+v1);
+//      System.out.println(e2+" "+v2);
         // new velocities
         v1.set(nv1).add(tv1);
         v2.set(nv2).add(tv2);
-//        System.out.println(e1+" "+v1);
-//        System.out.println(e2+" "+v2);
+//      System.out.println(e1+" "+v1);
+//      System.out.println(e2+" "+v2);
+    	time = System.nanoTime()-time;
+    	System.out.println("colHandl: "+time*1e-6+" ms");
     }
     
     

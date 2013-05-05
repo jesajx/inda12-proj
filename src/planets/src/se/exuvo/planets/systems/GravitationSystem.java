@@ -52,10 +52,14 @@ public class GravitationSystem extends IntervalEntitySystem {
 	 */
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
-        // TODO quadtree
+		long time  = System.nanoTime();
+        // TODO space partitioning. quadtree. barnes-hut
+    	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
+    	// http://arborjs.org/docs/barnes-hut
+		// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
 		
-		// clear old accelerations
-		for (int i = 0; i < entities.size(); i++) {
+		// update accelerations
+		for (int i = 0; i < entities.size(); i++) { // TODO update Acceleration in separate system? works if the accelerations are processed before the gravitation.
 			Entity e = entities.get(i);
 			Acceleration a = am.get(e);
 			a.vec.set(Vector2.Zero); // reset
@@ -81,7 +85,10 @@ public class GravitationSystem extends IntervalEntitySystem {
 
 				// F = G*m*M/d^2
 				// F = ma
-				// a = G*M/d^2 = M * G/d^2
+				// a = G*M/d^2
+				// a = M * G/d^2
+				// k = G/d^2
+				// a = M*k
 				// where:
 				// m = e.mass
 				// M = e2.mass
@@ -90,11 +97,12 @@ public class GravitationSystem extends IntervalEntitySystem {
 
 				
                 Vector2 diff = p2.vec.cpy().sub(p.vec);
-                float k = G / diff.len2();
+                float d2 = diff.len2();
+                float k = G / d2;
                 if (Float.isNaN(k)) { // if distanceSquared==0
                     continue;
                 }
-                diff.nor().mul(k);
+                diff.mul((float) (k*FastMath.inverseSqrt(d2))); // normalize and mul(k)
                 Vector2 v = diff.cpy().mul(m2.mass);
                 Vector2 v2 = diff/*.cpy()*/.mul(-m.mass);
 				a.vec.add(v);
@@ -155,5 +163,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 		// NOTE: libgdx's MathUtils uses lookuptables created using java.lang.Math -> java.lang.StrictMath -> C-code.
 		// NOTE: artemis's FastMath uses some other lookup-method. Possibly faster but less accurate than gdx's.
 		// NOTE: artemis's FastMath had more accurate PI-variables.
+		time  = System.nanoTime() -time;
+		System.out.println("grav: "+time*1e-6+" ms");
 	}
 }
