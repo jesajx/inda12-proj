@@ -53,7 +53,7 @@ public class Planets extends Game implements Screen {
 
 //		world.setSystem(new AccelerationSystem());
 //		world.setSystem(new VelocitySystem());
-		world.setSystem(gravSystem = new GravitationSystem());
+//		world.setSystem(gravSystem = new GravitationSystem());
 		world.setSystem(collSystem = new CollisionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
@@ -77,9 +77,9 @@ public class Planets extends Game implements Screen {
 		// v^2 = a*r^2
 		// v^2 = G*M
 
-		float m = 1e16f;// 1e15f;
-		float v = 0;// 10f;// 6.f;
-		float r = 10 * 6 * 6 * 6;// v*v*v;
+//		float m = 1e16f;// 1e15f;
+//		float v = 10f;// 6.f;
+//		float r = 10 * 6 * 6 * 6;// v*v*v;
 //		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 //		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
 		int n = 50;
@@ -118,7 +118,7 @@ public class Planets extends Game implements Screen {
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
 			for (int i = 0; i < 9; i++) {
-				gravSystem.process();
+//				gravSystem.process();
 				collSystem.process();
 			}
 		}

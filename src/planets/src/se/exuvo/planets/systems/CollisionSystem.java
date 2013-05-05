@@ -1,10 +1,15 @@
 package se.exuvo.planets.systems;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.planets.utils.QuadTree;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -26,6 +31,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Velocity> vm;
 	@Mapper ComponentMapper<Mass> mm;
 	@Mapper ComponentMapper<Acceleration> am;
+	QuadTree tree = new QuadTree(new Vector2(-Float.MAX_VALUE, -Float.MAX_VALUE), 2*(Float.MAX_VALUE)); //TODO
 	
 	/** Used to check if the game is paused. */
 	private InputSystem insys;
@@ -55,22 +61,62 @@ public class CollisionSystem extends IntervalEntitySystem {
         // update accelerations
         for (int i = 0; i < entities.size(); i++) {
             Entity e = entities.get(i);
-            vm.get(e).vec.add(am.get(e).vec);
+            Vector2 v = vm.get(e).vec;
+            Vector2 a = am.get(e).vec;
+            v.add(a);
+//            System.out.println(e+".v:"+v);
+//            System.out.println(e+".a:"+a);
         }
         
         float timeLimit = 1f;
          
-        Collision c;
-        
-        while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
-            updatePlanetPositions(entities, c.t);
-            handleCollision(c.e1, c.e2);
+//        Collision c;
+//        
+//        while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
+//            updatePlanetPositions(entities, c.t);
+//            handleCollision(c.e1, c.e2);
+//            timeLimit -= c.t;
+//        }
+        // TODO faster?
+        List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
+        getCollisions(entities, cs, timeLimit);
+        while (!cs.isEmpty()) {
+        	Collections.sort(cs); // reverse sort
+        	Collision c = cs.remove(cs.size()-1);
+        	
+            updatePlanetPositions(entities, c.t); // forward c.t time
             timeLimit -= c.t;
+            
+            handleCollision(c.e1, c.e2);
+            
+            // remove collisions involving c.e1 or c.e2
+            for (int i = cs.size() -1; i >= 0; --i) {
+            	Collision col = cs.get(i);
+            	if (col.e1 == c.e1 || col.e1 == c.e2 || col.e2 == c.e1 || col.e2 == c.e2) {
+            		cs.remove(i);
+            	} else {
+            		col.t -= c.t;
+            	}
+            }
+            // find collisions involving c.e1 and/or c.e2
+            getCollisions(entities, c.e1, c.e2, cs, timeLimit);
         }
+        
         updatePlanetPositions(entities, timeLimit);
         
+    	long time1 = System.nanoTime() - time;
+    	System.out.println("colproc: "+time1*1e-6+" ms");
+//    	System.out.println();
+    	
+		tree = new QuadTree(new Vector2(-1e6f, -1e6f), 2*(1e6f)); //TODO
+		for (int i = 0; i < entities.size(); i++) {
+			tree.add(entities.get(i), mm, pm);
+		}
+		for (int i = 0; i < entities.size(); i++) {
+			tree.updateAcceleration(entities.get(i), 0.5f, 6.6726e-11f, mm, pm, am);
+		}
     	time = System.nanoTime() - time;
-    	System.out.println("colproc: "+time*1e-6+" ms");
+    	System.out.println("gravQ: "+time*1e-6+" ms");
     	System.out.println();
     }
     
@@ -84,6 +130,91 @@ public class CollisionSystem extends IntervalEntitySystem {
         }
     }
     
+    // compare only e1 and e2 to all other elements.
+    private void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, float timeLimit) {
+    	long time = System.nanoTime();
+		Vector2 p1 = pm.get(e1).vec;
+		float r1 = sm.get(e1).radius;
+		Vector2 v1 = vm.get(e1).vec;
+		
+		Vector2 p2 = pm.get(e2).vec;
+		float r2 = sm.get(e2).radius;
+		Vector2 v2 = vm.get(e2).vec;
+		
+		for (int i = 0; i < entities.size(); ++i) { // TODO recheck all? int j=0 instead?
+			Entity e3 = entities.get(i);
+			Vector2 p3 = pm.get(e3).vec;
+			float r3 = sm.get(e3).radius;
+			Vector2 v3 = vm.get(e3).vec;
+						
+			if (e1 != e3) {
+			    float t1 = collisionTime(p1, r1, v1, p3, r3, v3);
+			    if (!Float.isNaN(t1) && t1 >= 0 && t1 < timeLimit) {
+			        cs.add(new Collision(e1, e3, t1));
+			    }
+			}
+			if (e2 != e3) {
+			    float t2 = collisionTime(p1, r1, v1, p3, r3, v3);
+			    if (!Float.isNaN(t2) && t2 >= 0 && t2 < timeLimit) {
+			        cs.add(new Collision(e2, e3, t2));
+			    }
+			}
+		}
+    	time = System.nanoTime() - time;
+    	System.out.println("colGet: "+time*1e-6+" ms");
+    }
+    
+    private void getCollisions(ImmutableBag<Entity> entities, List<Collision> cs, float timeLimit) {
+    	long time = System.nanoTime();
+		for (int i = 0; i < entities.size(); ++i) { // TODO recheck all? int j=0 instead?
+	    	Entity e1 = entities.get(i);
+			Vector2 p1 = pm.get(e1).vec;
+			float r1 = sm.get(e1).radius;
+			Vector2 v1 = vm.get(e1).vec;
+			
+			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
+				Entity e2 = entities.get(j);
+				Vector2 p2 = pm.get(e2).vec;
+				float r2 = sm.get(e2).radius;
+				Vector2 v2 = vm.get(e2).vec;
+							
+			    float t = collisionTime(p1, r1, v1, p2, r2, v2);
+			    if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+			        cs.add(new Collision(e1, e2, t));
+			    }
+			}
+		}
+    	time = System.nanoTime() - time;
+    	System.out.println("colAll: "+time*1e-6+" ms");
+    }
+    
+    
+    private float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) {
+    	// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
+		// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
+		// http://en.wikipedia.org/wiki/Elastic_collision
+		
+		// http://stackoverflow.com/questions/6459035/2d-collision-response-between-circles?rq=1
+		// t = (||p|| - ||r1+r2||)/||v||
+		// where:
+		//   p = p1-p2
+		//   v = v1-v2
+
+    	Vector2 p = p1.cpy().sub(p2);
+		Vector2 v = v1.cpy().sub(v2);
+		
+		// if planets are already moving away from each other.
+	    if (v.dot(p) > 0) {
+	        return Float.NaN;
+	    }
+	    
+		// TODO can formula be changed to use len2 instead?
+		float pLen = p.len();
+	    float vLen = v.len();
+	    
+	    return (pLen - (r1+r2)) / vLen; // TODO if neg.
+    }
+        
     private Collision getEarliestCollisions(ImmutableBag<Entity> entities, float timeLimit) {
     	long time = System.nanoTime();
     	// TODO selectively check planets. quadtree.
@@ -92,52 +223,17 @@ public class CollisionSystem extends IntervalEntitySystem {
         for (int i = 0; i < entities.size(); ++i) {
 			Entity e1 = entities.get(i);
 			Vector2 p1 = pm.get(e1).vec;
-			Size s1 = sm.get(e1);
+			float r1 = sm.get(e1).radius;
 			Vector2 v1 = vm.get(e1).vec;
 			
 			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
     			Entity e2 = entities.get(j);
     			Vector2 p2 = pm.get(e2).vec;
-    			Size s2 = sm.get(e2);
+    			float r2 = sm.get(e2).radius;
     			Vector2 v2 = vm.get(e2).vec;
     			
-    			// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
-    			// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
-    			// http://en.wikipedia.org/wiki/Elastic_collision
-    			
-    			// according to:
-    			// http://stackoverflow.com/questions/6459035/2d-collision-response-between-circles?rq=1
-    			// we have that:
-    			// t = (||p|| - ||r1+r2||)/||v||
-    			// where:
-    			//   p = p1-p2
-    			//   v = v1-v2
-    			
-    			// TODO check if p.len2()>large to speed up?
-    			// TODO time offsets
-    			Vector2 p = p1.cpy().sub(p2);
-    			Vector2 v = v1.cpy().sub(v2);
-    			
-    			// if planets are already moving away from each other.
-			    if (v.dot(p) > 0) {
-			        continue;
-			    }
-			    
-    			// TODO can formula be changed to use len2 instead?
-    			float pLen = p.len();
-			    float vLen = v.len();
-    			float r1 = s1.radius;
-			    float r2 = s2.radius;
-//			    System.out.println("v1:"+v1.vec.len()+" "+v1.vec);
-//			    System.out.println("v2:"+v2.vec.len()+" "+v2.vec);
-//			    System.out.println("p:"+pLen+" "+p);
-//			    System.out.println("v:"+vLen+" "+v);
-			    
-			    float t = (pLen - (r1+r2)) / vLen;
-//			    System.out.println("tn:"+t);
-			    
-			    // TODO check for vLen==0 instead?
-			    // TODO does t have to be >= 0
+			    float t = collisionTime(p1, r1, v1, p2, r2, v2);
+			    // TODO what if t < 0 ? would mean planets are already colliding. meld?
 			    if (!Float.isNaN(t) && t >= 0 && t < timeLimit && (c == null || t < c.t)) {
 //    			    System.out.println("t:"+t);
 			        c = new Collision(e1, e2, t);
@@ -152,7 +248,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     /**
      * Updates the velocities of two colliding planets.
      */
-    private void handleCollision(Entity e1, Entity e2) {
+    private void handleCollision(Entity e1, Entity e2) { // TODO optimize.
     	long time = System.nanoTime();
     	
         Vector2 p1 = pm.get(e1).vec;
@@ -164,35 +260,23 @@ public class CollisionSystem extends IntervalEntitySystem {
         float r1 = sm.get(e1).radius;
         float r2 = sm.get(e2).radius;
         
-        
-//        System.out.println("p1:"+p1.len()+" "+p1);
-//        System.out.println("p2:"+p2.len()+" "+p2);
 		// http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling?rq=1
         // http://www.vobarian.com/collisions/2dcollisions2.pdf
         
-        // TODO optimize.
-        // elastic collision: // TODO add other types of collision-handling. melding, breaking, exploding, etc.
-        
         Vector2 p = p1.cpy().sub(p2);
-//        System.out.println("p:"+p.len()+" "+p2);
-//        System.out.println("r:"+(r1+r2));
-        
         
         // normal and tangent
-//        Vector2 un = p.cpy().nor();
         Vector2 un = p.cpy().mul((float) FastMath.inverseSqrt(p.len2())); // normalize
         Vector2 ut = new Vector2(-un.y, un.x);
         
-//        System.out.println("un:"+un);
-//        System.out.println("ut:"+ut);
-        
-        // projection magnitudes
+        // project on normal and tangent
         float n1 = un.dot(v1);
         float n2 = un.dot(v2);
         float t1 = ut.dot(v1);
         float t2 = ut.dot(v2);
         
-        // TODO use a percentage to generate heat?
+        // TODO add other types of collision-handling. non-elastic, melding, breaking, exploding, etc.
+        // elastic collision 
         float nn1 = (n1 * (m1-m2) + 2*m2*n2)/(m1+m2);
         float nn2 = (n2 * (m2-m1) + 2*m1*n1)/(m1+m2);
         // t1 and t2 don't change.
@@ -203,24 +287,21 @@ public class CollisionSystem extends IntervalEntitySystem {
         Vector2 tv1 = ut.cpy().mul(t1);
         Vector2 tv2 = ut.cpy().mul(t2);
         
-//      System.out.println(e1+" "+v1);
-//      System.out.println(e2+" "+v2);
         // new velocities
         v1.set(nv1).add(tv1);
         v2.set(nv2).add(tv2);
-//      System.out.println(e1+" "+v1);
-//      System.out.println(e2+" "+v2);
+        
     	time = System.nanoTime()-time;
     	System.out.println("colHandl: "+time*1e-6+" ms");
     }
     
     
     /**
-     * Holds the data of an detected Collision:
-     * the indices of the involved planets and the time (0 <= t < 1) that it happens.
+     * Holds the data of an detected Collision.
+     * Involved planets and the time (0 <= t < 1) of collision.
      */
-    private class Collision {
-        public final float t;
+    private class Collision implements Comparable<Collision> {
+        public float t;
         public final Entity e1, e2; // planets
         
         public Collision(Entity e1, Entity e2, float t) {
@@ -228,8 +309,12 @@ public class CollisionSystem extends IntervalEntitySystem {
             this.e2 = e2;
             this.t = t;
         }
+
+		@Override
+		public int compareTo(Collision c) {
+			return Float.compare(c.t, t); // NOTE: reversed compare
+		}
     }
-    
     
     /**
 	 * Checks whether this system is paused.

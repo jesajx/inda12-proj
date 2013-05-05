@@ -58,6 +58,7 @@ public class GravitationSystem extends IntervalEntitySystem {
     	// http://arborjs.org/docs/barnes-hut
 		// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
 		
+		
 		// update accelerations
 		for (int i = 0; i < entities.size(); i++) { // TODO update Acceleration in separate system? works if the accelerations are processed before the gravitation.
 			Entity e = entities.get(i);
@@ -166,4 +167,5 @@ public class GravitationSystem extends IntervalEntitySystem {
 		time  = System.nanoTime() -time;
 		System.out.println("grav: "+time*1e-6+" ms");
 	}
+	
 }
