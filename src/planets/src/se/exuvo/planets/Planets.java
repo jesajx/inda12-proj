@@ -1,5 +1,6 @@
 package se.exuvo.planets;
 
+import se.exuvo.planets.systems.AccelerationSystem;
 import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
@@ -28,6 +29,7 @@ public class Planets extends Game implements Screen {
 
 	private InputSystem inputSystem;
 	private UISystem uiSystem;
+	private AccelerationSystem accSystem;
 	private GravitationSystem gravSystem;
 	private CollisionSystem collSystem;
 
@@ -51,8 +53,7 @@ public class Planets extends Game implements Screen {
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
 
-//		world.setSystem(new AccelerationSystem());
-//		world.setSystem(new VelocitySystem());
+		world.setSystem(accSystem = new AccelerationSystem());
 		world.setSystem(gravSystem = new GravitationSystem());
 		world.setSystem(collSystem = new CollisionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
@@ -118,8 +119,9 @@ public class Planets extends Game implements Screen {
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
 			for (int i = 0; i < 9; i++) {
-				gravSystem.process();
-				collSystem.process();
+				gravSystem.process(); // update acc
+				accSystem.process(); // update vel
+				collSystem.process(); // update pos
 			}
 		}
 		world.process();

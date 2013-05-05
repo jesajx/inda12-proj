@@ -30,7 +30,6 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Size> sm;
 	@Mapper ComponentMapper<Velocity> vm;
 	@Mapper ComponentMapper<Mass> mm;
-	@Mapper ComponentMapper<Acceleration> am;
 	
 	
 	/** Used to check if the game is paused. */
@@ -55,14 +54,6 @@ public class CollisionSystem extends IntervalEntitySystem {
     	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
     	// http://arborjs.org/docs/barnes-hut
     	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
-        
-        
-    	for (int i = 0; i < entities.size(); i++) { // update velocities
-            Entity e = entities.get(i);
-            Vector2 v = vm.get(e).vec;
-            Vector2 a = am.get(e).vec;
-            v.add(a);
-        }
     	
 		
         float timeLimit = 1f;
