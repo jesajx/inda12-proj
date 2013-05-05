@@ -31,14 +31,16 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Velocity> vm;
 	@Mapper ComponentMapper<Mass> mm;
 	@Mapper ComponentMapper<Acceleration> am;
-	QuadTree tree = new QuadTree(new Vector2(-Float.MAX_VALUE, -Float.MAX_VALUE), 2*(Float.MAX_VALUE)); //TODO
+	
+	public float side = 1e6f; // TODO globalize
+	public QuadTree tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
 	
 	/** Used to check if the game is paused. */
 	private InputSystem insys;
 	
 	
     public CollisionSystem() {
-        super(Aspect.getAspectForAll(Position.class, Size.class, Velocity.class, Mass.class), Settings.getFloat("PhysicsStep"));
+        super(Aspect.getAspectForAll(Position.class, Size.class, Velocity.class, Mass.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
     }
     
     @Override
@@ -50,36 +52,54 @@ public class CollisionSystem extends IntervalEntitySystem {
      */
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
-    	long time = System.nanoTime();
         // TODO space partitioning. quadtree. barnes-hut
     	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
     	// http://arborjs.org/docs/barnes-hut
     	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
         
-		// TODO IMPORTANT: optimize!
         
-        // update accelerations
-        for (int i = 0; i < entities.size(); i++) {
+    	long time = System.nanoTime();
+    	// TODO put in separate system.
+    	
+        
+    	for (int i = 0; i < entities.size(); i++) { // update velocities
             Entity e = entities.get(i);
             Vector2 v = vm.get(e).vec;
             Vector2 a = am.get(e).vec;
             v.add(a);
-//            System.out.println(e+".v:"+v);
-//            System.out.println(e+".a:"+a);
         }
+    	
+		
+    	
+//    	if (tree.size() != entities.size()) {
+//			tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
+//			for (int i = 0; i < entities.size(); i++) { // fill tree
+//		        Entity e = entities.get(i);
+//				tree.add(entities.get(i), mm, pm);
+//			}
+//    	}
+		tree.update(mm, pm);
+		
+		for (int i = 0; i < entities.size(); i++) { // update accelerations
+            Entity e = entities.get(i);
+            Vector2 a = am.get(e).vec;
+            a.set(0f,0f);
+			tree.updateAcceleration(entities.get(i), 0.5f, 6.6726e-11f, mm, pm, am);
+		}
         
+    	time = System.nanoTime() - time;
+    	System.out.println("gravQ: "+time*1e-6+" ms");
+    	
+    	
+    	
+    	
+    	time = System.nanoTime();
+    	
         float timeLimit = 1f;
-         
-//        Collision c;
-//        
-//        while ((c = getEarliestCollisions(entities, timeLimit)) != null) {
-//            updatePlanetPositions(entities, c.t);
-//            handleCollision(c.e1, c.e2);
-//            timeLimit -= c.t;
-//        }
-        // TODO faster?
         List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
-        getCollisions(entities, cs, timeLimit);
+        
+//        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
+        
         while (!cs.isEmpty()) {
         	Collections.sort(cs); // reverse sort
         	Collision c = cs.remove(cs.size()-1);
@@ -104,23 +124,12 @@ public class CollisionSystem extends IntervalEntitySystem {
         
         updatePlanetPositions(entities, timeLimit);
         
-    	long time1 = System.nanoTime() - time;
-    	System.out.println("colproc: "+time1*1e-6+" ms");
-//    	System.out.println();
-    	
-		tree = new QuadTree(new Vector2(-1e6f, -1e6f), 2*(1e6f)); //TODO
-		for (int i = 0; i < entities.size(); i++) {
-			tree.add(entities.get(i), mm, pm);
-		}
-		for (int i = 0; i < entities.size(); i++) {
-			tree.updateAcceleration(entities.get(i), 0.5f, 6.6726e-11f, mm, pm, am);
-		}
     	time = System.nanoTime() - time;
-    	System.out.println("gravQ: "+time*1e-6+" ms");
+    	System.out.println("colproc: "+time*1e-6+" ms");
     	System.out.println();
     }
     
-    private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) {
+    private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) { // O(n)
         for (int i = 0; i < entities.size(); i++) {
             Entity e = entities.get(i);
             Vector2 p = pm.get(e).vec;
@@ -130,8 +139,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         }
     }
     
-    // compare only e1 and e2 to all other elements.
-    private void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, float timeLimit) {
+    /** compare only e1 and e2 to all other elements. */
+    private void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, float timeLimit) { // O(n)
     	long time = System.nanoTime();
 		Vector2 p1 = pm.get(e1).vec;
 		float r1 = sm.get(e1).radius;
@@ -164,7 +173,8 @@ public class CollisionSystem extends IntervalEntitySystem {
     	System.out.println("colGet: "+time*1e-6+" ms");
     }
     
-    private void getCollisions(ImmutableBag<Entity> entities, List<Collision> cs, float timeLimit) {
+    
+    private void getCollisions(ImmutableBag<Entity> entities, List<Collision> cs, float timeLimit) { // O(n^2) // TODO EXTREMLY SLOW. NEEDS OPTIMIZATION.
     	long time = System.nanoTime();
 		for (int i = 0; i < entities.size(); ++i) { // TODO recheck all? int j=0 instead?
 	    	Entity e1 = entities.get(i);
@@ -189,7 +199,8 @@ public class CollisionSystem extends IntervalEntitySystem {
     }
     
     
-    private float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) {
+    
+    private float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) { // O(1)
     	// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
 		// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
 		// http://en.wikipedia.org/wiki/Elastic_collision
@@ -214,41 +225,11 @@ public class CollisionSystem extends IntervalEntitySystem {
 	    
 	    return (pLen - (r1+r2)) / vLen; // TODO if neg.
     }
-        
-    private Collision getEarliestCollisions(ImmutableBag<Entity> entities, float timeLimit) {
-    	long time = System.nanoTime();
-    	// TODO selectively check planets. quadtree.
-    	// TODO reuse found collision (not just the most immediate
-        Collision c = null;
-        for (int i = 0; i < entities.size(); ++i) {
-			Entity e1 = entities.get(i);
-			Vector2 p1 = pm.get(e1).vec;
-			float r1 = sm.get(e1).radius;
-			Vector2 v1 = vm.get(e1).vec;
-			
-			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
-    			Entity e2 = entities.get(j);
-    			Vector2 p2 = pm.get(e2).vec;
-    			float r2 = sm.get(e2).radius;
-    			Vector2 v2 = vm.get(e2).vec;
-    			
-			    float t = collisionTime(p1, r1, v1, p2, r2, v2);
-			    // TODO what if t < 0 ? would mean planets are already colliding. meld?
-			    if (!Float.isNaN(t) && t >= 0 && t < timeLimit && (c == null || t < c.t)) {
-//    			    System.out.println("t:"+t);
-			        c = new Collision(e1, e2, t);
-			    }
-			}
-        }
-    	time = System.nanoTime()-time;
-    	System.out.println("colFind: "+time*1e-6+" ms");
-        return c;
-    }
-    
+            
     /**
      * Updates the velocities of two colliding planets.
      */
-    private void handleCollision(Entity e1, Entity e2) { // TODO optimize.
+    private void handleCollision(Entity e1, Entity e2) { // O(1)
     	long time = System.nanoTime();
     	
         Vector2 p1 = pm.get(e1).vec;

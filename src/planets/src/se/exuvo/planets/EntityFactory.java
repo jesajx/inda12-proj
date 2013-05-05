@@ -1,5 +1,7 @@
 package se.exuvo.planets;
 
+import org.omg.PortableServer.AdapterActivator;
+
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -7,7 +9,9 @@ import se.exuvo.planets.components.Particle;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.planets.systems.CollisionSystem;
 
+import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.World;
 import com.badlogic.gdx.graphics.Color;
@@ -50,7 +54,9 @@ public class EntityFactory {
 
 		Colour c = new Colour(color);
 		e.addComponent(c);
-
+		
+		addToQuadTree(world, e); // TODO okay to add before Entity.addToWorld() ?
+		
 		return e;
 	}
 
@@ -81,11 +87,13 @@ public class EntityFactory {
 	 * @param e the planet.
 	 * @param v the velocity to set.
 	 */
-	public static void fillPlanet(Entity e, Vector2 velocity) {
+	public static void fillPlanet(World world, Entity e, Vector2 velocity) {
 		e.addComponent(new Velocity(velocity));
 		e.addComponent(new Acceleration());
 
 		e.changedInWorld();
+		
+		addToQuadTree(world, e);
 	}
 	
 	public static Entity createParticleEffect(World world){
@@ -105,4 +113,16 @@ public class EntityFactory {
 		
 		return e;
 	}
+    
+    
+    public static void addToQuadTree(World world, Entity e) {
+		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
+		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
+		world.getSystem(CollisionSystem.class).tree.add(e, mm, pm);
+    }
+    public static void removeFromQuadTree(World world, Entity e) {
+		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
+		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
+		world.getSystem(CollisionSystem.class).tree.remove(e, mm, pm);
+    }
 }

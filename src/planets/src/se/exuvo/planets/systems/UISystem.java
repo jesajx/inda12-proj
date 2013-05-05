@@ -1,5 +1,6 @@
 package se.exuvo.planets.systems;
 
+import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -116,6 +117,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				selectedPlanet.deleteFromWorld();
+				EntityFactory.removeFromQuadTree(world, selectedPlanet);
 				selectedPlanet = null;
 			}
 		});

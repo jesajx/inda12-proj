@@ -1,5 +1,8 @@
 package se.exuvo.planets.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
@@ -33,7 +36,12 @@ public class QuadTree {
 
 	QuadTree bl, br, tl, tr; // {bottom,top}{left,right}
 	Entity entity; // TODO necessary to store entity? if we only update using updateMassCenter it would be unncessary.
+	
+	int size; // no of entities. (not nodes)
 
+	
+	
+	
 	/**
 	 * Creates a new QuadTree spanning the given cube.
 	 * 
@@ -52,6 +60,7 @@ public class QuadTree {
 	
 	
 	
+	
 	public boolean add(Entity entity, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		if (!contains(pm.get(entity).vec)) {// TODO shouldn't be necessary
 			return false;
@@ -61,6 +70,7 @@ public class QuadTree {
 			this.entity = entity;
 			this.mass = mm.get(entity).mass;
 			this.massVector = pm.get(entity).vec.cpy().mul(mass);
+			++size;
 			return true;
 		} else {
 			if (bl == null) {
@@ -73,39 +83,69 @@ public class QuadTree {
 			Vector2 p = pm.get(entity).vec;
 			this.massVector.add(p.cpy().mul(m));
 			this.mass += m;
+			++size;
 			return true;
 		}
 	}
 	
-	/**
-	 * Searches for and deletes the given entity from the QuadTree.
-	 * NOTE: mass and massVector is NOT UPDATED.
-	 * @param entity Entity to add.
-	 * @param mm mapper for masses.
-	 * @param pm mapper for positions
-	 * @return whether the entity was deleted. false iff the entity didn't exist in the tree.
-	 */
+	private void addSubtrees() {
+		float subside = side / 2;
+
+		bl = new QuadTree(pos.cpy(), subside);
+
+		br = new QuadTree(pos.cpy(), subside);
+		br.pos.x += subside;
+
+		tl = new QuadTree(pos.cpy(), subside);
+		tl.pos.y += subside;
+
+		tr = new QuadTree(pos.cpy(), subside);
+		tr.pos.x += subside;
+		tr.pos.y += subside;
+	}
+	
+	
+	
+	
 	public boolean remove(Entity entity, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
-//		if (!contains(pm.get(entity).vec)) { // TODO shouldn't be necessary
-//			return false;
-//		}
 		if (hasEntity()) {
 			if (this.entity == entity) {
 				this.entity = null;
-				this.mass = 0f;
-				this.massVector.set(0f,0f);
+				mass = 0f;
+				massVector.set(0f,0f);
+				--size;
 				return true;
 			}
 		} else if (hasChildren()) {
-			QuadTree subtree = quadrantOf(this.entity, mm, pm);
-			Vector2 oldCenter = subtree.massVector;
-			if (subtree.remove(entity, mm, pm)) {
-				this.mass -= mm.get(entity).mass;
-				this.massVector.sub(oldCenter).add(subtree.massVector);
-			}
+			QuadTree sub = quadrantOf(entity, mm, pm);
+			float oldMass = sub.mass;
+			Vector2 oldVector = sub.massVector.cpy();
 			
+			if (sub.remove(entity, mm, pm)) {
+				--size;
+				mass -= oldMass - sub.mass; 
+				massVector.sub(oldVector).add(sub.massVector);
+			}
 		}
 		return false;
+	}
+	
+	/** Doesn't update mass and massVector. */
+	public boolean dirtyRemove(Entity entity, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
+		if (hasEntity()) {
+			if (this.entity == entity) {
+				this.entity = null;
+				--size;
+				return true;
+			}
+		} else if (hasChildren()) {
+			QuadTree sub = quadrantOf(entity, mm, pm);
+			if (sub.remove(entity, mm, pm)) {
+				--size;
+			}
+		}
+		return false;
+
 	}
 	
 	
@@ -136,10 +176,10 @@ public class QuadTree {
 			// F = m*a
 			// a = G*M/d^2
 			float a = G*M/d2;
-			if (!Float.isNaN(a)) {
-                diff.mul((float) (a * FastMath.inverseSqrt(d2))); // normalize and mul(a)
-                am.get(e).vec.add(diff);
-//				System.out.println(e+".a: "+am.get(e).vec);
+			float k = (float) (a * FastMath.inverseSqrt(d2)); // normalize diff
+			if (!Float.isNaN(k)) {
+				Vector2 accVec = am.get(e).vec;
+				accVec.add(diff.mul(k));
 			}
 		} else {
 			bl.updateAcceleration(e, theta, G, mm, pm, am);
@@ -151,66 +191,54 @@ public class QuadTree {
 	
 	
 	
-
+	
 	public void update(ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
-		// TODO
-		update(this, mm, pm);
-		
-//		updateMassCenter(mm, pm); // TODO faster? vs remove+add below
-		
-		// TODO faster with clear and re-add?
+		List<Entity> moved = new ArrayList<Entity>();
+		update(moved, mm, pm);
+		for (Entity e : moved) {
+			add(e, mm, pm);
+		}
 	}
-	private void update(QuadTree root, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
+	
+	private void update(List<Entity> moved, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		if (hasEntity()) {
-			if (!contains(pm.get(entity).vec)) {
-				// TODO faster? vs updating whole tree afterwards (see above)
-				root.remove(entity, mm, pm);
-				root.add(entity, mm, pm);
+			Vector2 p = pm.get(entity).vec;
+			if (!contains(p)) {
+				moved.add(entity);
+				--size;
+				this.mass = 0f;
+				this.massVector.set(0f,0f);
+				entity = null;
+			} else {
+				mass = mm.get(entity).mass;
+				massVector.set(p).mul(mass);
 			}
 		} else if (hasChildren()){
-			bl.update(root, mm, pm);
-			br.update(root, mm, pm);
-			tl.update(root, mm, pm);
-			tr.update(root, mm, pm);
+			bl.update(moved, mm, pm);
+			br.update(moved, mm, pm);
+			tl.update(moved, mm, pm);
+			tr.update(moved, mm, pm);
+			
+			size = bl.size + br.size + tl.size + tr.size;
+			
+			mass = bl.mass + br.mass + tl.mass + tr.mass;
+				
+			massVector.set(0f,0f);
+			massVector.add(bl.massVector).add(br.massVector);
+			massVector.add(tl.massVector).add(tr.massVector);
 		}
 	}
-
-	
-	
-	
-	public void updateMassCenter(ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
-		// TODO
-		if (hasEntity()) {
-			this.mass = mm.get(entity).mass;
-			this.massVector = pm.get(entity).vec.cpy().mul(mass);
-		} else if (hasChildren()){
-			bl.updateMassCenter(mm, pm);
-			br.updateMassCenter(mm, pm);
-			tl.updateMassCenter(mm, pm);
-			tr.updateMassCenter(mm, pm);
-			
-			// http://arborjs.org/docs/barnes-hut
-			// x = (x1*m1 + x2*m2) / m
-			// y = (y1*m1 + y2*m2) / m  
-			// (x,y) = (x1*m1+x2*m2, y1*m1+y2*m2) * 1/m
-			// (x,y) = ((x1*m1,y1*m1) + (x2*m2,y2*m2)) * 1/m
-			// (x,y) = (m1(x1,y1) + m2(x2,y2)) * 1/m
-			
-			float m1 = bl.mass, m2 = br.mass,
-					m3 = tl.mass, m4 = tr.mass;
-			this.mass = m1+m2+m3+m4;
-			Vector2 p1 = bl.massVector.cpy(), p2 = br.massVector.cpy(),
-					p3 = tl.massVector.cpy(), p4 = tr.massVector.cpy();
-			this.massVector = p1.add(p2).add(p3).add(p4);
-		}
-	}
-	
+		
 	
 	
 	
 	public boolean contains(Vector2 pos) {
 		return pos.x >= this.pos.x && pos.x < this.pos.x + side
 				&& pos.y >= this.pos.y && pos.y < this.pos.y + side;
+	}
+	
+	public int size() {
+		return size;
 	}
 	
 	public boolean isEmpty() {
@@ -222,7 +250,6 @@ public class QuadTree {
 	public boolean hasEntity() {
 		return entity != null;
 	}
-	
 	
 	
 	
@@ -245,19 +272,4 @@ public class QuadTree {
 		}
 	}
 
-	private void addSubtrees() {
-		float subside = side / 2;
-
-		bl = new QuadTree(pos.cpy(), subside);
-
-		br = new QuadTree(pos.cpy(), subside);
-		br.pos.x += subside;
-
-		tl = new QuadTree(pos.cpy(), subside);
-		tl.pos.y += subside;
-
-		tr = new QuadTree(pos.cpy(), subside);
-		tr.pos.x += subside;
-		tr.pos.y += subside;
-	}
 }
