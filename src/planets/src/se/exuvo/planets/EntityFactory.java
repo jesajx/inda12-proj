@@ -1,7 +1,5 @@
 package se.exuvo.planets;
 
-import org.omg.PortableServer.AdapterActivator;
-
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -9,7 +7,7 @@ import se.exuvo.planets.components.Particle;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
-import se.exuvo.planets.systems.CollisionSystem;
+import se.exuvo.planets.systems.GravitationSystem;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
@@ -118,11 +116,11 @@ public class EntityFactory {
     public static void addToQuadTree(World world, Entity e) {
 		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
 		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
-		world.getSystem(CollisionSystem.class).tree.add(e, mm, pm);
+		world.getSystem(GravitationSystem.class).tree.add(e, mm, pm);
     }
     public static void removeFromQuadTree(World world, Entity e) {
 		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
 		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
-		world.getSystem(CollisionSystem.class).tree.remove(e, mm, pm);
+		world.getSystem(GravitationSystem.class).tree.remove(e, mm, pm);
     }
 }

@@ -53,7 +53,7 @@ public class Planets extends Game implements Screen {
 
 //		world.setSystem(new AccelerationSystem());
 //		world.setSystem(new VelocitySystem());
-//		world.setSystem(gravSystem = new GravitationSystem());
+		world.setSystem(gravSystem = new GravitationSystem());
 		world.setSystem(collSystem = new CollisionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
@@ -118,7 +118,7 @@ public class Planets extends Game implements Screen {
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
 			for (int i = 0; i < 9; i++) {
-//				gravSystem.process();
+				gravSystem.process();
 				collSystem.process();
 			}
 		}

@@ -32,8 +32,6 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Mass> mm;
 	@Mapper ComponentMapper<Acceleration> am;
 	
-	public float side = 1e6f; // TODO globalize
-	public QuadTree tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
 	
 	/** Used to check if the game is paused. */
 	private InputSystem insys;
@@ -52,15 +50,12 @@ public class CollisionSystem extends IntervalEntitySystem {
      */
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
+    	long time = System.nanoTime();
         // TODO space partitioning. quadtree. barnes-hut
     	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
     	// http://arborjs.org/docs/barnes-hut
     	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
         
-        
-    	long time = System.nanoTime();
-    	// TODO put in separate system.
-    	
         
     	for (int i = 0; i < entities.size(); i++) { // update velocities
             Entity e = entities.get(i);
@@ -70,31 +65,6 @@ public class CollisionSystem extends IntervalEntitySystem {
         }
     	
 		
-    	
-//    	if (tree.size() != entities.size()) {
-//			tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
-//			for (int i = 0; i < entities.size(); i++) { // fill tree
-//		        Entity e = entities.get(i);
-//				tree.add(entities.get(i), mm, pm);
-//			}
-//    	}
-		tree.update(mm, pm);
-		
-		for (int i = 0; i < entities.size(); i++) { // update accelerations
-            Entity e = entities.get(i);
-            Vector2 a = am.get(e).vec;
-            a.set(0f,0f);
-			tree.updateAcceleration(entities.get(i), 0.5f, 6.6726e-11f, mm, pm, am);
-		}
-        
-    	time = System.nanoTime() - time;
-    	System.out.println("gravQ: "+time*1e-6+" ms");
-    	
-    	
-    	
-    	
-    	time = System.nanoTime();
-    	
         float timeLimit = 1f;
         List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
         

@@ -3,6 +3,7 @@ package se.exuvo.planets.systems;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
+import se.exuvo.planets.utils.QuadTree;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -27,6 +28,8 @@ public class GravitationSystem extends IntervalEntitySystem {
 	 * TODO Should have the same value as in reality if we want to use realistic masses/distances/times/etc. for planets. This does however mean that planets need to have GIGANTIC masses, distances and time to properly orbit.
 	 */
 	private float G = 6.6726e-11f;
+	public float side = 1e6f; // TODO globalize
+	public QuadTree tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
 	
 	/** Gives the system access to components with the Mass-Aspect. */
 	@Mapper ComponentMapper<Mass> mm;
@@ -58,7 +61,15 @@ public class GravitationSystem extends IntervalEntitySystem {
     	// http://arborjs.org/docs/barnes-hut
 		// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
 		
+		tree.update(mm, pm);
 		
+		for (int i = 0; i < entities.size(); i++) { // update accelerations
+            Entity e = entities.get(i);
+            Vector2 a = am.get(e).vec;
+            a.set(0f,0f);
+			tree.updateAcceleration(entities.get(i), 0.5f, 6.6726e-11f, mm, pm, am);
+		}
+
 		// update accelerations
 		for (int i = 0; i < entities.size(); i++) { // TODO update Acceleration in separate system? works if the accelerations are processed before the gravitation.
 			Entity e = entities.get(i);
