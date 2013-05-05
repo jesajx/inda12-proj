@@ -59,7 +59,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         float timeLimit = 1f;
         List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
         
-//        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
+        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
         
         while (!cs.isEmpty()) {
         	Collections.sort(cs); // reverse sort
