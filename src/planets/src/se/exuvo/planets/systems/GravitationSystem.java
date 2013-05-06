@@ -3,7 +3,7 @@ package se.exuvo.planets.systems;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
-import se.exuvo.planets.utils.QuadTree;
+import se.exuvo.planets.utils.GravQuadTree;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -28,7 +28,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	private float G = 6.6726e-11f;
 	private float theta = 0.7f;
 	public float side = 1e6f; // TODO globalize
-	public QuadTree tree = new QuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
+	public GravQuadTree tree = new GravQuadTree(new Vector2(-side/2, -side/2), side);// TODO increase size of the universe.
 	
 	/** Gives the system access to components with the Mass-Aspect. */
 	@Mapper ComponentMapper<Mass> mm;

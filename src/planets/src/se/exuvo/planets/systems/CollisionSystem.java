@@ -9,7 +9,8 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
-import se.exuvo.planets.utils.QuadTree;
+import se.exuvo.planets.utils.Collision;
+import se.exuvo.planets.utils.GravQuadTree;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -54,6 +55,9 @@ public class CollisionSystem extends IntervalEntitySystem {
     	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
     	// http://arborjs.org/docs/barnes-hut
     	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
+    	// http://gamedev.stackexchange.com/questions/39931/fast-accurate-2d-collision
+    	// http://gamedev.stackexchange.com/questions/41941/faster-2d-collision-detection
+    	
     	
 		
         float timeLimit = 1f;
@@ -237,26 +241,6 @@ public class CollisionSystem extends IntervalEntitySystem {
     	System.out.println("colHandl: "+time*1e-6+" ms");
     }
     
-    
-    /**
-     * Holds the data of an detected Collision.
-     * Involved planets and the time (0 <= t < 1) of collision.
-     */
-    private class Collision implements Comparable<Collision> {
-        public float t;
-        public final Entity e1, e2; // planets
-        
-        public Collision(Entity e1, Entity e2, float t) {
-            this.e1 = e1;
-            this.e2 = e2;
-            this.t = t;
-        }
-
-		@Override
-		public int compareTo(Collision c) {
-			return Float.compare(c.t, t); // NOTE: reversed compare
-		}
-    }
     
     /**
 	 * Checks whether this system is paused.

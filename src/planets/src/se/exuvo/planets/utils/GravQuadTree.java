@@ -20,7 +20,7 @@ import com.badlogic.gdx.math.Vector2;
  * 
  * Each QuadTree object is in one of 3 states: has an entity, has 4 subtrees or has neither.
  */
-public class QuadTree {
+public class GravQuadTree {
 
 	// TODO should this class have direct access to entity-mappers (statically)?
 	// or pass as needed?
@@ -34,7 +34,7 @@ public class QuadTree {
 	float mass; // total
 	Vector2 massVector; // the sum of each (planet*planet.mass). Divide with this.mass to get center.
 
-	QuadTree bl, br, tl, tr; // {bottom,top}{left,right}
+	GravQuadTree bl, br, tl, tr; // {bottom,top}{left,right}
 	Entity entity; // TODO necessary to store entity? if we only update using updateMassCenter it would be unncessary.
 	
 	int size; // no of entities. (not nodes)
@@ -50,7 +50,7 @@ public class QuadTree {
 	 * @param side
 	 *            length of each side in cube
 	 */
-	public QuadTree(Vector2 pos, float side) {
+	public GravQuadTree(Vector2 pos, float side) {
 		this.pos = pos;
 		this.side = side;
 		massVector = pos.cpy();
@@ -91,15 +91,15 @@ public class QuadTree {
 	private void addSubtrees() {
 		float subside = side / 2;
 
-		bl = new QuadTree(pos.cpy(), subside);
+		bl = new GravQuadTree(pos.cpy(), subside);
 
-		br = new QuadTree(pos.cpy(), subside);
+		br = new GravQuadTree(pos.cpy(), subside);
 		br.pos.x += subside;
 
-		tl = new QuadTree(pos.cpy(), subside);
+		tl = new GravQuadTree(pos.cpy(), subside);
 		tl.pos.y += subside;
 
-		tr = new QuadTree(pos.cpy(), subside);
+		tr = new GravQuadTree(pos.cpy(), subside);
 		tr.pos.x += subside;
 		tr.pos.y += subside;
 	}
@@ -117,7 +117,7 @@ public class QuadTree {
 				return true;
 			}
 		} else if (hasChildren()) {
-			QuadTree sub = quadrantOf(entity, mm, pm);
+			GravQuadTree sub = quadrantOf(entity, mm, pm);
 			float oldMass = sub.mass;
 			Vector2 oldVector = sub.massVector.cpy();
 			
@@ -139,7 +139,7 @@ public class QuadTree {
 				return true;
 			}
 		} else if (hasChildren()) {
-			QuadTree sub = quadrantOf(entity, mm, pm);
+			GravQuadTree sub = quadrantOf(entity, mm, pm);
 			if (sub.remove(entity, mm, pm)) {
 				--size;
 			}
@@ -254,7 +254,7 @@ public class QuadTree {
 	
 	
 	
-	private QuadTree quadrantOf(Entity e, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
+	private GravQuadTree quadrantOf(Entity e, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		float subside = side/2;
 		Vector2 p = pm.get(e).vec;
 		if (p.x < pos.x + subside) {
