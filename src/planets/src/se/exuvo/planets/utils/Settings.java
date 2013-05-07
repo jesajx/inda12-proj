@@ -18,6 +18,7 @@ public class Settings extends se.exuvo.settings.Settings{
 		add("MusicVolume",0.8f);
 		add("PhysicsStep", 0.1f);
 		add("pauseWhenCreatingPlanets", true);
+		add("PrecognitionSteps", 500);
 		
 		if(!start(conf,"planets")){
 			log.fatal("Failed to read settings from file, please fix. Exiting.");

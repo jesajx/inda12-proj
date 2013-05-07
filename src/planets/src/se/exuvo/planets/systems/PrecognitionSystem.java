@@ -48,7 +48,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	private ShapeRenderer render;
 
 	// must be multiple of 2 for drawing to work correctly
-	private static int forwardComputationSteps = 500;
+	private static int forwardComputationSteps = Settings.getInt("PrecognitionSteps");
 	private Vector2[] futureSteps = new Vector2[forwardComputationSteps];
 	private Entity selectedPlanet, selectedFuture;
 
