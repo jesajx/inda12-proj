@@ -88,10 +88,10 @@ public class Planets extends Game implements Screen {
 //		EntityFactory.createPlanet(world, 50f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 //		EntityFactory.createPlanet(world, 50f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
 		int n = 50;
-		int i = 100;
+		int i = 1000;
 		for (int x = 0; x < n; x++) {
 			for (int y = 0; y < n; y++) {
-				EntityFactory.createPlanet(world, i, 10f, new Vector2(3*i*x, 3*i*y), new Vector2(), Color.YELLOW).addToWorld();
+				EntityFactory.createPlanet(world, i, 1e17f, new Vector2(10*i*0, 10*i*0), new Vector2((float) Math.random(),(float) Math.random()).mul(100f), Color.YELLOW).addToWorld();
 			}
 		}
 

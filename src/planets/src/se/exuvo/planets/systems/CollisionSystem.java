@@ -11,10 +11,9 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.planets.utils.Bounds;
 import se.exuvo.planets.utils.ColQuadTree;
-import se.exuvo.planets.utils.ColQuadTree.Bounds;
 import se.exuvo.planets.utils.Collision;
-import se.exuvo.planets.utils.GravQuadTree;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -65,7 +64,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     	
 		
         float timeLimit = 1f;
-        List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
+        List<Collision> cs = new ArrayList<Collision>(); // TODO use faster, sorted collection.
 //        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
         
         float side = 1e20f;
@@ -73,22 +72,21 @@ public class CollisionSystem extends IntervalEntitySystem {
 		Map<Entity, Bounds> bs = new HashMap<Entity,Bounds>();
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
-			Bounds b = new Bounds(e, pm, sm, vm);
+			Bounds b = Bounds.velCircle(e, pm, sm, vm);
 			bs.put(e, b);
 			tree.add(e, b);
 		}
 		tree.getCollisions(cs, timeLimit, pm, sm, vm, mm);
-		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
+//		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
         
         while (!cs.isEmpty()) {
         	long timeH = System.nanoTime();
+        	
         	Collections.sort(cs); // reverse sort
         	Collision c = cs.remove(cs.size()-1);
-        	float t = c.t;
-        	
-            updatePlanetPositions(entities, c.t); // forward c.t time
-            timeLimit -= c.t;
             
+            timeLimit -= c.t;
+            updatePlanetPositions(entities, c.t); // forward t time
             handleCollision(c.e1, c.e2);
             
             // remove collisions involving c.e1 or c.e2
@@ -98,10 +96,13 @@ public class CollisionSystem extends IntervalEntitySystem {
             		cs.remove(i);
             	} else {
             		col.t -= c.t;
+            		if (col.t < 0) {
+            			cs.remove(i);
+            		}
             	}
             }
-            Bounds b1 = new Bounds(c.e1, pm, sm, vm);
-            Bounds b2 = new Bounds(c.e2, pm, sm, vm);
+            Bounds b1 = Bounds.velCircle(c.e1, pm, sm, vm);
+            Bounds b2 = Bounds.velCircle(c.e2, pm, sm, vm);
             
             tree.remove(c.e1, bs.put(c.e1, b1));
             tree.remove(c.e2, bs.put(c.e2, b1));
@@ -118,8 +119,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         updatePlanetPositions(entities, timeLimit);
         
     	time = System.nanoTime() - time;
-    	System.out.println("colproc: "+time*1e-6+" ms");
-    	System.out.println();
+//    	System.out.println("colproc: "+time*1e-6+" ms");
+//    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) { // O(n)
@@ -193,7 +194,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     
     
     
-    private float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) { // O(1)
+    public static float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) { // O(1)
     	// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
 		// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
 		// http://en.wikipedia.org/wiki/Elastic_collision
@@ -206,8 +207,9 @@ public class CollisionSystem extends IntervalEntitySystem {
 
     	Vector2 p = p1.cpy().sub(p2);
 		Vector2 v = v1.cpy().sub(v2);
+		float r = r1+r2;
 		
-		// if planets are already moving away from each other.
+		// if the planets are already moving away from each other.
 	    if (v.dot(p) > 0) {
 	        return Float.NaN;
 	    }
@@ -216,7 +218,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 		float pLen = p.len();
 	    float vLen = v.len();
 	    
-	    return (pLen - (r1+r2)) / vLen; // TODO if neg.
+	    return (pLen - (r)) / vLen; // TODO if neg.
     }
             
     /**
@@ -231,14 +233,12 @@ public class CollisionSystem extends IntervalEntitySystem {
         float m2 = mm.get(e2).mass;
         Vector2 v1 = vm.get(e1).vec;
         Vector2 v2 = vm.get(e2).vec;
-        float r1 = sm.get(e1).radius;
-        float r2 = sm.get(e2).radius;
         
 		// http://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling?rq=1
         // http://www.vobarian.com/collisions/2dcollisions2.pdf
         
         Vector2 p = p1.cpy().sub(p2);
-        
+	    
         // normal and tangent
         Vector2 un = p.cpy().mul((float) FastMath.inverseSqrt(p.len2())); // normalize
         Vector2 ut = new Vector2(-un.y, un.x);

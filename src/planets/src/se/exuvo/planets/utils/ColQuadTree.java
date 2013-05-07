@@ -7,6 +7,7 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.planets.systems.CollisionSystem;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
@@ -140,9 +141,11 @@ public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 					Vector2 p2 = pm.get(e2).vec;
 					float r2 = sm.get(e2).radius;
 					Vector2 v2 = vm.get(e2).vec;
-					float t = collisionTime(p1, r1, v1, p2, r2, v2);
+					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
 					if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
-				        cs.add(new Collision(e, e2, t));
+						Collision c = new Collision(e, e2, t);
+//						if (!alreadyExists(c, cs))
+							cs.add(c);
 				    }
 				}
 			}
@@ -151,15 +154,26 @@ public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 					Vector2 p2 = pm.get(e2).vec;
 					float r2 = sm.get(e2).radius;
 					Vector2 v2 = vm.get(e2).vec;
-					float t = collisionTime(p1, r1, v1, p2, r2, v2);
+					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
 					if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
-				        cs.add(new Collision(e, e2, t));
+						Collision c = new Collision(e, e2, t);
+//						if (!alreadyExists(c, cs))
+							cs.add(c);
 				    }
 				}
 			}
 		} else {
 			q.getCollisions(e, b, cs, timeLimit, pm, sm, vm, mm);
 		}
+	}
+	
+	public boolean alreadyExists(Collision c, List<Collision> cs) {
+		for (Collision col : cs) {
+        	if (col.e1 == c.e1 || col.e1 == c.e2 || col.e2 == c.e1 || col.e2 == c.e2) {
+        		return true;
+        	}
+		}
+		return false;
 	}
 	
 	/**
@@ -182,9 +196,11 @@ public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 					Vector2 p2 = pm.get(e2).vec;
 					float r2 = sm.get(e2).radius;
 					Vector2 v2 = vm.get(e2).vec;
-					float t = collisionTime(p1, r1, v1, p2, r2, v2);
+					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
 					if (!Float.isNaN(t) && t >= -1 && t < timeLimit) {
-				        cs.add(new Collision(e1, e2, t));
+						Collision c = new Collision(e1, e2, t);
+//						if (!alreadyExists(c, cs))
+							cs.add(c);
 				    }
 				}
 				if (subentities != null) {
@@ -192,9 +208,11 @@ public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 						Vector2 p2 = pm.get(e2).vec;
 						float r2 = sm.get(e2).radius;
 						Vector2 v2 = vm.get(e2).vec;
-						float t = collisionTime(p1, r1, v1, p2, r2, v2);
+						float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
 						if (!Float.isNaN(t) && t >= -1 && t < timeLimit) {
-					        cs.add(new Collision(e1, e2, t));
+						Collision c = new Collision(e1, e2, t);
+//							if (!alreadyExists(c, cs))
+								cs.add(c);
 					    }
 					}
 				}
@@ -208,47 +226,4 @@ public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 			tr.getCollisions(cs, timeLimit, pm, sm, vm, mm);
 		}
 	}
-	
-    private static float collisionTime(Vector2 p1, float r1, Vector2 v1, Vector2 p2, float r2, Vector2 v2) { // O(1)
-    	// TODO: http://twobitcoder.blogspot.se/2010/04/circle-collision-detection.html
-		// http://stackoverflow.com/questions/7461081/finding-point-of-collision-moving-circles-time
-		// http://en.wikipedia.org/wiki/Elastic_collision
-		
-		// http://stackoverflow.com/questions/6459035/2d-collision-response-between-circles?rq=1
-		// t = (||p|| - ||r1+r2||)/||v||
-		// where:
-		//   p = p1-p2
-		//   v = v1-v2
-
-    	Vector2 p = p1.cpy().sub(p2);
-		Vector2 v = v1.cpy().sub(v2);
-		
-		// if planets are already moving away from each other.
-	    if (v.dot(p) > 0) {
-	        return Float.NaN;
-	    }
-	    
-		// TODO can formula be changed to use len2 instead?
-		float pLen = p.len();
-	    float vLen = v.len();
-	    
-	    return (pLen - (r1+r2)) / vLen; // TODO if neg.
-    }
-    
-    public static class Bounds {
-    	float xmin, xmax, ymin, ymax;
-    	
-    	public Bounds(Entity e, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
-    		Vector2 p = pm.get(e).vec;
-			float r = sm.get(e).radius;
-			Vector2 v = vm.get(e).vec;
-			
-			r += (float) FastMath.sqrt(v.len2());
-		
-			xmin = p.x - r;
-			xmax = p.x + r;
-			ymin = p.y - r;
-			ymax = p.y + r;
-    	}
-    }
 }
