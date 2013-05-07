@@ -16,6 +16,7 @@ import se.exuvo.settings.Settings;
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
+import com.artemis.EntitySystem;
 import com.artemis.World;
 import com.artemis.annotations.Mapper;
 import com.artemis.managers.GroupManager;
@@ -23,12 +24,13 @@ import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 
-public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSelectionChanged {
+public class PrecognitionSystem extends EntitySystem implements PlanetSelectionChanged {
 
 	@Mapper ComponentMapper<Position> pm;
 	@Mapper ComponentMapper<Acceleration> am;
@@ -48,8 +50,7 @@ public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSe
 	private Future<?> task;
 
 	public PrecognitionSystem(OrthographicCamera camera) {
-		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class, Velocity.class), Settings.getFloat("PhysicsStep")
-				* forwardComputationSteps);
+		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class, Velocity.class));
 		this.camera = camera;
 	}
 
@@ -59,15 +60,20 @@ public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSe
 
 		futureWorld = new World();
 
-		futureWorld.setSystem(new GravitationSystem());
+		futureWorld.setSystem(new InputSystem(null), true);
+//		futureWorld.setSystem(new GravitationSystem());
 		futureWorld.setSystem(new AccelerationSystem());
-//		futureWorld.setSystem(new VelocitySystem());
-		futureWorld.setSystem(new CollisionSystem());
+		futureWorld.setSystem(new VelocitySystem());
+//		futureWorld.setSystem(new CollisionSystem());
 
 		futureWorld.initialize();
 		futureWorld.setDelta(Settings.getFloat("PhysicsStep"));
 
 		world.getSystem(InputSystem.class).addListener(this);
+
+		for (int i = 0; i < futureSteps.length; i++) {
+			futureSteps[i] = new Vector2();
+		}
 	}
 
 	@Override
@@ -79,21 +85,26 @@ public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSe
 
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
-		// draw between dots
-		for (int i = 0; i < futureSteps.length; i += 2) {
-			// TODO avoid possible concurrent read write
-			Vector2 p1 = futureSteps[i];
-			Vector2 p2 = futureSteps[i + 1];
+		if (selectedPlanet != null) {
+			// draw between dots
+			render.setColor(Color.WHITE);
+			for (int i = 0; i < futureSteps.length; i += 2) {
+				// TODO avoid possible concurrent read write
+				Vector2 p1 = futureSteps[i];
+				Vector2 p2 = futureSteps[i + 1];
 
-			if (p1 == null || p2 == null) {
-				break;
+				render.line(p1.x, p1.y, p2.x, p2.y);
 			}
 
-			render.line(p1.x, p1.y, p2.x, p2.y);
+			if (task == null || task.isDone()) {
+				refreshFuture(entities);
+			}
+		} else {
+			if (task != null && task.isDone()) {
+				clearWorld();
+				task = null;
+			}
 		}
-
-		// copy world each interval
-		refreshFuture(entities);
 	}
 
 	@Override
@@ -139,10 +150,8 @@ public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSe
 	}
 
 	private void stopTask() {
-		if (task != null) {
-			if (!task.isDone()) {
-				task.cancel(true);
-			}
+		if (task != null && !task.isDone()) {
+			task.cancel(true);
 		}
 	}
 
@@ -150,35 +159,45 @@ public class PrecognitionSystem extends IntervalEntitySystem implements PlanetSe
 		task = executor.submit(new Runnable() {
 			@Override
 			public void run() {
-				System.out.println("work");
-				ComponentMapper<Position> futurePM = futureWorld.getMapper(Position.class);
+				try {
+					ComponentMapper<Position> futurePM = futureWorld.getMapper(Position.class);
 
-				for (int i = 0; i < forwardComputationSteps; i++) {
-					if (Thread.interrupted()) {
-						System.out.println("Interrupted");
-						break;
+					for (int i = 0; i < forwardComputationSteps; i++) {
+						if (Thread.interrupted()) {
+							System.out.println("Interrupted");
+							break;
+						}
+						futureWorld.process();
+
+						futureSteps[i].set(futurePM.get(selectedFuture).vec);
 					}
-					futureWorld.process();
-
-					futureSteps[i] = futurePM.get(selectedFuture).vec.cpy();
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 			}
 		});
 	}
 
 	private void refreshFuture(ImmutableBag<Entity> entities) {
-		stopTask();
-		clearWorld();
-		if (selectedPlanet != null) {
-			copyWorld(entities);
-			startTask();
+		if (task != null) {
+			stopTask();
+			clearWorld();
+			task = null;
 		}
+
+		copyWorld(entities);
+		startTask();
 	}
 
 	@Override
 	public void planetSelectionChanged(Entity planet) {
 		selectedPlanet = planet;
 		stopTask();
+	}
+
+	@Override
+	protected boolean checkProcessing() {
+		return true;
 	}
 
 }
