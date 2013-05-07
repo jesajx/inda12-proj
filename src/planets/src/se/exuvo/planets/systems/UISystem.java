@@ -464,7 +464,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			Size s = sm.get(selectedPlanet);
 			Velocity v = vm.get(selectedPlanet);
 			Acceleration a = am.get(selectedPlanet);
-
+			
 			mass.setMessageText("" + m.mass);
 			radius.setMessageText("" + s.radius);
 			color.setMessageText("" + c.color.toString());

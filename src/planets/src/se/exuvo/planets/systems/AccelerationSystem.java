@@ -15,7 +15,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
  * System responsible for updating the {@link Velocity} of planets (usually),
  * using their {@link Acceleration}.
  */
-public class AccelerationSystem extends IntervalEntityProcessingSystem {
+public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it changes.
 	/** Mapper for Entities with the Velocity-aspect. */
 	@Mapper	ComponentMapper<Velocity> vm;
 	/** Mapper for Entities with the Acceleration-aspect. */
@@ -45,9 +45,6 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem {
 		
 		// apply acceleration to velocity
 		v.vec.add(a.vec); // v+=a
-		
-		//DEBUG:
-//		System.out.println(e+"a:"+a.ec.len2()+": "+a.vec.x +" "+ a.vec.y);
 	}
 	
 	/**

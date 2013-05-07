@@ -1,5 +1,6 @@
 package se.exuvo.planets;
 
+import se.exuvo.planets.systems.AccelerationSystem;
 import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
@@ -28,6 +29,7 @@ public class Planets extends Game implements Screen {
 
 	private InputSystem inputSystem;
 	private UISystem uiSystem;
+	private AccelerationSystem accSystem;
 	private GravitationSystem gravSystem;
 	private CollisionSystem collSystem;
 
@@ -51,8 +53,7 @@ public class Planets extends Game implements Screen {
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
 
-//		world.setSystem(new AccelerationSystem());
-//		world.setSystem(new VelocitySystem());
+		world.setSystem(accSystem = new AccelerationSystem());
 		world.setSystem(gravSystem = new GravitationSystem());
 		world.setSystem(collSystem = new CollisionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
@@ -78,16 +79,29 @@ public class Planets extends Game implements Screen {
 		// v^2 = G*M
 
 		float m = 1e16f;// 1e15f;
-		float v = 0;// 10f;// 6.f;
+		float v = 10f;// 6.f;
 		float r = 10 * 6 * 6 * 6;// v*v*v;
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
 		EntityFactory.createPlanet(world, 10f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
-
+		
+		
+		
+//		int n = 50;
+//		int i = 100;
+//		for (int x = 0; x < n; x++) {
+//			for (int y = 0; y < n; y++) {
+//				EntityFactory.createPlanet(world, i, 10f, new Vector2(3*i*x, 3*i*y), new Vector2(), Color.YELLOW).addToWorld();
+//			}
+//		}
+		
+		
+		
+		
 		// these radii causes the game to crash.
 //		// sun
 //		float sun_radius = 1.392684e9f/2/1e8f; // m
 //		float sun_mass = 1.9891e30f/1e30f; // kg
-//		EntityFactory.createPlanet(world, sun_radius, sun_mass, new Vector2(0,0), new Vector2(0,0), Color.YELLOW).addToWorld();
+//		EntityFactory.createPlanet(world, sun_radius, sun_mass, new Vector2(), new Vector2(), Color.YELLOW).addToWorld();
 //		
 //		// earth
 //		float earth_radius = 6371e3f/1e8f; // m
@@ -111,8 +125,9 @@ public class Planets extends Game implements Screen {
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
 			for (int i = 0; i < 9; i++) {
-				gravSystem.process();
-				collSystem.process();
+				gravSystem.process(); // update acc
+				accSystem.process(); // update vel
+				collSystem.process(); // update pos
 			}
 		}
 		world.process();
