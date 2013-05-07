@@ -9,26 +9,24 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntityProcessingSystem;
-import com.badlogic.gdx.Gdx;
 
 /**
- * System responsible for "moving" planets (usually)
- * - updating their positions using their velocities.
+ * System responsible for "moving" planets (usually) - updating their positions using their velocities.
  */
 public class VelocitySystem extends IntervalEntityProcessingSystem {
-	
+
 	/** Mapper for entities with the Velocity-Aspect. */
-	@Mapper	ComponentMapper<Velocity> vm;
+	@Mapper ComponentMapper<Velocity> vm;
 	/** Mapper for entities with the Position-Aspect. */
-	@Mapper	ComponentMapper<Position> pm;
+	@Mapper ComponentMapper<Position> pm;
 
 	/** Whether this system is paused. */
 	private InputSystem insys;
-	
+
 	public VelocitySystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
 	}
-	
+
 	@Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
@@ -43,10 +41,10 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	protected void process(Entity e) {
 		Position p = pm.get(e);
 		Velocity v = vm.get(e);
-		
+
 		p.vec.add(v.vec);
 	}
-	
+
 	/**
 	 * Checks whether this system is set to pause.
 	 */
@@ -57,5 +55,5 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		}
 		return super.checkProcessing();
 	}
-	
+
 }

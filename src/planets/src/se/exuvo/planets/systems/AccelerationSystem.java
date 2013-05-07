@@ -9,7 +9,6 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntityProcessingSystem;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
  * System responsible for updating the {@link Velocity} of planets (usually),
@@ -33,6 +32,8 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO
 	@Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
+//		vm = world.getMapper(Velocity.class);
+//		am = world.getMapper(Acceleration.class);
 	}
 
 	/**
