@@ -1,10 +1,8 @@
 package se.exuvo.planets.systems;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
@@ -19,11 +17,7 @@ import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.World;
 import com.artemis.annotations.Mapper;
-import com.artemis.managers.GroupManager;
-import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.ImmutableBag;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -41,7 +35,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	private ShapeRenderer render;
 
 	// must be multiple of 2 for drawing to work correctly
-	private static int forwardComputationSteps = 100;
+	private static int forwardComputationSteps = 500;
 	private Vector2[] futureSteps = new Vector2[forwardComputationSteps];
 	private Entity selectedPlanet, selectedFuture;
 
@@ -61,7 +55,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		futureWorld = new World();
 
 		futureWorld.setSystem(new InputSystem(null), true);
-//		futureWorld.setSystem(new GravitationSystem());
+		futureWorld.setSystem(new GravitationSystem());
 		futureWorld.setSystem(new AccelerationSystem());
 		futureWorld.setSystem(new VelocitySystem());
 //		futureWorld.setSystem(new CollisionSystem());
@@ -81,6 +75,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		// initialize rendering
 		render.setProjectionMatrix(camera.combined);
 		render.begin(ShapeType.Line);
+//		render.begin(ShapeType.FilledCircle);
 	}
 
 	@Override
@@ -96,11 +91,17 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 				render.line(p1.x, p1.y, p2.x, p2.y);
 			}
 
+//			for (int i = 0; i < futureSteps.length; i++) {
+//				Vector2 p1 = futureSteps[i];
+//				render.filledCircle(p1.x, p1.y, 10);
+//			}
+
 			if (task == null || task.isDone()) {
 				refreshFuture(entities);
 			}
 		} else {
-			if (task != null && task.isDone()) {
+			if (task != null) {
+				stopTask();
 				clearWorld();
 				task = null;
 			}
