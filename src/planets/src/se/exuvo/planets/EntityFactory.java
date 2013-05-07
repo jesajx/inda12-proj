@@ -53,8 +53,6 @@ public class EntityFactory {
 		Colour c = new Colour(color);
 		e.addComponent(c);
 		
-		addToQuadTree(world, e); // TODO okay to add before Entity.addToWorld() ?
-		
 		return e;
 	}
 
@@ -90,8 +88,6 @@ public class EntityFactory {
 		e.addComponent(new Acceleration());
 
 		e.changedInWorld();
-		
-		addToQuadTree(world, e);
 	}
 	
 	public static Entity createParticleEffect(World world){
@@ -112,15 +108,4 @@ public class EntityFactory {
 		return e;
 	}
     
-    
-    public static void addToQuadTree(World world, Entity e) {
-		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
-		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
-		world.getSystem(GravitationSystem.class).tree.add(e, mm, pm);
-    }
-    public static void removeFromQuadTree(World world, Entity e) {
-		ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
-		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
-		world.getSystem(GravitationSystem.class).tree.remove(e, mm, pm);
-    }
 }

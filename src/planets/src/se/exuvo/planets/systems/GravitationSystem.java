@@ -40,9 +40,15 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Position> pm;
 	
 	
-
 	public GravitationSystem() {
 		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
+	}
+	
+	@Override
+	protected void initialize() {
+//		mm = world.getMapper(Mass.class);
+//		am = world.getMapper(Acceleration.class);
+//		pm = world.getMapper(Position.class);
 	}
 
 	/**
@@ -66,7 +72,21 @@ public class GravitationSystem extends IntervalEntitySystem {
 		}
 		
 		time  = System.nanoTime() -time;
-		System.out.println("grav: "+time*1e-6+" ms");
+//		System.out.println("grav: "+time*1e-6+" ms");
 	}
+	
+    @Override
+    protected void inserted(Entity e) {
+    	ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
+		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
+		world.getSystem(GravitationSystem.class).tree.add(e, mm, pm);
+    };
+
+    @Override
+	protected void removed(Entity e) {
+    	ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
+		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
+		world.getSystem(GravitationSystem.class).tree.remove(e, mm, pm);
+	};
 	
 }
