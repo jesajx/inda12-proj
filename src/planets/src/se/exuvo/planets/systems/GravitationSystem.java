@@ -26,7 +26,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	 */
 	private float G = 6.6726e-11f;
 	private float theta = 0.7f;
-	public float side = 1e6f; // TODO globalize
+	public float side = 1e20f; // TODO globalize
 	public GravQuadTree tree = new GravQuadTree(new Vector2(-side / 2, -side / 2), side);// TODO increase size of the universe.
 
 	/** Gives the system access to components with the Mass-Aspect. */

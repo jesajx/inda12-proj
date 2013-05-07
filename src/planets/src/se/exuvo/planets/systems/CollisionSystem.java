@@ -2,13 +2,17 @@ package se.exuvo.planets.systems;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
+import se.exuvo.planets.utils.ColQuadTree;
+import se.exuvo.planets.utils.ColQuadTree.Bounds;
 import se.exuvo.planets.utils.Collision;
 import se.exuvo.planets.utils.GravQuadTree;
 import se.exuvo.settings.Settings;
@@ -62,12 +66,25 @@ public class CollisionSystem extends IntervalEntitySystem {
 		
         float timeLimit = 1f;
         List<Collision> cs = new ArrayList<Collision>(entities.size()*entities.size()); // TODO use faster, sorted collection.
+//        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
         
-        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
+        float side = 1e20f;
+		ColQuadTree tree = new ColQuadTree(new Vector2(-side / 2, -side / 2), side);// TODO increase size of the universe.
+		Map<Entity, Bounds> bs = new HashMap<Entity,Bounds>();
+		for (int i = 0; i < entities.size(); i++) {
+			Entity e = entities.get(i);
+			Bounds b = new Bounds(e, pm, sm, vm);
+			bs.put(e, b);
+			tree.add(e, b);
+		}
+		tree.getCollisions(cs, timeLimit, pm, sm, vm, mm);
+		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
         
         while (!cs.isEmpty()) {
+        	long timeH = System.nanoTime();
         	Collections.sort(cs); // reverse sort
         	Collision c = cs.remove(cs.size()-1);
+        	float t = c.t;
         	
             updatePlanetPositions(entities, c.t); // forward c.t time
             timeLimit -= c.t;
@@ -83,15 +100,26 @@ public class CollisionSystem extends IntervalEntitySystem {
             		col.t -= c.t;
             	}
             }
-            // find collisions involving c.e1 and/or c.e2
-            getCollisions(entities, c.e1, c.e2, cs, timeLimit);
+            Bounds b1 = new Bounds(c.e1, pm, sm, vm);
+            Bounds b2 = new Bounds(c.e2, pm, sm, vm);
+            
+            tree.remove(c.e1, bs.put(c.e1, b1));
+            tree.remove(c.e2, bs.put(c.e2, b1));
+            tree.add(c.e1, b1);
+            tree.add(c.e2, b2);
+            
+            tree.getCollisions(c.e1, b1, cs, timeLimit, pm, sm, vm, mm);
+            tree.getCollisions(c.e2, b2, cs, timeLimit, pm, sm, vm, mm);
+//            getCollisions(entities, c.e1, c.e2, cs, timeLimit);
+            timeH = System.nanoTime() - timeH;
+//	    	System.out.println("colHandl: "+timeH*1e-6+" ms");
         }
         
         updatePlanetPositions(entities, timeLimit);
         
     	time = System.nanoTime() - time;
-//    	System.out.println("colproc: "+time*1e-6+" ms");
-//    	System.out.println();
+    	System.out.println("colproc: "+time*1e-6+" ms");
+    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) { // O(n)
