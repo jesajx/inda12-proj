@@ -77,15 +77,11 @@ public class GravitationSystem extends IntervalEntitySystem {
 	
     @Override
     protected void inserted(Entity e) {
-    	ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
-		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
 		world.getSystem(GravitationSystem.class).tree.add(e, mm, pm);
     };
 
     @Override
 	protected void removed(Entity e) {
-    	ComponentMapper<Mass> mm = ComponentMapper.getFor(Mass.class, world);
-		ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class, world);
 		world.getSystem(GravitationSystem.class).tree.remove(e, mm, pm);
 	};
 	

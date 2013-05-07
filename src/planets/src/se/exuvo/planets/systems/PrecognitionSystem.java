@@ -72,29 +72,21 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 	@Override
 	protected void begin() {
-		// initialize rendering
 		render.setProjectionMatrix(camera.combined);
 		render.begin(ShapeType.Line);
-//		render.begin(ShapeType.FilledCircle);
 	}
 
 	@Override
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		if (selectedPlanet != null) {
-			// draw between dots
 			render.setColor(Color.WHITE);
 			for (int i = 0; i < futureSteps.length; i += 2) {
 				// TODO avoid possible concurrent read write
 				Vector2 p1 = futureSteps[i];
 				Vector2 p2 = futureSteps[i + 1];
 
-				render.line(p1.x, p1.y, p2.x, p2.y);
+				render.line(p1.x, p1.y, p2.x, p2.y); // draw between dots
 			}
-
-//			for (int i = 0; i < futureSteps.length; i++) {
-//				Vector2 p1 = futureSteps[i];
-//				render.filledCircle(p1.x, p1.y, 10);
-//			}
 
 			if (task == null || task.isDone()) {
 				refreshFuture(entities);
