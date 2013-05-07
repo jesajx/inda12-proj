@@ -20,7 +20,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 	private boolean fps;
 	private InputSystem insys;
 	private TextBounds pauseBounds, speedBounds;
-	private String pause = "Paused", speed10 = "speed x10", speed100 = "speed x100", speed500 = "speed x500";
+	private String pause = "Paused", speed1 = "speed x10", speed2 = "speed x50", speed3 = "speed x200";
 
 	public HudRenderSystem() {
 		this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -40,7 +40,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 
 		insys = world.getSystem(InputSystem.class);
 		pauseBounds = font.getBounds(pause);
-		speedBounds = font.getBounds(speed100);
+		speedBounds = font.getBounds(speed1);
 	}
 
 	@Override
@@ -69,12 +69,12 @@ public class HudRenderSystem extends VoidEntitySystem {
 		
 		if (insys.isSpeedup()) {
 			if (insys.isSSpeedup()){
-				font.draw(batch, speed500, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+				font.draw(batch, speed3, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 			}else{
-				font.draw(batch, speed10, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+				font.draw(batch, speed1, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 			}
 		}else if (insys.isSSpeedup()){
-			font.draw(batch, speed100, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+			font.draw(batch, speed2, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 		}
 	}
 

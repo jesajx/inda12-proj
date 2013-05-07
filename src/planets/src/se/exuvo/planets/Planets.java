@@ -122,12 +122,12 @@ public class Planets extends Game implements Screen {
 		world.setDelta(delta);
 		if (inputSystem.isSpeedup()) {
 			if (inputSystem.isSSpeedup()) {
-				speed(500);
+				speed(200);
 			} else {
 				speed(10);
 			}
 		} else if (inputSystem.isSSpeedup()) {
-			speed(100);
+			speed(50);
 		}
 		world.process();
 	}
