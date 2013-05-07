@@ -77,12 +77,12 @@ public class GravitationSystem extends IntervalEntitySystem {
 	
     @Override
     protected void inserted(Entity e) {
-		world.getSystem(GravitationSystem.class).tree.add(e, mm, pm);
+		tree.add(e, mm, pm);
     };
 
     @Override
 	protected void removed(Entity e) {
-		world.getSystem(GravitationSystem.class).tree.remove(e, mm, pm);
+		tree.remove(e, mm, pm);
 	};
 	
 }
