@@ -39,7 +39,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private OrthographicCamera camera;
 	private Vector3 cameraVelocity;
 	private float cameraMoveSpeed = 1000f;
-	private float zoomLevel = 1f;
+	private float zoomLevel = 1f, zoomSensitivity = Settings.getFloat("zoomSensitivity");
 
 	private Vector2 mouseVector;
 
@@ -75,6 +75,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	protected void initialize() {
 		render = new ShapeRenderer();
 		uisystem = world.getSystem(UISystem.class);
+		if(zoomSensitivity <= 1){
+			System.out.println("Warning zoomSensitivity is too low to have any effect: " + zoomSensitivity);
+		}
 	}
 
 	@Override
@@ -295,17 +298,17 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		float oldZoom = camera.zoom;
 
 		zoomLevel += amount;
-		if (zoomLevel < 1) {
+		if (zoomLevel < 0) {
+			zoomLevel = 0;
+		}
+		
+		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
+//		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
+		
+//		camera.zoom += amount;
+		if (camera.zoom < 1) {
 			camera.zoom = 1;
 		}
-		System.out.println("zoomLevel:" + zoomLevel);
-//		camera.zoom = zoomLevel*zoomLevel;
-		camera.zoom = (float) Math.pow(2, zoomLevel);
-		System.out.println("zoom:" + camera.zoom);
-//		camera.zoom += amount;
-//		if (camera.zoom < 1) {
-//			camera.zoom = 1;
-//		}
 		
 		if (amount < 0) {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
