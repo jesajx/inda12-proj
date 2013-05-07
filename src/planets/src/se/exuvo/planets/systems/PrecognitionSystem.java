@@ -137,17 +137,6 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	}
 
 	private void clearWorld() {
-//		int toDelete = futureWorld.getEntityManager().getActiveEntityCount();
-//		int max = (int) futureWorld.getEntityManager().getTotalCreated();
-//		for (int i = 0; i < max; i++) {
-//			Entity e = futureWorld.getEntity(i);
-//			if (e != null) {
-//				futureWorld.deleteEntity(e);
-//				toDelete--;
-//				if (toDelete == 0) break;
-//			}
-//		}
-		
 		//Remove old entities
 		for (int i = 0; i < removed.size(); i++) {
 			Entity e = removed.get(i);
@@ -159,28 +148,6 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	}
 
 	private void copyWorld(ImmutableBag<Entity> entities) {
-//		for (int i = 0; i < entities.size(); i++) {
-//			Entity e = entities.get(i);
-//
-//			Position p = pm.get(e);
-//			Mass m = mm.get(e);
-//			Velocity v = vm.get(e);
-//			Acceleration a = am.get(e);
-//
-//			// Copy entity
-//			Entity eCopy = futureWorld.createEntity();
-//			eCopy.addComponent(p.clone());
-//			eCopy.addComponent(m.clone());
-//			eCopy.addComponent(v.clone());
-//			eCopy.addComponent(a.clone());
-//
-//			eCopy.addToWorld();
-//
-//			if (e == selectedPlanet) {
-//				selectedFuture = eCopy;
-//			}
-//		}
-		
 		//Add new entities
 		for (int i = 0; i < inserted.size(); i++) {
 			Entity e = inserted.get(i);
