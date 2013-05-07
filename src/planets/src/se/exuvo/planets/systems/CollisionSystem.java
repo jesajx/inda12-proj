@@ -90,8 +90,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         updatePlanetPositions(entities, timeLimit);
         
     	time = System.nanoTime() - time;
-    	System.out.println("colproc: "+time*1e-6+" ms");
-    	System.out.println();
+//    	System.out.println("colproc: "+time*1e-6+" ms");
+//    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, float time) { // O(n)
@@ -135,7 +135,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			}
 		}
     	time = System.nanoTime() - time;
-    	System.out.println("colGet: "+time*1e-6+" ms");
+//    	System.out.println("colGet: "+time*1e-6+" ms");
     }
     
     
@@ -160,7 +160,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			}
 		}
     	time = System.nanoTime() - time;
-    	System.out.println("colAll: "+time*1e-6+" ms");
+//    	System.out.println("colAll: "+time*1e-6+" ms");
     }
     
     
@@ -238,7 +238,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         v2.set(nv2).add(tv2);
         
     	time = System.nanoTime()-time;
-    	System.out.println("colHandl: "+time*1e-6+" ms");
+//    	System.out.println("colHandl: "+time*1e-6+" ms");
     }
     
     

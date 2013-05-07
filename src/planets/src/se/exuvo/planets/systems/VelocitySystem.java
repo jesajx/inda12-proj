@@ -30,8 +30,6 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	@Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
-//		vm = world.getMapper(Velocity.class);
-//		pm = world.getMapper(Position.class);
 	}
 
 	/**

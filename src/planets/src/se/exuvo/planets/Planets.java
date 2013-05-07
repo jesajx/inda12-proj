@@ -116,10 +116,10 @@ public class Planets extends Game implements Screen {
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-
+		
 		camera.update();
-
 		world.setDelta(delta);
+		
 		if (inputSystem.isSpeedup()) {
 			if (inputSystem.isSSpeedup()) {
 				speed(200);
@@ -129,12 +129,12 @@ public class Planets extends Game implements Screen {
 		} else if (inputSystem.isSSpeedup()) {
 			speed(50);
 		}
+		
 		world.process();
 	}
 
 	private void speed(int multiplier) {
 		for (int i = 1; i < multiplier; i++) {
-
 			gravSystem.process(); // update acc
 			accSystem.process(); // update vel
 			collSystem.process(); // update pos

@@ -11,15 +11,15 @@ import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntityProcessingSystem;
 
 /**
- * System responsible for updating the {@link Velocity} of planets (usually),
- * using their {@link Acceleration}.
+ * System responsible for updating the {@link Velocity} of planets (usually), using their {@link Acceleration}.
  */
-public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it changes.
+public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it
+// changes.
 	/** Mapper for Entities with the Velocity-aspect. */
-	@Mapper	ComponentMapper<Velocity> vm;
+	@Mapper ComponentMapper<Velocity> vm;
 	/** Mapper for Entities with the Acceleration-aspect. */
-	@Mapper	ComponentMapper<Acceleration> am;
-	
+	@Mapper ComponentMapper<Acceleration> am;
+
 	private InputSystem insys;
 
 	/**
@@ -28,12 +28,10 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO
 	public AccelerationSystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
 	}
-	
+
 	@Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
-//		vm = world.getMapper(Velocity.class);
-//		am = world.getMapper(Acceleration.class);
 	}
 
 	/**
@@ -43,11 +41,11 @@ public class AccelerationSystem extends IntervalEntityProcessingSystem { // TODO
 	protected void process(Entity e) {
 		Velocity v = vm.get(e);
 		Acceleration a = am.get(e);
-		
+
 		// apply acceleration to velocity
 		v.vec.add(a.vec); // v+=a
 	}
-	
+
 	/**
 	 * Checks whether this system is set to pause.
 	 */
