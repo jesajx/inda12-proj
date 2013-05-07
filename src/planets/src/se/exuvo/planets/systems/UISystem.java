@@ -1,5 +1,6 @@
 package se.exuvo.planets.systems;
 
+import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -54,6 +55,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	public UISystem() {
 		ui = createUI();
 	}
+
+    // TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
+	// TODO shift-tab doesn't work
+	// TODO tab stops working near the Acceleration-fields (disabled textfield)
+	// TODO remove/change debug hotkey-bindings. (A and Z)
+
 
 	@Override
 	protected void initialize() {
@@ -110,6 +117,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				selectedPlanet.deleteFromWorld();
+				EntityFactory.removeFromQuadTree(world, selectedPlanet);
+				selectedPlanet = null;
 			}
 		});
 
@@ -194,14 +203,16 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		if (f == null || callback == null) {
 			throw new NullPointerException();
 		}
+        f.setFocusTraversal(true);
 
-		f.addListener(new InputListener() {
+		f.addListener(new InputListener() { // TODO TextField.TextFieldListener?
 			@Override
 			public boolean keyDown(InputEvent event, int keycode) {
 				if (keycode == Input.Keys.ENTER) {
 					if (selectedPlanet != null) {
 						callback.run();
 					}
+                    ui.unfocus(f); // TODO let be specified by callback instead?
 					return true;
 				}
 				return false;
@@ -243,7 +254,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				}
 			}
 		});
-		
+
 		addTextFieldEnterListener(position.x, new Runnable() {
 			@Override
 			public void run() {
@@ -285,8 +296,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				if (s != null) {
 					try {
 						c.color = Color.valueOf(s);
-					} catch (RuntimeException ignore) {
-					}
+					} catch (RuntimeException ignore) {}
 				}
 			}
 		});
@@ -309,7 +319,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 		});
 	}
-	
+
 	private void addTextFieldColorValidator(final TextField f) {
 		f.addListener(new InputListener() {
 			@Override
