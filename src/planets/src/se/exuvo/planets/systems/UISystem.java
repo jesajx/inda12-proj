@@ -1,6 +1,5 @@
 package se.exuvo.planets.systems;
 
-import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
@@ -56,11 +55,10 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		ui = createUI();
 	}
 
-    // TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
+	// TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
 	// TODO shift-tab doesn't work
 	// TODO tab stops working near the Acceleration-fields (disabled textfield)
 	// TODO remove/change debug hotkey-bindings. (A and Z)
-
 
 	@Override
 	protected void initialize() {
@@ -100,8 +98,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		radius = addField("Radius", table, skin);
 		color = addField("Color", table, skin);
 		velocity = addField2("Velocity", table, skin);
-		acceleration = addField2("Acceleration", table, skin);
 		position = addField2("Position", table, skin);
+		acceleration = addField2("Acceleration", table, skin);
 
 		addFieldEnterListeners();
 		addFieldChangeListeners();
@@ -202,7 +200,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		if (f == null || callback == null) {
 			throw new NullPointerException();
 		}
-        f.setFocusTraversal(true);
+		f.setFocusTraversal(true);
 
 		f.addListener(new InputListener() { // TODO TextField.TextFieldListener?
 			@Override
@@ -211,7 +209,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 					if (selectedPlanet != null) {
 						callback.run();
 					}
-                    ui.unfocus(f); // TODO let be specified by callback instead?
 					return true;
 				}
 				return false;
@@ -384,6 +381,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	@Override
 	public boolean keyDown(int keycode) {
+		if (keycode == Input.Keys.SPACE) {
+			return false;
+		}
 		if (ui.keyDown(keycode)) {
 			return true;
 		}
@@ -401,6 +401,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	@Override
 	public boolean keyUp(int keycode) {
+		if (keycode == Input.Keys.SPACE) {
+			return false;
+		}
 		if (ui.keyUp(keycode)) {
 			return true;
 		}
@@ -409,6 +412,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	@Override
 	public boolean keyTyped(char c) {
+		if (c == ' ') {
+			return false;
+		}
 		if (ui.keyTyped(c)) {
 			return true;
 		}
@@ -463,7 +469,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			Size s = sm.get(selectedPlanet);
 			Velocity v = vm.get(selectedPlanet);
 			Acceleration a = am.get(selectedPlanet);
-			
+
 			mass.setMessageText("" + m.mass);
 			radius.setMessageText("" + s.radius);
 			color.setMessageText("" + c.color.toString());
