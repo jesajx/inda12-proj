@@ -215,10 +215,21 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		paused = newValue;
 	}
 
+	/**
+	 * 10x
+	 */
 	public boolean isSpeedup() {
 		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
 	}
-
+	
+	/**
+	 * 100x
+	 * @return
+	 */
+	public boolean isSSpeedup() {
+		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.ALT_RIGHT);
+	}
+	
 	@Override
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.SPACE) {

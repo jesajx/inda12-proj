@@ -20,7 +20,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 	private boolean fps;
 	private InputSystem insys;
 	private TextBounds pauseBounds, speedBounds;
-	private String pause = "Paused", speed = "speed x10";
+	private String pause = "Paused", speed10 = "speed x10", speed100 = "speed x100", speed500 = "speed x500";
 
 	public HudRenderSystem() {
 		this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -40,7 +40,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 
 		insys = world.getSystem(InputSystem.class);
 		pauseBounds = font.getBounds(pause);
-		speedBounds = font.getBounds(speed);
+		speedBounds = font.getBounds(speed100);
 	}
 
 	@Override
@@ -54,6 +54,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 		batch.setColor(1, 1, 1, 1);
 		int width = Gdx.graphics.getWidth();
 		int height = Gdx.graphics.getHeight();
+		
 		if (fps) {
 			int x = -(width / 2) + 220;
 			font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), x, height / 2 - 20);
@@ -61,11 +62,19 @@ public class HudRenderSystem extends VoidEntitySystem {
 			font.draw(batch, "Total created: " + world.getEntityManager().getTotalCreated(), x, height / 2 - 60);
 			font.draw(batch, "Total deleted: " + world.getEntityManager().getTotalDeleted(), x, height / 2 - 80);
 		}
+		
 		if (insys.isPaused()) {
 			font.draw(batch, pause, -pauseBounds.width / 4, -height / 2 + 2 * pauseBounds.height);
 		}
+		
 		if (insys.isSpeedup()) {
-			font.draw(batch, speed, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+			if (insys.isSSpeedup()){
+				font.draw(batch, speed500, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+			}else{
+				font.draw(batch, speed10, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
+			}
+		}else if (insys.isSSpeedup()){
+			font.draw(batch, speed100, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 		}
 	}
 
