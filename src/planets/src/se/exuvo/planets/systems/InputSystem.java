@@ -109,7 +109,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				Entity e = entities.get(i);
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-				if (mouse.dst2(p.vec) < s.radius * s.radius) {
+				if (mouse.dst(p.vec) < s.radius * 2) {
 					selectedPlanet = e;
 					break;
 				}
