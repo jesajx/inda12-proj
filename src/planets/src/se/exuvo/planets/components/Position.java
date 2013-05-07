@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * Holds a 2D world-position. Usually for a planet.
  */
-public class Position extends Vector2Component {
+public class Position extends Vector2Component implements Cloneable {
 
 	/**
 	 * Creates a new Position at thedefault location (0,0).
@@ -23,4 +23,7 @@ public class Position extends Vector2Component {
 		super(initial);
 	}
 	
+	public Position clone(){
+		return new Position(vec.cpy());
+	}
 }

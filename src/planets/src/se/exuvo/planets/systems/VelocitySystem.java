@@ -22,22 +22,18 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	/** Mapper for entities with the Position-Aspect. */
 	@Mapper	ComponentMapper<Position> pm;
 
-	private float maxX, maxY, minX, minY; // TODO use some sort of rectangle-object instead?
-	
 	/** Whether this system is paused. */
 	private InputSystem insys;
 	
 	public VelocitySystem() {
 		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
-		maxX = Gdx.graphics.getWidth()/2;
-		maxY = Gdx.graphics.getHeight()/2;
-		minX = -maxX;
-		minY = -maxY;
 	}
 	
 	@Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
+//		vm = world.getMapper(Velocity.class);
+//		pm = world.getMapper(Position.class);
 	}
 
 	/**
@@ -48,17 +44,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		Position p = pm.get(e);
 		Velocity v = vm.get(e);
 		
-		// apply velocity to position
-		p.vec.add(v.vec); // p+=v
-		
-		// TODO easier to create systems without.
-//		if(p.vec.x < minX) p.vec.x = minX;
-//		if(p.vec.y < minY) p.vec.y = minY;
-//		if(p.vec.x > maxX) p.vec.x = maxX;
-//		if(p.vec.y > maxY) p.vec.y = maxY;
-		
-		//DEBUG:
-//		System.out.println(e+"v:"+v.vec.len2()+": "+v.vec.x +" "+ v.vec.y);
+		p.vec.add(v.vec);
 	}
 	
 	/**
@@ -66,13 +52,6 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	 */
 	@Override
 	protected boolean checkProcessing() {
-		// paused super res
-		// 1		1    0
-		// 1		0    0
-		// 0		1    1
-		// 0		0    0
-		//return !paused && super.checkProcessing();
-		
 		if (insys.isPaused()) {
 			return false;
 		}

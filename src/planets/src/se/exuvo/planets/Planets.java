@@ -7,6 +7,7 @@ import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.InputSystem;
 import se.exuvo.planets.systems.ParticleSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
+import se.exuvo.planets.systems.PrecognitionSystem;
 import se.exuvo.planets.systems.UISystem;
 
 import com.artemis.World;
@@ -58,6 +59,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(collSystem = new CollisionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
+		world.setSystem(new PrecognitionSystem(camera));
 		world.setSystem(uiSystem);
 		world.setSystem(inputSystem);
 		world.setSystem(new HudRenderSystem());

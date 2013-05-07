@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * Holds a 2D velocity-vector.Usually for a planet.
  */
-public class Velocity extends Vector2Component {
+public class Velocity extends Vector2Component implements Cloneable {
 
 	/**
 	 * Creates a new Velocity initially (0,0).
@@ -19,5 +19,9 @@ public class Velocity extends Vector2Component {
 	 */
 	public Velocity(Vector2 initial) {
 		super(initial);
+	}
+	
+	public Velocity clone(){
+		return new Velocity(vec.cpy());
 	}
 }

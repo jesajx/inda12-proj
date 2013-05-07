@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * An baseclass for Component that holds a 2D-vector.
  */
-public class Vector2Component extends Component { // TODO make abstract?
+public abstract class Vector2Component extends Component {
 	
 	/**
 	 * The Vector2 stored in this Vector2Component.

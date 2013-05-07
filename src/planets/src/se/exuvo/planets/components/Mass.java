@@ -5,7 +5,7 @@ import com.artemis.Component;
 /**
  * Holds a mass. Usually for a planet.
  */
-public class Mass extends Component {
+public class Mass extends Component implements Cloneable {
 	public float mass;
 
 	/**
@@ -19,5 +19,9 @@ public class Mass extends Component {
 	 */
 	public Mass(float initialMass) {
 		mass = initialMass;
+	}
+	
+	public Mass clone(){
+		return new Mass(mass);
 	}
 }
