@@ -1,8 +1,12 @@
 package se.exuvo.planets.systems;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
@@ -17,6 +21,7 @@ import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.World;
 import com.artemis.annotations.Mapper;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -30,6 +35,14 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	@Mapper ComponentMapper<Acceleration> am;
 	@Mapper ComponentMapper<Mass> mm;
 	@Mapper ComponentMapper<Velocity> vm;
+	
+	ComponentMapper<Position> fpm;
+	ComponentMapper<Acceleration> fam;
+	ComponentMapper<Mass> fmm;
+	ComponentMapper<Velocity> fvm;
+
+	private Bag<Entity> inserted = new Bag<Entity>(), removed = new Bag<Entity>();
+	private Map<Entity, Entity> toFuture = new HashMap<Entity, Entity>();
 
 	private OrthographicCamera camera;
 	private ShapeRenderer render;
@@ -40,7 +53,14 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	private Entity selectedPlanet, selectedFuture;
 
 	private World futureWorld;
-	private ExecutorService executor = Executors.newSingleThreadExecutor();
+	private ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable arg0) {
+			Thread t = new Thread(arg0);
+			t.setPriority(Thread.MIN_PRIORITY);
+			return t;
+		}
+	});
 	private Future<?> task;
 
 	public PrecognitionSystem(OrthographicCamera camera) {
@@ -68,6 +88,17 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		for (int i = 0; i < futureSteps.length; i++) {
 			futureSteps[i] = new Vector2();
 		}
+		
+		pm = world.getMapper(Position.class);
+		am = world.getMapper(Acceleration.class);
+		mm = world.getMapper(Mass.class);
+		vm = world.getMapper(Velocity.class);
+		
+		fpm = futureWorld.getMapper(Position.class);
+		fam = futureWorld.getMapper(Acceleration.class);
+		fmm = futureWorld.getMapper(Mass.class);
+		fvm = futureWorld.getMapper(Velocity.class);
+		
 	}
 
 	@Override
@@ -106,21 +137,53 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	}
 
 	private void clearWorld() {
-		int toDelete = futureWorld.getEntityManager().getActiveEntityCount();
-		int max = (int) futureWorld.getEntityManager().getTotalCreated();
-		for (int i = 0; i < max; i++) {
-			Entity e = futureWorld.getEntity(i);
-			if (e != null) {
-				futureWorld.deleteEntity(e);
-				toDelete--;
-				if (toDelete == 0) break;
-			}
+//		int toDelete = futureWorld.getEntityManager().getActiveEntityCount();
+//		int max = (int) futureWorld.getEntityManager().getTotalCreated();
+//		for (int i = 0; i < max; i++) {
+//			Entity e = futureWorld.getEntity(i);
+//			if (e != null) {
+//				futureWorld.deleteEntity(e);
+//				toDelete--;
+//				if (toDelete == 0) break;
+//			}
+//		}
+		
+		//Remove old entities
+		for (int i = 0; i < removed.size(); i++) {
+			Entity e = removed.get(i);
+			futureWorld.deleteEntity(futureWorld.getEntity(e.getId()));
+
+			toFuture.remove(e);
 		}
+		removed.clear();
 	}
 
 	private void copyWorld(ImmutableBag<Entity> entities) {
-		for (int i = 0; i < entities.size(); i++) {
-			Entity e = entities.get(i);
+//		for (int i = 0; i < entities.size(); i++) {
+//			Entity e = entities.get(i);
+//
+//			Position p = pm.get(e);
+//			Mass m = mm.get(e);
+//			Velocity v = vm.get(e);
+//			Acceleration a = am.get(e);
+//
+//			// Copy entity
+//			Entity eCopy = futureWorld.createEntity();
+//			eCopy.addComponent(p.clone());
+//			eCopy.addComponent(m.clone());
+//			eCopy.addComponent(v.clone());
+//			eCopy.addComponent(a.clone());
+//
+//			eCopy.addToWorld();
+//
+//			if (e == selectedPlanet) {
+//				selectedFuture = eCopy;
+//			}
+//		}
+		
+		//Add new entities
+		for (int i = 0; i < inserted.size(); i++) {
+			Entity e = inserted.get(i);
 
 			Position p = pm.get(e);
 			Mass m = mm.get(e);
@@ -134,17 +197,40 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 			eCopy.addComponent(v.clone());
 			eCopy.addComponent(a.clone());
 
-			futureWorld.addEntity(eCopy);
+			eCopy.addToWorld();
 
-			if (e == selectedPlanet) {
-				selectedFuture = eCopy;
-			}
+			toFuture.put(e, eCopy);
 		}
+		inserted.clear();
+		
+		//Copy component values
+		for(Map.Entry<Entity, Entity> key : toFuture.entrySet()){
+			Entity e = key.getKey();
+
+			Position p = pm.get(e);
+			Mass m = mm.get(e);
+			Velocity v = vm.get(e);
+			Acceleration a = am.get(e);
+			
+			Entity eCopy = key.getValue();
+			fpm.get(eCopy).vec.set(p.vec);
+			fmm.get(eCopy).mass = m.mass; 
+			fvm.get(eCopy).vec.set(v.vec);
+			fam.get(eCopy).vec.set(a.vec);
+		}
+		
+		selectedFuture = toFuture.get(selectedPlanet);
 	}
 
 	private void stopTask() {
 		if (task != null && !task.isDone()) {
 			task.cancel(true);
+			// TODO wait until actually done
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -153,8 +239,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 			@Override
 			public void run() {
 				try {
-					ComponentMapper<Position> futurePM = futureWorld.getMapper(Position.class);
-
+//					long start = System.currentTimeMillis();
 					for (int i = 0; i < forwardComputationSteps; i++) {
 						if (Thread.interrupted()) {
 							System.out.println("Interrupted");
@@ -162,11 +247,13 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 						}
 						futureWorld.process();
 
-						futureSteps[i].set(futurePM.get(selectedFuture).vec);
+						futureSteps[i].set(fpm.get(selectedFuture).vec);
 					}
+//					start = System.currentTimeMillis() - start;
+//					System.out.println(start);
 				} catch (Throwable t) {
 					t.printStackTrace();
-				}
+				} finally {}
 			}
 		});
 	}
@@ -192,5 +279,15 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	protected boolean checkProcessing() {
 		return true;
 	}
+
+	@Override
+	protected void inserted(Entity e) {
+		inserted.add(e);
+	};
+
+	@Override
+	protected void removed(Entity e) {
+		removed.add(e);
+	};
 
 }
