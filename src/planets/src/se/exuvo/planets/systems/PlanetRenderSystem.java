@@ -43,7 +43,6 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 
 	@Override
 	protected void begin() {
-		// initialize rendering
 		render.setProjectionMatrix(camera.combined);
 		render.begin(ShapeType.FilledCircle);
 	}
@@ -69,7 +68,6 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 
 	@Override
 	protected void end() {
-		// end rendering.
 		render.end();
 	}
 
