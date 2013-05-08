@@ -106,8 +106,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		updateMouse();
 
 		if (createPlanet) {
-			Entity planet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
-					mouseVector.y), uisystem.getColor());
+			Entity planet = EntityFactory.createPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
+					mouseVector.y), uisystem.getVelocity(), uisystem.getColor());
 			planet.addToWorld();
 			selectedPlanets.add(planet);
 
