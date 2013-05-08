@@ -202,7 +202,7 @@ public class GravQuadTree {
 	
 	private void update(List<Entity> moved, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		if (hasEntity()) {
-			if (!entity.isActive()) {
+			if (entity.isActive()) {
 				Vector2 p = pm.get(entity).vec;
 				if (!contains(p)) {
 					moved.add(entity);
@@ -214,6 +214,8 @@ public class GravQuadTree {
 					mass = mm.get(entity).mass;
 					massVector.set(p).mul(mass);
 				}
+			} else {
+				throw new RuntimeException("det var det!");
 			}
 		} else if (hasChildren()){
 			bl.update(moved, mm, pm);
