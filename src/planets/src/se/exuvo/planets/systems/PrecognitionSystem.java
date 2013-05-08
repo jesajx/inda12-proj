@@ -48,7 +48,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 	// must be multiple of 2 for drawing to work correctly
 	private static int forwardComputationSteps = Settings.getInt("PrecognitionSteps");
-	private Vector2[][] futureSteps = new Vector2[Settings.getInt("forwardParallels")][forwardComputationSteps];
+	private Vector2[][] futureSteps = new Vector2[Settings.getInt("PrecognitionMaxVisualPlanets")][forwardComputationSteps];
 	private Bag<Entity> selectedPlanets, selectedFutures;
 
 	private World futureWorld;
