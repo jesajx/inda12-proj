@@ -428,6 +428,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		return true;
 	}
+	
+	public void clearSelection(){
+		selectedPlanets.clear();
+		fireSelectionChangeEvent();
+	}
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {

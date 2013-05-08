@@ -136,6 +136,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				copyFieldText(velocity.y);
 				copyFieldText(position.x);
 				copyFieldText(position.y);
+				world.getSystem(InputSystem.class).clearSelection();
 			}
 		});
 		buttonTable.row();
