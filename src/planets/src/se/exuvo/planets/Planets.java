@@ -64,7 +64,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(new PrecognitionSystem(camera));
 		world.setSystem(uiSystem);
 		world.setSystem(inputSystem);
-		world.setSystem(new HudRenderSystem());
+		world.setSystem(new HudRenderSystem(camera));
 
 		world.initialize();
 
