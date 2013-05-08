@@ -46,7 +46,7 @@ public class AudioSystem extends VoidEntitySystem {
 			@Override
 			public void run() {
 				if (System.currentTimeMillis() - lastSound > 100) {
-					coins.get(MathUtils.random(coins.size() - 1)).play(soundVolume);
+					coins.get(MathUtils.random(coins.size() - 1)).play(soundVolume, MathUtils.random(0.7f, 1.3f), MathUtils.random(-1f, 1f));
 					lastSound = System.currentTimeMillis();
 				}
 			}
