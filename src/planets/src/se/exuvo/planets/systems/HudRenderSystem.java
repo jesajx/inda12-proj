@@ -94,7 +94,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 		int x = width / 2 - 20 - len;
 		int y = -height / 2 + 10;
 		
-		String zoomText = "" + (int)(gameCamera.zoom*50);
+		String zoomText = "" + (long)(gameCamera.zoom*50);
 		TextBounds zoomBounds = font.getBounds(zoomText);
 		font.draw(batch, zoomText, x+len+10-zoomBounds.width, y+h+20);
 
