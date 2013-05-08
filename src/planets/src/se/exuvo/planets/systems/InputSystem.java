@@ -82,6 +82,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	protected void initialize() {
 		render = new ShapeRenderer();
 		renderBatch = new SpriteBatch();
+		
+		OrthographicCamera textCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		renderBatch.setProjectionMatrix(textCamera.combined);
+		
 		hudSys = world.getSystem(HudRenderSystem.class);
 		uisystem = world.getSystem(UISystem.class);
 
@@ -95,8 +99,6 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void begin() {
 		render.setProjectionMatrix(camera.combined);
-		renderBatch.setProjectionMatrix(camera.combined);
-		renderBatch.begin();
 	}
 
 	@Override
@@ -196,7 +198,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			render.line(mouseStartVector.x, mouseStartVector.y, mouseVector.x, mouseVector.y);
 			render.end();
 
-			hudSys.font.draw(renderBatch, diff.toString(), mouseVector.x, mouseVector.y);
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int)diff.x + ", " + (int)diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+			hudSys.font.draw(renderBatch, "[" + (int)mouseVector.x + ", " + (int)mouseVector.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
+			renderBatch.end();
 		}
 
 		if (pushPlanet) {
@@ -214,7 +219,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 									mouseVector.x, mouseVector.y);
 			render.end();
 
-			hudSys.font.draw(renderBatch, "" + mouseDiff().len() * pushForceMultiplier, mouseVector.x, mouseVector.y);
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int)(mouseDiff().len() * pushForceMultiplier), hudSys.mouseX(), hudSys.mouseY() + 20);
+			renderBatch.end();
 		}
 
 		if (releasePlanet) {
@@ -251,7 +258,6 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	protected void end() {
-		renderBatch.end();
 	}
 
 	private void checkPause() {
@@ -282,7 +288,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private Vector2 mouseDiff() {
 		return mouseVector.cpy().sub(mouseStartVector);
 	}
-
+	
 	@Override
 	protected boolean checkProcessing() {
 		return true;

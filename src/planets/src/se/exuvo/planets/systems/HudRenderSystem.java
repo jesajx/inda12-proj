@@ -82,6 +82,14 @@ public class HudRenderSystem extends VoidEntitySystem {
 			font.draw(batch, speed2, -speedBounds.width / 4, -height / 2 + 2 * speedBounds.height);
 		}
 	}
+	
+	public int mouseX(){
+		return Gdx.input.getX() - Gdx.graphics.getWidth()/2;
+	}
+	
+	public int mouseY(){
+		return -Gdx.input.getY() + Gdx.graphics.getHeight()/2;
+	}
 
 	@Override
 	protected void end() {
