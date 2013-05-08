@@ -145,8 +145,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		// Remove old entities
 		for (int i = 0; i < removed.size(); i++) {
 			Entity e = removed.get(i);
-			futureWorld.deleteEntity(futureWorld.getEntity(e.getId()));
-
+			futureWorld.deleteEntity(toFuture.get(e));
 			toFuture.remove(e);
 		}
 		removed.clear();
