@@ -6,6 +6,7 @@ import java.util.List;
 import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Vector2Component;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.settings.Settings;
 
@@ -21,7 +22,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -56,7 +56,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow;
 	private Bag<Entity> selectedPlanets;
 	private long potentialMoveStart, potentialMoveTimeDelay = Settings.getInt("moveDelay");
-	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings.getFloat("pushForceMultiplier");
+	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
+			.getFloat("pushForceMultiplier");
 
 	private ShapeRenderer render;
 	private SpriteBatch renderBatch;
@@ -103,7 +104,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		// TODO separate the various operations into methods.
 		camera.position.add(cameraVelocity.cpy().mul(camera.zoom * Gdx.graphics.getDeltaTime()));
 		updateMouse();
-		
+
 		if (createPlanet) {
 			Entity planet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
 					mouseVector.y), uisystem.getColor());
@@ -134,24 +135,24 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				}
 			} else {
 				if (selectedPlanets.contains(planet)) {
-					//Allow for moving planets
+					// Allow for moving planets
 //					selectedPlanets.remove(planet);
 //					fireSelectionChangeEvent();
-				}else{
+				} else {
 					if (!Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 						selectedPlanets.clear();
 					}
 					selectedPlanets.add(planet);
 					fireSelectionChangeEvent();
-					
-					if(follow){
+
+					if (follow) {
 						potentialMove = false;
 					}
 				}
 			}
 			selectPlanet = false;
 		}
-		
+
 		if (!selectedPlanets.isEmpty()) {
 			render.begin(ShapeType.Triangle);
 			render.setColor(Color.CYAN);
@@ -169,9 +170,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 			render.end();
 		}
-		
-		if(potentialMove && !selectedPlanets.isEmpty()){
-			if(mouseDiff().len() > potentialMoveMouseShake*camera.zoom || System.currentTimeMillis() - potentialMoveStart > potentialMoveTimeDelay){
+
+		if (potentialMove && !selectedPlanets.isEmpty()) {
+			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
+					|| System.currentTimeMillis() - potentialMoveStart > potentialMoveTimeDelay) {
 				movePlanet = true;
 				potentialMove = false;
 				checkPause();
@@ -224,7 +226,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				for (Entity e : selectedPlanets) {
 					vm.get(e).vec.add(diff);
 				}
-				
+
 				pushPlanet = false;
 				restorePause();
 			}
@@ -233,22 +235,16 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				for (Entity e : selectedPlanets) {
 					pm.get(e).vec.add(diff);
 				}
-				
+
 				movePlanet = false;
 				restorePause();
 			}
 
 			releasePlanet = false;
 		}
-		
-		if(follow && !selectedPlanets.isEmpty()){
-			Vector2 center = new Vector2();
-			
-			for(Entity e : selectedPlanets){
-				center.add(pm.get(e).vec);
-			}
-			center.div(selectedPlanets.size());
-			
+
+		if (follow && !selectedPlanets.isEmpty()) {
+			Vector2 center = Vector2Component.mean(pm, selectedPlanets);
 			camera.position.set(center.x, center.y, 0);
 		}
 	}
@@ -295,8 +291,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	public boolean isPaused() {
 		return paused;
 	}
-	
-	public boolean isFollow(){
+
+	public boolean isFollow() {
 		return follow;
 	}
 
@@ -386,7 +382,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
 			return true;
-		}else if (button == Input.Buttons.LEFT) {
+		} else if (button == Input.Buttons.LEFT) {
 			potentialMove = false;
 			releasePlanet = true;
 		}
