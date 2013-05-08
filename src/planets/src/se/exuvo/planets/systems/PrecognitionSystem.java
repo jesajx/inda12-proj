@@ -86,7 +86,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 		selectedPlanets = new Bag<Entity>();
 		selectedFutures = new Bag<Entity>();
-		
+
 		for (int i = 0; i < futureSteps.length; i++) {
 			for (int j = 0; j < futureSteps[i].length; j++) {
 				futureSteps[i][j] = new Vector2();
@@ -114,8 +114,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	protected void processEntities(ImmutableBag<Entity> entities) {
 		if (!selectedPlanets.isEmpty()) {
 			render.setColor(Color.WHITE);
-			for (int i = 0; i < futureSteps.length
-					&& i < selectedFutures.size(); i++) {
+			for (int i = 0; i < futureSteps.length && i < selectedFutures.size(); i++) {
 				for (int j = 0; j < futureSteps[i].length; j += 2) {
 					// TODO avoid possible concurrent read write
 					Vector2 p1 = futureSteps[i][j];
@@ -218,7 +217,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 //					long start = System.currentTimeMillis();
 					for (int i = 0; i < forwardComputationSteps; i++) {
 						if (Thread.interrupted()) {
-							System.out.println("Interrupted");
+							System.out.println("Precognition Interrupted");
 							break;
 						}
 						futureWorld.process();
