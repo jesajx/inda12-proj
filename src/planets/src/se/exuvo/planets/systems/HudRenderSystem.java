@@ -16,11 +16,11 @@ public class HudRenderSystem extends VoidEntitySystem {
 
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
-	private BitmapFont font;
+	public BitmapFont font;
 	private boolean fps;
 	private InputSystem insys;
-	private TextBounds pauseBounds, speedBounds;
-	private String pause = "Paused", speed1 = "speed x10", speed2 = "speed x50", speed3 = "speed x200";
+	private TextBounds pauseBounds, speedBounds, followBounds;
+	private String pause = "Paused", speed1 = "speed x10", speed2 = "speed x50", speed3 = "speed x200", follow = "Tracking";
 
 	public HudRenderSystem() {
 		this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -41,6 +41,7 @@ public class HudRenderSystem extends VoidEntitySystem {
 		insys = world.getSystem(InputSystem.class);
 		pauseBounds = font.getBounds(pause);
 		speedBounds = font.getBounds(speed1);
+		followBounds = font.getBounds(follow);
 	}
 
 	@Override
@@ -65,6 +66,10 @@ public class HudRenderSystem extends VoidEntitySystem {
 		
 		if (insys.isPaused()) {
 			font.draw(batch, pause, -pauseBounds.width / 4, -height / 2 + 2 * pauseBounds.height);
+		}
+		
+		if (insys.isFollow()) {
+			font.draw(batch, follow, -followBounds.width / 4, +height / 2 - 2 * followBounds.height);
 		}
 		
 		if (insys.isSpeedup()) {
