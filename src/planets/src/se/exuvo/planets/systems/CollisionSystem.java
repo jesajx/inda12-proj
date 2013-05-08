@@ -38,6 +38,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 	
 	/** Used to check if the game is paused. */
 	private InputSystem insys;
+	private AudioSystem ausys;
 	
 	
     public CollisionSystem() {
@@ -47,6 +48,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     @Override
 	protected void initialize() {
 		insys = world.getSystem(InputSystem.class);
+		ausys = world.getSystem(AudioSystem.class);
 	}
     /**
      * Detects and handles collisions.
@@ -267,6 +269,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         
     	time = System.nanoTime()-time;
 //    	System.out.println("colHandl: "+time*1e-6+" ms");
+    	ausys.playCoin();
     }
     
     
