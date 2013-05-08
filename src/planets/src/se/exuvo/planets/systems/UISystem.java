@@ -114,7 +114,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		Table buttonTable = new Table(skin);
 		table.add(buttonTable).expandX().fillX().row();
 
-		TextButton remove = addButton("Remove", buttonTable, skin);
+		TextButton remove = addButton("Delete planet", buttonTable, skin);
 		remove.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -123,8 +123,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				}
 			}
 		});
+		buttonTable.row();
 
-		TextButton copy = addButton("Copy", buttonTable, skin);
+		TextButton copy = addButton("Copy values", buttonTable, skin);
 		copy.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -137,12 +138,14 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				copyFieldText(position.y);
 			}
 		});
+		buttonTable.row();
 
-		TextButton clear = addButton("Clear", buttonTable, skin);
+		TextButton clear = addButton("Clear values", buttonTable, skin);
 		clear.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				clearUI();
+				ui.unfocusAll();
 			}
 		});
 
