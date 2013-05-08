@@ -2,7 +2,6 @@ package se.exuvo.planets.systems;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -76,8 +75,8 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 		futureWorld.setSystem(new InputSystem(null), true);
 		futureWorld.setSystem(new GravitationSystem());
-		futureWorld.setSystem(new AccelerationSystem());
 		futureWorld.setSystem(new VelocitySystem());
+		futureWorld.setSystem(new PositionSystem());
 //		futureWorld.setSystem(new CollisionSystem());
 
 		futureWorld.initialize();

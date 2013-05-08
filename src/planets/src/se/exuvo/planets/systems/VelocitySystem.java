@@ -1,6 +1,6 @@
 package se.exuvo.planets.systems;
 
-import se.exuvo.planets.components.Position;
+import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.settings.Settings;
 
@@ -11,20 +11,22 @@ import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntityProcessingSystem;
 
 /**
- * System responsible for "moving" planets (usually) - updating their positions using their velocities.
+ * System responsible for updating the {@link Velocity} of planets (usually), using their {@link Acceleration}.
  */
-public class VelocitySystem extends IntervalEntityProcessingSystem {
-
-	/** Mapper for entities with the Velocity-Aspect. */
+public class VelocitySystem extends IntervalEntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it
+// changes.
+	/** Mapper for Entities with the Velocity-aspect. */
 	@Mapper ComponentMapper<Velocity> vm;
-	/** Mapper for entities with the Position-Aspect. */
-	@Mapper ComponentMapper<Position> pm;
+	/** Mapper for Entities with the Acceleration-aspect. */
+	@Mapper ComponentMapper<Acceleration> am;
 
-	/** Whether this system is paused. */
 	private InputSystem insys;
 
+	/**
+	 * Creates a new AccelerationSystem.
+	 */
 	public VelocitySystem() {
-		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
+		super(Aspect.getAspectForAll(Velocity.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
 	}
 
 	@Override
@@ -33,14 +35,15 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 	}
 
 	/**
-	 * Updates the position of the given entity using its velocity.
+	 * Updates the velocity of the given Entity, using its acceleration.
 	 */
 	@Override
 	protected void process(Entity e) {
-		Position p = pm.get(e);
 		Velocity v = vm.get(e);
+		Acceleration a = am.get(e);
 
-		p.vec.add(v.vec);
+		// apply acceleration to velocity
+		v.vec.add(a.vec); // v+=a
 	}
 
 	/**
@@ -53,5 +56,4 @@ public class VelocitySystem extends IntervalEntityProcessingSystem {
 		}
 		return super.checkProcessing();
 	}
-
 }
