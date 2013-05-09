@@ -44,16 +44,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private float cameraMoveSpeed = 1000f;
 	private float zoomLevel = 1f, zoomSensitivity = Settings.getFloat("zoomSensitivity");
 
-	private Vector2 mouseVector;
-
 	/**
 	 * Used to hold the mouseposition where the user last placed a planet. It is used for when the user rightclick-drags the mouse, creating
 	 * a planet at the rightclick and giving it an velocity in the dragged-to direction.
 	 */
-	private Vector2 mouseStartVector;
+	private Vector2 mouseVector, mouseStartVector, mouseTrue, mouseTrueDiff, mouseTrueStart;
 
 	// Buffers due to gui has to be done in the correct thread.
-	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet;
+	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet, moveWindow;
 	private Bag<Entity> selectedPlanets;
 	private long potentialMoveStart, potentialMoveTimeDelay = Settings.getInt("moveDelay");
 	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
@@ -64,7 +62,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private HudRenderSystem hudSys;
 
 	private boolean paused, wasPaused;
-	
+
 	private static float cos90 = MathUtils.cosDeg(90), cos210 = MathUtils.cosDeg(210), cos330 = MathUtils.cosDeg(330);
 	private static float sin90 = MathUtils.sinDeg(90), sin210 = MathUtils.sinDeg(210), sin330 = MathUtils.sinDeg(330);
 
@@ -76,6 +74,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		this.camera = camera;
 		mouseVector = new Vector2();
 		mouseStartVector = new Vector2();
+		mouseTrue = new Vector2();
+		mouseTrueDiff = new Vector2();
+		mouseTrueStart = new Vector2();
 		cameraVelocity = new Vector3();
 	}
 
@@ -123,22 +124,22 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			Entity planet = null;
 
 			// compare each planets position to the mousePos to see if it was clicked.
-			
+
 			float minDist = Float.MAX_VALUE;
 			Entity closestPlanet = null;
-			
+
 			for (int i = 0; i < entities.size(); i++) {
 				Entity e = entities.get(i);
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-				
+
 				float distance = mouseVector.dst(p.vec) - s.radius;
-				if(distance < minDist){
+				if (distance < minDist) {
 					minDist = distance;
 					closestPlanet = e;
 				}
 			}
-			
+
 			if (minDist < 10 * camera.zoom) {
 				planet = closestPlanet;
 			}
@@ -175,12 +176,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			for (Entity e : selectedPlanets) {
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-				
+
 				// draw a triangle around the planet (showing that it's selected)
 				float r = s.radius * 3f;
-				render.triangle(p.vec.x + r * cos90, p.vec.y + r * sin90,
-								p.vec.x + r * cos210, p.vec.y + r * sin210,
-								p.vec.x + r * cos330, p.vec.y + r * sin330);
+				render.triangle(p.vec.x + r * cos90, p.vec.y + r * sin90, p.vec.x + r * cos210, p.vec.y + r * sin210, p.vec.x + r * cos330,
+								p.vec.y + r * sin330);
 			}
 
 			render.end();
@@ -298,6 +298,26 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 			nextPlanet = false;
 		}
+
+		if (moveWindow) {
+			updateTrueMouse();
+			Vector2 diff = mouseTrue.cpy().sub(mouseTrueStart).mul(camera.zoom);
+
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int) diff.x + ", " + (int) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+
+			diff.add(mouseStartVector);
+
+			hudSys.font.draw(renderBatch, "[" + (int) diff.x + ", " + (int) diff.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
+			renderBatch.end();
+
+			render.begin(ShapeType.Line);
+			render.line(mouseStartVector.x, mouseStartVector.y, diff.x, diff.y);
+			render.end();
+
+			diff.set(mouseTrueDiff).mul(camera.zoom);
+			camera.position.add(diff.x, diff.y, 0);
+		}
 	}
 
 	@Override
@@ -324,8 +344,19 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		mouseVector.set(mouseTmp.x, mouseTmp.y);
 	}
 
+	private void updateTrueMouse() {
+		int x = -Gdx.input.getX(), y = Gdx.input.getY();
+		mouseTrueDiff.set(x - mouseTrue.x, y - mouseTrue.y);
+		mouseTrue.set(x, y);
+	}
+
 	private void mouseStart() {
 		mouseStartVector.set(mouseVector);
+	}
+
+	private void mouseStartTrue() {
+		mouseTrueStart.set(mouseTrue);
+		mouseTrueDiff.set(0, 0);
 	}
 
 	private Vector2 mouseDiff() {
@@ -425,6 +456,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				checkPause();
 			}
 			return true;
+		} else if (button == Input.Buttons.MIDDLE) {
+			moveWindow = true;
+			updateTrueMouse();
+			mouseStartTrue();
+			return true;
 		}
 		return false;
 	}
@@ -437,6 +473,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		} else if (button == Input.Buttons.LEFT) {
 			potentialMove = false;
 			releasePlanet = true;
+		} else if (button == Input.Buttons.MIDDLE) {
+			moveWindow = false;
 		}
 		return false;
 	}
