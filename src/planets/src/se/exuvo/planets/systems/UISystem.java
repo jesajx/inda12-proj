@@ -46,7 +46,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	@Mapper ComponentMapper<Velocity> vm;
 
 	private Stage ui;
-	private Window table;
+	private Window window;
 	private static int debug = 0;
 
 	private Label massLabel, radiusLabel;
@@ -92,18 +92,18 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		Stage stage = new Stage();
 		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));
 
-		table = new Window("Planet Parameters", skin);
-		table.align(Align.center | Align.top);
-		table.setSize(200, height);
-		table.setPosition(-width / 2, -height / 2);
-		stage.addActor(table);
+		window = new Window("Planet Parameters", skin);
+		window.align(Align.center | Align.top);
+		window.setSize(200, height);
+		window.setPosition(-width / 2, -height / 2);
+		stage.addActor(window);
 
-		mass = addField(massLabel = new Label("Mass", skin), table, skin);
-		radius = addField(radiusLabel = new Label("Radius", skin), table, skin);
-		color = addField("Color", table, skin);
-		velocity = addField2("Velocity", table, skin);
-		position = addField2("Position", table, skin);
-		acceleration = addField2("Acceleration", table, skin);
+		mass = addField(massLabel = new Label("Mass", skin), window, skin);
+		radius = addField(radiusLabel = new Label("Radius", skin), window, skin);
+		color = addField("Color", window, skin);
+		velocity = addField2("Velocity", window, skin);
+		position = addField2("Position", window, skin);
+		acceleration = addField2("Acceleration", window, skin);
 
 		addFieldEnterListeners();
 		addFieldChangeListeners();
@@ -112,7 +112,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		acceleration.y.setDisabled(true);
 
 		Table buttonTable = new Table(skin);
-		table.add(buttonTable).expandX().fillX().row();
+		window.add(buttonTable).expandX().fillX().row();
 
 		TextButton remove = addButton("Delete planet", buttonTable, skin);
 		remove.addListener(new ChangeListener() {
@@ -399,21 +399,21 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private void d() {
 		switch (debug) {
 			case 1:
-				table.debugTable();
+				window.debugTable();
 				break;
 			case 2:
-				table.debugCell();
+				window.debugCell();
 				break;
 			case 3:
-				table.debugWidget();
+				window.debugWidget();
 				break;
 			case 4:
-				table.debug();
+				window.debug();
 				break;
 			default:
-				table.debug(Debug.none);
+				window.debug(Debug.none);
 		}
-		table.invalidate();
+		window.invalidate();
 	}
 
 	@Override

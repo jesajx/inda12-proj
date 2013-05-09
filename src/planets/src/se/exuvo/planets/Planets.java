@@ -101,8 +101,8 @@ public class Planets extends Game implements Screen {
 
 		// these radii causes the game to crash.
 //		// sun
-//		float sun_radius = 1.392684e9f/2/1e8f; // m
-//		float sun_mass = 1.9891e30f/1e30f; // kg
+		float sun_radius = 1.392684e9f/2; // m
+		float sun_mass = 1.9891e30f/1e30f; // kg
 //		EntityFactory.createPlanet(world, sun_radius, sun_mass, new Vector2(), new Vector2(), Color.YELLOW).addToWorld();
 //		
 //		// earth

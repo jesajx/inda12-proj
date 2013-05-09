@@ -26,7 +26,9 @@ import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 public class TemplateUISystem extends VoidEntitySystem implements InputProcessor {
 
 	private Stage ui;
-	private Window table;
+	private Window window;
+	private com.badlogic.gdx.scenes.scene2d.ui.List templateList;
+	private Label name, description;
 	private static int debug = 0;
 
 	public TemplateUISystem() {
@@ -36,6 +38,7 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 	protected void initialize() {
 		TemplateLoader.init();
 		ui = createUI();
+		updateSelection();
 		hide();
 	}
 
@@ -56,43 +59,40 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 	 * @return the ui
 	 */
 	private Stage createUI() {
-		int height = Gdx.graphics.getHeight(), width = Gdx.graphics.getWidth();
+		int height = Math.min(Gdx.graphics.getHeight(), 400), width = Math.min(Gdx.graphics.getWidth(), 400);
+		int realHeight = Gdx.graphics.getHeight(), realWidth = Gdx.graphics.getWidth();
 
 		Stage stage = new Stage();
 		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));
 
-		table = new Window("Planet Parameters", skin);
-		table.align(Align.center | Align.top);
-		table.setSize(width, height);
-		table.setPosition(-width / 2, -height / 2);
-		stage.addActor(table);
+		window = new Window("Planet Parameters", skin);
+		window.setSize(width, height);
+		window.setPosition((realWidth - width) / 2, (realHeight - height) / 2);
+		stage.addActor(window);
 
-		final Label name = new Label("", skin);
-		final Label description = new Label("", skin);
+		name = new Label("", skin);
+		description = new Label("", skin);
 		
 		Table current = new Table(skin);
 		current.add(name).center().expandX().padBottom(20).row();
 		current.add(description).center().expandX().row();
-		current.debug();
 
 		List<Template> templates = TemplateLoader.getTemplates();
-		final com.badlogic.gdx.scenes.scene2d.ui.List templateList = new com.badlogic.gdx.scenes.scene2d.ui.List(templates.toArray(), skin);
-		ScrollPane sp = new ScrollPane(templateList, skin);
+		templateList = new com.badlogic.gdx.scenes.scene2d.ui.List(templates.toArray(), skin);
 		templateList.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				Template temp = TemplateLoader.getTemplates().get(templateList.getSelectedIndex());
-				name.setText(temp.getName());
-				description.setText(temp.getDescription());
+				updateSelection();
 			}
 		});
 		
-		table.add(sp).expand().fill().prefWidth(width/2);
-		table.add(current).expand().top().padTop(20).prefWidth(width/2);
+		ScrollPane sp = new ScrollPane(templateList, skin);
+		window.add(sp).expand().fill().prefWidth(width/2);
+		window.add(current).expand().top().padTop(20).prefWidth(width/2);
 
-		table.row();
+		window.row();
 		TextButton back = new TextButton("Back", skin);
-		table.add(back).spaceTop(10);
+		window.add(back).spaceTop(10);
 		back.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -101,7 +101,7 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 		});
 		
 		TextButton load = new TextButton("Load", skin);
-		table.add(load).spaceTop(10);
+		window.add(load).spaceTop(10);
 		load.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -118,34 +118,40 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 	protected void end() {
 
 	}
+	
+	private void updateSelection(){
+		Template temp = TemplateLoader.getTemplates().get(templateList.getSelectedIndex());
+		name.setText(temp.getName());
+		description.setText(temp.getDescription());
+	}
 
 	public void hide() {
-		table.setVisible(false);
+		window.setVisible(false);
 		ui.unfocusAll();
 	}
 
 	public void show() {
-		table.setVisible(true);
+		window.setVisible(true);
 	}
 
 	private void d() {
 		switch (debug) {
 			case 1:
-				table.debugTable();
+				window.debugTable();
 				break;
 			case 2:
-				table.debugCell();
+				window.debugCell();
 				break;
 			case 3:
-				table.debugWidget();
+				window.debugWidget();
 				break;
 			case 4:
-				table.debug();
+				window.debug();
 				break;
 			default:
-				table.debug(Debug.none);
+				window.debug(Debug.none);
 		}
-		table.invalidate();
+		window.invalidate();
 	}
 
 	@Override
