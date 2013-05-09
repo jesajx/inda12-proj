@@ -106,6 +106,7 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				TemplateLoader.loadTemplate(TemplateLoader.getTemplates().get(templateList.getSelectedIndex()), world);
+				world.getSystem(AudioSystem.class).playLoad();
 				hide();
 			}
 		});
