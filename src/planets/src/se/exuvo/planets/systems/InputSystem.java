@@ -53,7 +53,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private Vector2 mouseStartVector;
 
 	// Buffers due to gui has to be done in the correct thread.
-	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow;
+	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet;
 	private Bag<Entity> selectedPlanets;
 	private long potentialMoveStart, potentialMoveTimeDelay = Settings.getInt("moveDelay");
 	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
@@ -64,6 +64,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private HudRenderSystem hudSys;
 
 	private boolean paused, wasPaused;
+	
+	private static float cos90 = MathUtils.cosDeg(90), cos210 = MathUtils.cosDeg(210), cos330 = MathUtils.cosDeg(330);
+	private static float sin90 = MathUtils.sinDeg(90), sin210 = MathUtils.sinDeg(210), sin330 = MathUtils.sinDeg(330);
 
 	private List<PlanetSelectionChanged> listeners = new ArrayList<PlanetSelectionChanged>();
 	private UISystem uisystem;
@@ -82,10 +85,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	protected void initialize() {
 		render = new ShapeRenderer();
 		renderBatch = new SpriteBatch();
-		
+
 		OrthographicCamera textCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		renderBatch.setProjectionMatrix(textCamera.combined);
-		
+
 		hudSys = world.getSystem(HudRenderSystem.class);
 		uisystem = world.getSystem(UISystem.class);
 
@@ -120,14 +123,24 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			Entity planet = null;
 
 			// compare each planets position to the mousePos to see if it was clicked.
+			
+			float minDist = Float.MAX_VALUE;
+			Entity closestPlanet = null;
+			
 			for (int i = 0; i < entities.size(); i++) {
 				Entity e = entities.get(i);
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-				if (mouseVector.dst(p.vec) < s.radius * 2) {
-					planet = e;
-					break;
+				
+				float distance = mouseVector.dst(p.vec) - s.radius;
+				if(distance < minDist){
+					minDist = distance;
+					closestPlanet = e;
 				}
+			}
+			
+			if (minDist < 10 * camera.zoom) {
+				planet = closestPlanet;
 			}
 
 			if (planet == null) {
@@ -162,12 +175,12 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			for (Entity e : selectedPlanets) {
 				Position p = pm.get(e);
 				Size s = sm.get(e);
-
+				
 				// draw a triangle around the planet (showing that it's selected)
 				float r = s.radius * 3f;
-				render.triangle(p.vec.x + r * MathUtils.cosDeg(90), p.vec.y + r * MathUtils.sinDeg(90),
-								p.vec.x + r * MathUtils.cosDeg(210), p.vec.y + r * MathUtils.sinDeg(210),
-								p.vec.x + r * MathUtils.cosDeg(330), p.vec.y + r * MathUtils.sinDeg(330));
+				render.triangle(p.vec.x + r * cos90, p.vec.y + r * sin90,
+								p.vec.x + r * cos210, p.vec.y + r * sin210,
+								p.vec.x + r * cos330, p.vec.y + r * sin330);
 			}
 
 			render.end();
@@ -199,8 +212,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			render.end();
 
 			renderBatch.begin();
-			hudSys.font.draw(renderBatch, "" + (int)diff.x + ", " + (int)diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
-			hudSys.font.draw(renderBatch, "[" + (int)mouseVector.x + ", " + (int)mouseVector.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
+			hudSys.font.draw(renderBatch, "" + (int) diff.x + ", " + (int) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+			hudSys.font.draw(	renderBatch, "[" + (int) mouseVector.x + ", " + (int) mouseVector.y + "]", hudSys.mouseX(),
+								hudSys.mouseY() + 20);
 			renderBatch.end();
 		}
 
@@ -220,7 +234,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			render.end();
 
 			renderBatch.begin();
-			hudSys.font.draw(renderBatch, "" + (int)(mouseDiff().len() * pushForceMultiplier), hudSys.mouseX(), hudSys.mouseY() + 20);
+			hudSys.font.draw(renderBatch, "" + (int) (mouseDiff().len() * pushForceMultiplier), hudSys.mouseX(), hudSys.mouseY() + 20);
 			renderBatch.end();
 		}
 
@@ -254,11 +268,40 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			Vector2 center = Vector2Component.mean(pm, selectedPlanets);
 			camera.position.set(center.x, center.y, 0);
 		}
+
+		if (nextPlanet) {
+			if (!entities.isEmpty()) {
+				Entity target = null;
+
+				if (selectedPlanets.isEmpty()) {
+					target = entities.get(0);
+				} else {
+					for (int i = 0; i < entities.size(); i++) {
+						if (selectedPlanets.get(0).getId() == entities.get(i).getId()) {
+							if (i + 1 == entities.size()) {
+								target = entities.get(0);
+							} else {
+								target = entities.get(i + 1);
+							}
+							break;
+						}
+					}
+				}
+
+				selectedPlanets.clear();
+				selectedPlanets.add(target);
+				fireSelectionChangeEvent();
+
+				Vector2 pos = pm.get(target).vec;
+				camera.position.set(pos.x, pos.y, 0);
+			}
+
+			nextPlanet = false;
+		}
 	}
 
 	@Override
-	protected void end() {
-	}
+	protected void end() {}
 
 	private void checkPause() {
 		wasPaused = paused;
@@ -288,7 +331,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private Vector2 mouseDiff() {
 		return mouseVector.cpy().sub(mouseStartVector);
 	}
-	
+
 	@Override
 	protected boolean checkProcessing() {
 		return true;
@@ -333,6 +376,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			return true;
 		} else if (keycode == Input.Keys.T) {
 			follow = !follow;
+			return true;
+		} else if (keycode == Input.Keys.N) {
+			nextPlanet = true;
 			return true;
 		}
 
@@ -412,10 +458,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
 //		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
-		
+
 		if (camera.zoom > 2E17f) {
 			camera.zoom = 2E17f;
-			zoomLevel = (float) (Math.log(camera.zoom) / Math.log(zoomSensitivity)); 
+			zoomLevel = (float) (Math.log(camera.zoom) / Math.log(zoomSensitivity));
 		}
 
 		if (amount < 0) {
@@ -428,8 +474,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		return true;
 	}
-	
-	public void clearSelection(){
+
+	public void clearSelection() {
 		selectedPlanets.clear();
 		fireSelectionChangeEvent();
 	}
