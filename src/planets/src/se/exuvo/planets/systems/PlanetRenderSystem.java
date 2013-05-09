@@ -67,7 +67,7 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 		if (s.radius / camera.zoom < 0.5) {// Ensure planet is at least 1 pixel on screen
 			render.filledCircle(p.vec.x, p.vec.y, camera.zoom, 3);
 		} else {
-			render.filledCircle(p.vec.x, p.vec.y, s.radius, (int) ((6 * (float) Math.cbrt(s.radius/ camera.zoom)) ));
+			render.filledCircle(p.vec.x, p.vec.y, s.radius, (int) ((6 * (float) Math.cbrt(s.radius / camera.zoom))));
 		}
 	}
 
