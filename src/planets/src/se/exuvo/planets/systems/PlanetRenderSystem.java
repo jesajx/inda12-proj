@@ -17,17 +17,17 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
  * EntittySystem responsible for drawing planets on the screen.
  */
 public class PlanetRenderSystem extends EntityProcessingSystem {
-	
+
 	/** Mapper for entities with the Position-aspect. */
-	@Mapper	ComponentMapper<Position> pm;
+	@Mapper ComponentMapper<Position> pm;
 	/** Mapper for entities with the Size-aspect. */
-	@Mapper	ComponentMapper<Size> sm;
+	@Mapper ComponentMapper<Size> sm;
 	/** Mapper for entities with the Colour-aspect. */
-	@Mapper	ComponentMapper<Colour> cm;
+	@Mapper ComponentMapper<Colour> cm;
 
 	/** The gameworld camera. */
 	private OrthographicCamera camera;
-	
+
 	/** Used to draw shaped (circles). */
 	private ShapeRenderer render;
 
@@ -53,21 +53,21 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 	@Override
 	protected void process(Entity e) {
 		// for each planet...
-		
+
 		// get relevant planet-components
 		Position p = pm.get(e);
 		Size s = sm.get(e);
 		Colour c = cm.getSafe(e);
-		
-		if(c != null){
+
+		if (c != null) {
 			render.setColor(c.color);
 		}
 		// ...draw the planet.
-		
-		if(s.radius/camera.zoom < 0.5){//Ensure planet is at least 1 pixel on screen
+
+		if (s.radius / camera.zoom < 0.5) {// Ensure planet is at least 1 pixel on screen
 			render.filledCircle(p.vec.x, p.vec.y, camera.zoom, 3);
-		}else{
-			render.filledCircle(p.vec.x, p.vec.y, s.radius);
+		} else {
+			render.filledCircle(p.vec.x, p.vec.y, s.radius, (int) ((6 * (float) Math.cbrt(s.radius/ camera.zoom)) ));
 		}
 	}
 
