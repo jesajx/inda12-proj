@@ -9,5 +9,5 @@ public abstract class Template {
 	public String getName() { return this.getClass().getSimpleName();};
 	public abstract String getDescription();
 	protected static Logger log = Logger.getLogger(Template.class);
-
+	public String toString() { return getName(); };
 }

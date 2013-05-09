@@ -412,10 +412,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
 //		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
-
-//		camera.zoom += amount;
-		if (camera.zoom < 1) {
-			camera.zoom = 1;
+		
+		if (camera.zoom > 2E17f) {
+			camera.zoom = 2E17f;
+			zoomLevel = (float) (Math.log(camera.zoom) / Math.log(zoomSensitivity)); 
 		}
 
 		if (amount < 0) {

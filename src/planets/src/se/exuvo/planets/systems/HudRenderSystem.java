@@ -117,5 +117,10 @@ public class HudRenderSystem extends VoidEntitySystem {
 
 	@Override
 	protected void end() {}
+	
+	public void resize(int width, int height) {
+//		camera.setToOrtho(false, width, height);
+		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+	}
 
 }

@@ -63,7 +63,12 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 			render.setColor(c.color);
 		}
 		// ...draw the planet.
-		render.filledCircle(p.vec.x, p.vec.y, s.radius);
+		
+		if(s.radius/camera.zoom < 0.5){//Ensure planet is at least 1 pixel on screen
+			render.filledCircle(p.vec.x, p.vec.y, camera.zoom, 3);
+		}else{
+			render.filledCircle(p.vec.x, p.vec.y, s.radius);
+		}
 	}
 
 	@Override

@@ -16,7 +16,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
 	
-	public static int maxDepth = 1000;
+	public static int maxDepth = 254;
 	
 	Vector2 pos; // bottom left
 	float side; // length of sides in Cube

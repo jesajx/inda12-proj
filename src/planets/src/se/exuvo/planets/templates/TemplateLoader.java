@@ -11,8 +11,8 @@ import se.exuvo.planets.utils.ClassFinder;
 
 import com.artemis.World;
 
-public class Loader {
-	private static final Logger log = Logger.getLogger(Loader.class);
+public class TemplateLoader {
+	private static final Logger log = Logger.getLogger(TemplateLoader.class);
 	private static List<Template> templates = new ArrayList<Template>();
 
 	public static void init() {
@@ -41,7 +41,7 @@ public class Loader {
 		}
 	}
 
-	public void loadTemplate(Template t, World w) {
+	public static void loadTemplate(Template t, World w) {
 		int toRemove = w.getEntityManager().getActiveEntityCount();
 		for (int id = 0; toRemove > 0; id++) {
 			if (w.getEntityManager().isActive(id)) {
@@ -53,7 +53,7 @@ public class Loader {
 		t.load(w);
 	}
 
-	public List<Template> getTemplates() {
+	public static List<Template> getTemplates() {
 		return Collections.unmodifiableList(templates);
 	}
 }

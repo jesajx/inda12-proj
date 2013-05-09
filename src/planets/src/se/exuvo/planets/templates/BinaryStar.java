@@ -19,7 +19,7 @@ public class BinaryStar extends Template {
 
 	@Override
 	public String getDescription() {
-		return "";
+		return "fghfgdhfghgfh\n\nffgh";
 	}
 
 }

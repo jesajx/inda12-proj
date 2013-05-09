@@ -55,7 +55,6 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private Bag<Entity> selectedPlanets;
 
 	public UISystem() {
-		ui = createUI();
 	}
 
 	// TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
@@ -65,6 +64,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	@Override
 	protected void initialize() {
+		ui = createUI();
 		world.getSystem(InputSystem.class).addListener(this);
 		selectedPlanets = new Bag<Entity>();
 	}
@@ -147,6 +147,16 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			public void changed(ChangeEvent event, Actor actor) {
 				clearUI();
 				ui.unfocusAll();
+			}
+		});
+		
+		buttonTable.row();
+
+		TextButton template = addButton("Templates", buttonTable, skin);
+		template.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				world.getSystem(TemplateUISystem.class).show();
 			}
 		});
 
@@ -636,5 +646,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			position.y.setMessageText("");
 		}
 
+	}
+	
+	public void resize(int width, int height) {
+		ui.setViewport(width, height, false);
 	}
 }
