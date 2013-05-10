@@ -20,6 +20,10 @@ public class Settings extends se.exuvo.settings.Settings{
 		add("pauseWhenCreatingPlanets", true);
 		add("PrecognitionSteps", 500);
 		add("zoomSensitivity", 1.25f);
+		add("moveMouseSensitivity", 10f);
+		add("moveDelay", 200);
+		add("pushForceMultiplier", 0.1f);
+		add("PrecognitionMaxVisualPlanets", 10);
 		
 		if(!start(conf,"planets")){
 			log.fatal("Failed to read settings from file, please fix. Exiting.");

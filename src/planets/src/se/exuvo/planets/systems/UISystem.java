@@ -5,6 +5,7 @@ import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Vector2Component;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.planets.systems.InputSystem.PlanetSelectionChanged;
 
@@ -12,6 +13,7 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.VoidEntitySystem;
+import com.artemis.utils.Bag;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -44,15 +46,15 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	@Mapper ComponentMapper<Velocity> vm;
 
 	private Stage ui;
-	private Window table;
+	private Window window;
 	private static int debug = 0;
 
+	private Label massLabel, radiusLabel;
 	private TextField mass, radius, color;
 	private TextFields velocity, acceleration, position;
-	private Entity selectedPlanet;
+	private Bag<Entity> selectedPlanets;
 
 	public UISystem() {
-		ui = createUI();
 	}
 
 	// TODO extra: make tab and shift-tab go back and forth between fields in a cycle.
@@ -62,7 +64,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	@Override
 	protected void initialize() {
+		ui = createUI();
 		world.getSystem(InputSystem.class).addListener(this);
+		selectedPlanets = new Bag<Entity>();
 	}
 
 	@Override
@@ -88,18 +92,18 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		Stage stage = new Stage();
 		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));
 
-		table = new Window("Planet Parameters", skin);
-		table.align(Align.center | Align.top);
-		table.setSize(200, height);
-		table.setPosition(-width / 2, -height / 2);
-		stage.addActor(table);
+		window = new Window("Planet Parameters", skin);
+		window.align(Align.center | Align.top);
+		window.setSize(200, height);
+		window.setPosition(-width / 2, -height / 2);
+		stage.addActor(window);
 
-		mass = addField("Mass", table, skin);
-		radius = addField("Radius", table, skin);
-		color = addField("Color", table, skin);
-		velocity = addField2("Velocity", table, skin);
-		position = addField2("Position", table, skin);
-		acceleration = addField2("Acceleration", table, skin);
+		mass = addField(massLabel = new Label("Mass", skin), window, skin);
+		radius = addField(radiusLabel = new Label("Radius", skin), window, skin);
+		color = addField("Color", window, skin);
+		velocity = addField2("Velocity", window, skin);
+		position = addField2("Position", window, skin);
+		acceleration = addField2("Acceleration", window, skin);
 
 		addFieldEnterListeners();
 		addFieldChangeListeners();
@@ -108,18 +112,20 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		acceleration.y.setDisabled(true);
 
 		Table buttonTable = new Table(skin);
-		table.add(buttonTable).expandX().fillX().row();
+		window.add(buttonTable).expandX().fillX().row();
 
-		TextButton remove = addButton("Remove", buttonTable, skin);
+		TextButton remove = addButton("Delete planet", buttonTable, skin);
 		remove.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				selectedPlanet.deleteFromWorld();
-				selectedPlanet = null;
+				for (Entity e : selectedPlanets) {
+					e.deleteFromWorld();
+				}
 			}
 		});
+		buttonTable.row();
 
-		TextButton copy = addButton("Copy", buttonTable, skin);
+		TextButton copy = addButton("Copy values", buttonTable, skin);
 		copy.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
@@ -130,14 +136,27 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				copyFieldText(velocity.y);
 				copyFieldText(position.x);
 				copyFieldText(position.y);
+				world.getSystem(InputSystem.class).clearSelection();
 			}
 		});
+		buttonTable.row();
 
-		TextButton clear = addButton("Clear", buttonTable, skin);
+		TextButton clear = addButton("Clear values", buttonTable, skin);
 		clear.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				clearUI();
+				ui.unfocusAll();
+			}
+		});
+		
+		buttonTable.row();
+
+		TextButton template = addButton("Templates", buttonTable, skin);
+		template.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				world.getSystem(TemplateUISystem.class).show();
 			}
 		});
 
@@ -149,9 +168,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		table.add(button);
 		return button;
 	}
-
+	
 	private TextField addField(String name, Table table, Skin skin) {
-		Label label = new Label(name, skin);
+		return addField(new Label(name, skin), table, skin);
+	}
+	
+	private TextField addField(Label label, Table table, Skin skin) {
 		TextField field = new TextField("", skin);
 		addTextFieldListener(field);
 		table.add(label);
@@ -206,7 +228,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			@Override
 			public boolean keyDown(InputEvent event, int keycode) {
 				if (keycode == Input.Keys.ENTER) {
-					if (selectedPlanet != null) {
+					if (selectedPlanets != null) {
 						callback.run();
 					}
 					return true;
@@ -221,10 +243,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(mass, new Runnable() {
 			@Override
 			public void run() {
-				Mass m = mm.get(selectedPlanet);
 				float f = readFloatFromField(mass);
 				if (!Float.isNaN(f)) {
-					m.mass = f;
+					for (Entity e : selectedPlanets) {
+						Mass m = mm.get(e);
+						m.mass = f;
+					}
 				}
 			}
 		});
@@ -232,10 +256,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(velocity.x, new Runnable() {
 			@Override
 			public void run() {
-				Velocity v = vm.get(selectedPlanet);
 				float f = readFloatFromField(velocity.x);
 				if (!Float.isNaN(f)) {
-					v.vec.x = f;
+					for (Entity e : selectedPlanets) {
+						Velocity v = vm.get(e);
+						v.vec.x = f;
+					}
 				}
 			}
 		});
@@ -243,10 +269,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(velocity.y, new Runnable() {
 			@Override
 			public void run() {
-				Velocity v = vm.get(selectedPlanet);
 				float f = readFloatFromField(velocity.y);
 				if (!Float.isNaN(f)) {
-					v.vec.y = f;
+					for (Entity e : selectedPlanets) {
+						Velocity v = vm.get(e);
+						v.vec.y = f;
+					}
 				}
 			}
 		});
@@ -254,10 +282,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(position.x, new Runnable() {
 			@Override
 			public void run() {
-				Position p = pm.get(selectedPlanet);
 				float f = readFloatFromField(position.x);
 				if (!Float.isNaN(f)) {
-					p.vec.x = f;
+					for (Entity e : selectedPlanets) {
+						Position p = pm.get(e);
+						p.vec.x = f;
+					}
 				}
 			}
 		});
@@ -265,10 +295,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(position.y, new Runnable() {
 			@Override
 			public void run() {
-				Position p = pm.get(selectedPlanet);
 				float f = readFloatFromField(position.y);
 				if (!Float.isNaN(f)) {
-					p.vec.y = f;
+					for (Entity e : selectedPlanets) {
+						Position p = pm.get(e);
+						p.vec.y = f;
+					}
 				}
 			}
 		});
@@ -276,10 +308,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(radius, new Runnable() {
 			@Override
 			public void run() {
-				Size s = sm.get(selectedPlanet);
 				float f = readFloatFromField(radius);
 				if (!Float.isNaN(f)) {
-					s.radius = f;
+					for (Entity e : selectedPlanets) {
+						Size s = sm.get(e);
+						s.radius = f;
+					}
 				}
 			}
 		});
@@ -287,11 +321,14 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(color, new Runnable() {
 			@Override
 			public void run() {
-				Colour c = cm.get(selectedPlanet);
 				String s = readStringFromField(color);
 				if (s != null) {
 					try {
-						c.color = Color.valueOf(s);
+						Color co = Color.valueOf(s);
+						for (Entity e : selectedPlanets) {
+							Colour c = cm.get(e);
+							c.color = co;
+						}
 					} catch (RuntimeException ignore) {}
 				}
 			}
@@ -362,21 +399,21 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private void d() {
 		switch (debug) {
 			case 1:
-				table.debugTable();
+				window.debugTable();
 				break;
 			case 2:
-				table.debugCell();
+				window.debugCell();
 				break;
 			case 3:
-				table.debugWidget();
+				window.debugWidget();
 				break;
 			case 4:
-				table.debug();
+				window.debug();
 				break;
 			default:
-				table.debug(Debug.none);
+				window.debug(Debug.none);
 		}
-		table.invalidate();
+		window.invalidate();
 	}
 
 	@Override
@@ -461,24 +498,46 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		return false;
 	}
 
-	private void refreshUI() {
-		if (selectedPlanet != null) {
-			Mass m = mm.get(selectedPlanet);
-			Colour c = cm.get(selectedPlanet);
-			Position p = pm.get(selectedPlanet);
-			Size s = sm.get(selectedPlanet);
-			Velocity v = vm.get(selectedPlanet);
-			Acceleration a = am.get(selectedPlanet);
+	private float massSum() {
+		float sum = 0;
 
-			mass.setMessageText("" + m.mass);
-			radius.setMessageText("" + s.radius);
-			color.setMessageText("" + c.color.toString());
-			velocity.x.setMessageText("" + v.vec.x);
-			velocity.y.setMessageText("" + v.vec.y);
-			acceleration.x.setMessageText("" + a.vec.x);
-			acceleration.y.setMessageText("" + a.vec.y);
-			position.x.setMessageText("" + p.vec.x);
-			position.y.setMessageText("" + p.vec.y);
+		for (Entity e : selectedPlanets) {
+			sum += mm.get(e).mass;
+		}
+
+		return sum;
+	}
+
+	private void refreshUI() {
+		if (!selectedPlanets.isEmpty()) {
+			if (selectedPlanets.size() == 1) {
+				Colour c = cm.get(selectedPlanets.get(0));
+				color.setMessageText("" + c.color.toString());
+			}else{
+				color.setMessageText("");
+			}
+			
+			if (selectedPlanets.size() == 1) {
+				Size s = sm.get(selectedPlanets.get(0));
+				radius.setMessageText("" + s.radius);
+			} else if (selectedPlanets.size() == 2) {
+				radius.setMessageText("" + pm.get(selectedPlanets.get(0)).vec.dst(pm.get(selectedPlanets.get(1)).vec));
+			} else {
+				radius.setMessageText("");
+			}
+
+			float massSum = massSum();
+			Vector2 pos = Vector2Component.mean(pm, selectedPlanets);
+			Vector2 vel = Vector2Component.mean(vm, selectedPlanets);
+			Vector2 acc = Vector2Component.mean(am, selectedPlanets);
+
+			mass.setMessageText("" + massSum);
+			velocity.x.setMessageText("" + vel.x);
+			velocity.y.setMessageText("" + vel.y);
+			acceleration.x.setMessageText("" + acc.x);
+			acceleration.y.setMessageText("" + acc.y);
+			position.x.setMessageText("" + pos.x);
+			position.y.setMessageText("" + pos.y);
 		}
 	}
 
@@ -556,12 +615,24 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	}
 
 	@Override
-	public void planetSelectionChanged(Entity planet) {
-		selectedPlanet = planet;
+	public void planetSelectionChanged(Bag<Entity> planets) {
+		selectedPlanets = planets;
+		
+		if(selectedPlanets.size() <= 1){
+			massLabel.setText("Mass");
+			radiusLabel.setText("Radius");
+		}else{
+			massLabel.setText("Mass Sum");
+			if(selectedPlanets.size() == 2){
+				radiusLabel.setText("Distance");
+			}else{
+				radiusLabel.setText("Radius");
+			}
+		}
 
 		ui.unfocusAll();
 
-		if (planet != null) {
+		if (!planets.isEmpty()) {
 			refreshUI();
 		} else {
 			mass.setMessageText("");
@@ -575,5 +646,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			position.y.setMessageText("");
 		}
 
+	}
+	
+	public void resize(int width, int height) {
+		ui.setViewport(width, height, false);
 	}
 }

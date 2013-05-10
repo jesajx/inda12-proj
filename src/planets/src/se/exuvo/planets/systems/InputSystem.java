@@ -6,6 +6,7 @@ import java.util.List;
 import se.exuvo.planets.EntityFactory;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Vector2Component;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.settings.Settings;
 
@@ -14,12 +15,14 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
@@ -41,20 +44,27 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private float cameraMoveSpeed = 1000f;
 	private float zoomLevel = 1f, zoomSensitivity = Settings.getFloat("zoomSensitivity");
 
-	private Vector2 mouseVector;
-
 	/**
 	 * Used to hold the mouseposition where the user last placed a planet. It is used for when the user rightclick-drags the mouse, creating
 	 * a planet at the rightclick and giving it an velocity in the dragged-to direction.
 	 */
-	private Vector2 mouseStartVector;
+	private Vector2 mouseVector, mouseStartVector, mouseTrue, mouseTrueDiff, mouseTrueStart;
 
 	// Buffers due to gui has to be done in the correct thread.
-	private boolean createPlanet, releasePlanet, selectPlanet;
-	private Entity lastPlanet, selectedPlanet;
+	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet, moveWindow;
+	private Bag<Entity> selectedPlanets;
+	private long potentialMoveStart, potentialMoveTimeDelay = Settings.getInt("moveDelay");
+	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
+			.getFloat("pushForceMultiplier");
+
 	private ShapeRenderer render;
+	private SpriteBatch renderBatch;
+	private HudRenderSystem hudSys;
 
 	private boolean paused, wasPaused;
+
+	private static float cos90 = MathUtils.cosDeg(90), cos210 = MathUtils.cosDeg(210), cos330 = MathUtils.cosDeg(330);
+	private static float sin90 = MathUtils.sinDeg(90), sin210 = MathUtils.sinDeg(210), sin330 = MathUtils.sinDeg(330);
 
 	private List<PlanetSelectionChanged> listeners = new ArrayList<PlanetSelectionChanged>();
 	private UISystem uisystem;
@@ -64,18 +74,28 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		this.camera = camera;
 		mouseVector = new Vector2();
 		mouseStartVector = new Vector2();
+		mouseTrue = new Vector2();
+		mouseTrueDiff = new Vector2();
+		mouseTrueStart = new Vector2();
 		cameraVelocity = new Vector3();
 	}
 
-	
 	// TODO dragging selected planet
-	
-	
+
 	@Override
 	protected void initialize() {
 		render = new ShapeRenderer();
+		renderBatch = new SpriteBatch();
+
+		OrthographicCamera textCamera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		renderBatch.setProjectionMatrix(textCamera.combined);
+
+		hudSys = world.getSystem(HudRenderSystem.class);
 		uisystem = world.getSystem(UISystem.class);
-		if(zoomSensitivity <= 1){
+
+		selectedPlanets = new Bag<Entity>();
+
+		if (zoomSensitivity <= 1) {
 			System.out.println("Warning zoomSensitivity is too low to have any effect: " + zoomSensitivity);
 		}
 	}
@@ -83,6 +103,237 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void begin() {
 		render.setProjectionMatrix(camera.combined);
+	}
+
+	@Override
+	protected void processEntities(ImmutableBag<Entity> entities) {
+		// TODO separate the various operations into methods.
+		camera.position.add(cameraVelocity.cpy().mul(camera.zoom * Gdx.graphics.getDeltaTime()));
+		updateMouse();
+
+		if (createPlanet) {
+			Entity planet = EntityFactory.createPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
+					mouseVector.y), uisystem.getVelocity(), uisystem.getColor());
+			planet.addToWorld();
+//			selectedPlanets.add(planet);
+
+			createPlanet = false;
+		}
+
+		if (selectPlanet) {
+			Entity planet = null;
+
+			// compare each planets position to the mousePos to see if it was clicked.
+
+			float minDist = Float.MAX_VALUE;
+			Entity closestPlanet = null;
+
+			for (int i = 0; i < entities.size(); i++) {
+				Entity e = entities.get(i);
+				Position p = pm.get(e);
+				Size s = sm.get(e);
+
+				float distance = mouseVector.dst(p.vec) - s.radius;
+				if (distance < minDist) {
+					minDist = distance;
+					closestPlanet = e;
+				}
+			}
+
+			if (minDist < 10 * camera.zoom) {
+				planet = closestPlanet;
+			}
+
+			if (planet == null) {
+				if (!Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+					selectedPlanets.clear();
+					fireSelectionChangeEvent();
+				}
+			} else {
+				if (selectedPlanets.contains(planet)) {
+					// Allow for moving planets
+//					selectedPlanets.remove(planet);
+//					fireSelectionChangeEvent();
+				} else {
+					if (!Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+						selectedPlanets.clear();
+					}
+					selectedPlanets.add(planet);
+					fireSelectionChangeEvent();
+
+					if (follow) {
+						potentialMove = false;
+					}
+				}
+			}
+			selectPlanet = false;
+		}
+
+		if (!selectedPlanets.isEmpty()) {
+			render.begin(ShapeType.Triangle);
+			render.setColor(Color.CYAN);
+
+			for (Entity e : selectedPlanets) {
+				Position p = pm.get(e);
+				Size s = sm.get(e);
+
+				// draw a triangle around the planet (showing that it's selected)
+				float r = s.radius * 3f;
+				render.triangle(p.vec.x + r * cos90, p.vec.y + r * sin90, p.vec.x + r * cos210, p.vec.y + r * sin210, p.vec.x + r * cos330,
+								p.vec.y + r * sin330);
+			}
+
+			render.end();
+		}
+
+		if (potentialMove && !selectedPlanets.isEmpty()) {
+			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
+					|| System.currentTimeMillis() - potentialMoveStart > potentialMoveTimeDelay) {
+				movePlanet = true;
+				potentialMove = false;
+				checkPause();
+			}
+		}
+
+		if (movePlanet) {
+			Vector2 diff = mouseDiff();
+			render.begin(ShapeType.Circle);
+			render.setColor(Color.WHITE);
+
+			for (Entity e : selectedPlanets) {
+				Vector2 p = pm.get(e).vec.cpy().add(diff);
+				Size s = sm.get(e);
+				render.circle(p.x, p.y, s.radius);
+			}
+			render.end();
+
+			render.begin(ShapeType.Line);
+			render.line(mouseStartVector.x, mouseStartVector.y, mouseVector.x, mouseVector.y);
+			render.end();
+
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int) diff.x + ", " + (int) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+			hudSys.font.draw(	renderBatch, "[" + (int) mouseVector.x + ", " + (int) mouseVector.y + "]", hudSys.mouseX(),
+								hudSys.mouseY() + 20);
+			renderBatch.end();
+		}
+
+		if (pushPlanet) {
+			// from where the planet was created (old mousePos) to the current mousePos
+			float angle = MathUtils.atan2(mouseVector.x - mouseStartVector.x, mouseStartVector.y - mouseVector.y);
+
+			float size = 10 * camera.zoom;
+			float xr = size * MathUtils.cos(angle);
+			float yr = size * MathUtils.sin(angle);
+
+			// draw an arrow-like triangle from startMouse to current mousePos
+			render.begin(ShapeType.FilledTriangle);
+			render.setColor(Color.CYAN);
+			render.filledTriangle(	mouseStartVector.x + xr, mouseStartVector.y + yr, mouseStartVector.x - xr, mouseStartVector.y - yr,
+									mouseVector.x, mouseVector.y);
+			render.end();
+
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int) (mouseDiff().len() * pushForceMultiplier), hudSys.mouseX(), hudSys.mouseY() + 20);
+			renderBatch.end();
+		}
+
+		if (releasePlanet) {
+			Vector2 diff = mouseDiff();
+			if (pushPlanet) {
+				// give the planet a velocity. (with the angle and magnitude the user showed)
+				diff.mul(pushForceMultiplier);
+
+				for (Entity e : selectedPlanets) {
+					vm.get(e).vec.add(diff);
+				}
+
+				pushPlanet = false;
+				restorePause();
+			}
+
+			if (movePlanet) {
+				for (Entity e : selectedPlanets) {
+					pm.get(e).vec.add(diff);
+				}
+
+				movePlanet = false;
+				restorePause();
+			}
+
+			releasePlanet = false;
+		}
+
+		if (follow && !selectedPlanets.isEmpty()) {
+			Vector2 center = Vector2Component.mean(pm, selectedPlanets);
+			camera.position.set(center.x, center.y, 0);
+		}
+
+		if (nextPlanet) {
+			if (!entities.isEmpty()) {
+				Entity target = null;
+
+				if (selectedPlanets.isEmpty()) {
+					target = entities.get(0);
+				} else {
+					for (int i = 0; i < entities.size(); i++) {
+						if (selectedPlanets.get(0).getId() == entities.get(i).getId()) {
+							if (i + 1 == entities.size()) {
+								target = entities.get(0);
+							} else {
+								target = entities.get(i + 1);
+							}
+							break;
+						}
+					}
+				}
+
+				selectedPlanets.clear();
+				selectedPlanets.add(target);
+				fireSelectionChangeEvent();
+
+				Vector2 pos = pm.get(target).vec;
+				camera.position.set(pos.x, pos.y, 0);
+			}
+
+			nextPlanet = false;
+		}
+
+		if (moveWindow) {
+			updateTrueMouse();
+			Vector2 diff = mouseTrue.cpy().sub(mouseTrueStart).mul(camera.zoom);
+
+			renderBatch.begin();
+			hudSys.font.draw(renderBatch, "" + (int) diff.x + ", " + (int) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+
+			diff.add(mouseStartVector);
+
+			hudSys.font.draw(renderBatch, "[" + (int) diff.x + ", " + (int) diff.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
+			renderBatch.end();
+
+			render.begin(ShapeType.Line);
+			render.line(mouseStartVector.x, mouseStartVector.y, diff.x, diff.y);
+			render.end();
+
+			diff.set(mouseTrueDiff).mul(camera.zoom);
+			camera.position.add(diff.x, diff.y, 0);
+		}
+	}
+
+	@Override
+	protected void end() {}
+
+	private void checkPause() {
+		wasPaused = paused;
+		if (Settings.getBol("pauseWhenCreatingPlanets")) {
+			setPaused(true);
+		}
+	}
+
+	private void restorePause() {
+		if (!wasPaused) {
+			setPaused(false);
+		}
 	}
 
 	private void updateMouse() {
@@ -93,113 +344,23 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		mouseVector.set(mouseTmp.x, mouseTmp.y);
 	}
 
-	@Override
-	protected void processEntities(ImmutableBag<Entity> entities) {
-		// TODO separate the various operations into methods.
-	    camera.position.add(cameraVelocity.cpy().mul(camera.zoom*Gdx.graphics.getDeltaTime()));
-		updateMouse();
-
-		if (selectPlanet) {
-			selectedPlanet = null; // unselect any already selected planet. (the user might have clicked between planets)
-
-			// convert 3D mousePos to 2D
-			Vector2 mouse = new Vector2().set(mouseVector.x, mouseVector.y);
-
-			// TODO would it be better to let the planets themselves check if they were clicked? that might perhaps not be artemis-style
-// though.
-			// compare each planets position to the mousePos to see if it was clicked.
-			for (int i = 0; i < entities.size(); i++) {
-				Entity e = entities.get(i);
-				Position p = pm.get(e);
-				Size s = sm.get(e);
-				if (mouse.dst(p.vec) < s.radius * 2) {
-					selectedPlanet = e;
-					break;
-				}
-			}
-
-			fireSelectionChangeEvent();
-			selectPlanet = false;
-		}
-
-		if (selectedPlanet != null) {
-
-			// if the planet hasn't died or something.
-			if (selectedPlanet.isActive()) {
-				Position p = pm.get(selectedPlanet);
-				Size s = sm.get(selectedPlanet);
-
-				// draw a triangle around the planet (showing that it's selected)
-				render.begin(ShapeType.Triangle);
-				render.setColor(Color.CYAN);
-				float r = s.radius * 3f;
-				render.triangle(p.vec.x + r * MathUtils.cosDeg(90), p.vec.y + r * MathUtils.sinDeg(90),
-								p.vec.x + r * MathUtils.cosDeg(210), p.vec.y + r * MathUtils.sinDeg(210),
-								p.vec.x + r * MathUtils.cosDeg(330), p.vec.y + r * MathUtils.sinDeg(330));
-				render.end();
-			} else {
-				selectedPlanet = null;
-				fireSelectionChangeEvent();
-			}
-		}
-
-		if (createPlanet) {
-			mouseStartVector.set(mouseVector.x, mouseVector.y);
-			if (selectedPlanet != null) {
-				lastPlanet = selectedPlanet;
-			} else {
-				lastPlanet = EntityFactory.createHollowPlanet(world, uisystem.getRadius(), uisystem.getMass(), new Vector2(mouseVector.x,
-						mouseVector.y), uisystem.getColor());
-				lastPlanet.addToWorld();
-			}
-
-			wasPaused = paused;
-			if (Settings.getBol("pauseWhenCreatingPlanets")) {
-				setPaused(true);
-			}
-
-			createPlanet = false;
-		}
-
-		// if the user dragged the mouse in a direction after creating a planet.
-		if (lastPlanet != null) {
-
-			// from where the planet was created (old mousePos) to the current mousePos
-			float angle = MathUtils.atan2(mouseVector.x - mouseStartVector.x, mouseStartVector.y - mouseVector.y);
-
-			Size size = sm.get(lastPlanet);
-			float xr = size.radius * MathUtils.cos(angle);
-			float yr = size.radius * MathUtils.sin(angle);
-
-			// draw an arrow-like triangle from the planet to the current mousePos
-			render.begin(ShapeType.FilledTriangle);
-			render.setColor(Color.CYAN);
-			render.filledTriangle(	mouseStartVector.x + xr, mouseStartVector.y + yr, mouseStartVector.x - xr, mouseStartVector.y - yr,
-									mouseVector.x, mouseVector.y);
-			render.end();
-
-			if (releasePlanet) {
-				// give the planet a velocity. (with the angle and magnitude the user showed)
-				Vector2 push = new Vector2(mouseVector.x - mouseStartVector.x, mouseVector.y - mouseStartVector.y).div(10f);
-
-				if (selectedPlanet != null) {
-					vm.get(selectedPlanet).vec.add(push);
-				} else {
-					EntityFactory.fillPlanet(world, lastPlanet, uisystem.getVelocity().add(push));
-				}
-				lastPlanet = null;
-				releasePlanet = false;
-
-				if (!wasPaused) {
-					setPaused(false);
-				}
-			}
-		}
+	private void updateTrueMouse() {
+		int x = -Gdx.input.getX(), y = Gdx.input.getY();
+		mouseTrueDiff.set(x - mouseTrue.x, y - mouseTrue.y);
+		mouseTrue.set(x, y);
 	}
 
-	@Override
-	protected void end() {
+	private void mouseStart() {
+		mouseStartVector.set(mouseVector);
+	}
 
+	private void mouseStartTrue() {
+		mouseTrueStart.set(mouseTrue);
+		mouseTrueDiff.set(0, 0);
+	}
+
+	private Vector2 mouseDiff() {
+		return mouseVector.cpy().sub(mouseStartVector);
 	}
 
 	@Override
@@ -211,61 +372,69 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		return paused;
 	}
 
+	public boolean isFollow() {
+		return follow;
+	}
+
 	private void setPaused(boolean newValue) {
 		paused = newValue;
 	}
 
-	/**
-	 * 10x
-	 */
 	public boolean isSpeedup() {
 		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
 	}
-	
-	/**
-	 * 100x
-	 * @return
-	 */
+
 	public boolean isSSpeedup() {
 		return !isPaused() && Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.ALT_RIGHT);
 	}
-	
+
 	@Override
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.SPACE) {
 			setPaused(!paused);
 			return true;
 		} else if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {
-		    cameraVelocity.y += cameraMoveSpeed;
-		    return true;
+			cameraVelocity.y += cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.S || keycode == Input.Keys.DOWN) {
-		    cameraVelocity.y += -cameraMoveSpeed;
-		    return true;
+			cameraVelocity.y += -cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.D || keycode == Input.Keys.RIGHT) {
-		    cameraVelocity.x += cameraMoveSpeed;
-		    return true;
+			cameraVelocity.x += cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.A || keycode == Input.Keys.LEFT) {
-		    cameraVelocity.x += -cameraMoveSpeed;
-		    return true;
+			cameraVelocity.x += -cameraMoveSpeed;
+			return true;
+		} else if (keycode == Input.Keys.T) {
+			follow = !follow;
+			return true;
+		} else if (keycode == Input.Keys.N) {
+			nextPlanet = true;
+			return true;
+		} else if (keycode == Input.Keys.FORWARD_DEL) {
+			for (Entity e : selectedPlanets) {
+				e.deleteFromWorld();
+			}
+			return true;
 		}
-
+		
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-	    if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {
-		    cameraVelocity.y -= cameraMoveSpeed;
-		    return true;
+		if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {
+			cameraVelocity.y -= cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.S || keycode == Input.Keys.DOWN) {
-		    cameraVelocity.y -= -cameraMoveSpeed;
-		    return true;
+			cameraVelocity.y -= -cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.D || keycode == Input.Keys.RIGHT) {
-		    cameraVelocity.x -= cameraMoveSpeed;
-		    return true;
+			cameraVelocity.x -= cameraMoveSpeed;
+			return true;
 		} else if (keycode == Input.Keys.A || keycode == Input.Keys.LEFT) {
-		    cameraVelocity.x -= -cameraMoveSpeed;
-		    return true;
+			cameraVelocity.x -= -cameraMoveSpeed;
+			return true;
 		}
 		return false;
 	}
@@ -277,13 +446,25 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button) {
-		// TODO use something like a bitmap to handle many inputs? if map.contains(input) /*could be in map but mapped to false*/ then
-// map.put(input, true)
-		if (button == Input.Buttons.RIGHT) {
-			createPlanet = true;
-			return true;
-		} else if (button == Input.Buttons.LEFT) {
+		mouseStart();
+
+		if (button == Input.Buttons.LEFT) {
 			selectPlanet = true;
+			potentialMove = true;
+			potentialMoveStart = System.currentTimeMillis();
+			return true;
+		} else if (button == Input.Buttons.RIGHT) {
+			if (selectedPlanets.isEmpty()) {
+				createPlanet = true;
+			} else {
+				pushPlanet = true;
+				checkPause();
+			}
+			return true;
+		} else if (button == Input.Buttons.MIDDLE) {
+			moveWindow = true;
+			updateTrueMouse();
+			mouseStartTrue();
 			return true;
 		}
 		return false;
@@ -294,6 +475,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
 			return true;
+		} else if (button == Input.Buttons.LEFT) {
+			potentialMove = false;
+			releasePlanet = true;
+		} else if (button == Input.Buttons.MIDDLE) {
+			moveWindow = false;
 		}
 		return false;
 	}
@@ -312,15 +498,15 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (zoomLevel < 0) {
 			zoomLevel = 0;
 		}
-		
+
 		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
 //		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
-		
-//		camera.zoom += amount;
-		if (camera.zoom < 1) {
-			camera.zoom = 1;
+
+		if (camera.zoom > 2E17f) {
+			camera.zoom = 2E17f;
+			zoomLevel = (float) (Math.log(camera.zoom) / Math.log(zoomSensitivity));
 		}
-		
+
 		if (amount < 0) {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
 //			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
@@ -332,10 +518,21 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		return true;
 	}
 
+	public void clearSelection() {
+		selectedPlanets.clear();
+		fireSelectionChangeEvent();
+	}
+
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 		return false;
 	}
+
+	@Override
+	protected void removed(Entity e) {
+		selectedPlanets.remove(e);
+		fireSelectionChangeEvent();
+	};
 
 	public void addListener(PlanetSelectionChanged psc) {
 		listeners.add(psc);
@@ -343,11 +540,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 	private void fireSelectionChangeEvent() {
 		for (PlanetSelectionChanged psc : listeners) {
-			psc.planetSelectionChanged(selectedPlanet);
+			psc.planetSelectionChanged(selectedPlanets);
 		}
 	}
 
 	public static interface PlanetSelectionChanged {
-		public void planetSelectionChanged(Entity planet);
+		public void planetSelectionChanged(Bag<Entity> planets);
 	}
 }

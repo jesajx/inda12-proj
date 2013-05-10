@@ -1,6 +1,10 @@
 package se.exuvo.planets;
 
-import se.exuvo.planets.systems.AccelerationSystem;
+import se.exuvo.planets.components.Position;
+import se.exuvo.planets.systems.AudioSystem;
+import se.exuvo.planets.systems.PositionSystem;
+import se.exuvo.planets.systems.TemplateUISystem;
+import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
@@ -32,9 +36,11 @@ public class Planets extends Game implements Screen {
 
 	private InputSystem inputSystem;
 	private UISystem uiSystem;
-	private AccelerationSystem accSystem;
+	private VelocitySystem accSystem;
 	private GravitationSystem gravSystem;
 	private CollisionSystem collSystem;
+	private TemplateUISystem templateSystem;
+	private HudRenderSystem hudSystem;
 
 	/**
 	 * Initializes the game.
@@ -50,24 +56,35 @@ public class Planets extends Game implements Screen {
 
 		inputSystem = new InputSystem(camera);
 		uiSystem = new UISystem();
+		templateSystem = new TemplateUISystem();
 
 		InputMultiplexer multiplexer = new InputMultiplexer();
+		multiplexer.addProcessor(templateSystem);
 		multiplexer.addProcessor(uiSystem);
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
 
-		world.setSystem(accSystem = new AccelerationSystem());
 		world.setSystem(gravSystem = new GravitationSystem());
+		world.setSystem(accSystem = new VelocitySystem());
 		world.setSystem(collSystem = new CollisionSystem());
+//		world.setSystem(new PositionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
 		world.setSystem(new PrecognitionSystem(camera));
 		world.setSystem(uiSystem);
 		world.setSystem(inputSystem);
-		world.setSystem(new HudRenderSystem());
+		world.setSystem(hudSystem = new HudRenderSystem(camera));
+		world.setSystem(templateSystem);
+		world.setSystem(new AudioSystem(), true);
 
 		world.initialize();
-
+		
+//		float m = 1e16f;// 1e15f;
+//		float v = 10f;// 6.f;
+//		float r = 10 * 6 * 6 * 6;// v*v*v;
+//		EntityFactory.createPlanet(world, 50f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
+//		EntityFactory.createPlanet(world, 50f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
+//		
 		// F=G*m*M/d^2
 		// F=ma
 		// a = G*M/d^2
@@ -82,23 +99,10 @@ public class Planets extends Game implements Screen {
 		// v^2 = a*r^2
 		// v^2 = G*M
 
-		float m = 1e16f;// 1e15f;
-		float v = 10f;// 6.f;
-		float r = 10 * 6 * 6 * 6;// v*v*v;
-//		EntityFactory.createPlanet(world, 50f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
-//		EntityFactory.createPlanet(world, 50f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
-		int n = 50;
-		int i = 1000;
-		for (int x = 0; x < n; x++) {
-			for (int y = 0; y < n; y++) {
-				EntityFactory.createPlanet(world, i, 1e17f, new Vector2(10*i*0, 10*i*0), new Vector2((float) Math.random(),(float) Math.random()).mul(100f), Color.YELLOW).addToWorld();
-			}
-		}
-
 		// these radii causes the game to crash.
 //		// sun
-//		float sun_radius = 1.392684e9f/2/1e8f; // m
-//		float sun_mass = 1.9891e30f/1e30f; // kg
+		float sun_radius = 1.392684e9f/2; // m
+		float sun_mass = 1.9891e30f/1e30f; // kg
 //		EntityFactory.createPlanet(world, sun_radius, sun_mass, new Vector2(), new Vector2(), Color.YELLOW).addToWorld();
 //		
 //		// earth
@@ -107,7 +111,7 @@ public class Planets extends Game implements Screen {
 //		float earth_aphelion = 152098232e3f;// m // 1.496e8f
 //		float earth_avg_speed = 29.78e3f; // m/s
 //		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
-
+		
 		EntityFactory.createParticleEffect(world).addToWorld();
 	}
 
@@ -143,7 +147,14 @@ public class Planets extends Game implements Screen {
 	}
 
 	@Override
-	public void resize(int width, int height) {}
+	public void resize(int width, int height) {
+		if(camera != null){
+			camera.setToOrtho(false, width, height);
+			uiSystem.resize(width, height);
+			templateSystem.resize(width, height);
+			hudSystem.resize(width, height);
+		}
+	}
 
 	@Override
 	public void show() {}

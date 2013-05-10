@@ -202,16 +202,20 @@ public class GravQuadTree {
 	
 	private void update(List<Entity> moved, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		if (hasEntity()) {
-			Vector2 p = pm.get(entity).vec;
-			if (!contains(p)) {
-				moved.add(entity);
-				--size;
-				this.mass = 0f;
-				this.massVector.set(0f,0f);
-				entity = null;
+			if (entity.isActive()) {
+				Vector2 p = pm.get(entity).vec;
+				if (!contains(p)) {
+					moved.add(entity);
+					--size;
+					this.mass = 0f;
+					this.massVector.set(0f,0f);
+					entity = null;
+				} else {
+					mass = mm.get(entity).mass;
+					massVector.set(p).mul(mass);
+				}
 			} else {
-				mass = mm.get(entity).mass;
-				massVector.set(p).mul(mass);
+				throw new RuntimeException("det var det!");
 			}
 		} else if (hasChildren()){
 			bl.update(moved, mm, pm);

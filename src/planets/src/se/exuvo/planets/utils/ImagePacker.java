@@ -2,10 +2,9 @@ package se.exuvo.planets.utils;
 
 import java.io.File;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.tools.imagepacker.TexturePacker2;
-import com.badlogic.gdx.tools.imagepacker.TexturePacker2.Settings;;
+import com.badlogic.gdx.tools.imagepacker.TexturePacker2.Settings;
 
 public class ImagePacker {
 
