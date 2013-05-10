@@ -98,7 +98,6 @@ public class Planets extends Game implements Screen {
 		// v^2 = F*r^2/m
 		// v^2 = a*r^2
 		// v^2 = G*M
-
 		// these radii causes the game to crash.
 //		// sun
 		float sun_radius = 1.392684e9f/2; // m

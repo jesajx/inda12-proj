@@ -36,7 +36,8 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Mass> mm;
 	
         
-    public static float TREE_SIDE = 1e20f; // TODO
+	public static float MIN_SIDE = 1e1f;
+    public static double TREE_SIDE =Float.MAX_VALUE;// MIN_SIDE * Math.pow(2, ColQuadTree.maxDepth); // TODO
 	ColQuadTree tree = new ColQuadTree(new Vector2(), TREE_SIDE);
 	Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
 	
@@ -52,9 +53,13 @@ public class CollisionSystem extends IntervalEntitySystem {
     
     @Override
 	protected void initialize() {
+    	if (TREE_SIDE > Float.MAX_VALUE) {
+    		throw new ArithmeticException("Too big TREE_SIDE: " + TREE_SIDE);
+    	}
 		insys = world.getSystem(InputSystem.class);
 		ausys = world.getSystem(AudioSystem.class);
 	}
+    
     /**
      * Detects and handles collisions.
      */
@@ -68,12 +73,21 @@ public class CollisionSystem extends IntervalEntitySystem {
     	// http://gamedev.stackexchange.com/questions/39931/fast-accurate-2d-collision
     	// http://gamedev.stackexchange.com/questions/41941/faster-2d-collision-detection
     	
-    	
-		
         float timeLimit = 1f;
         List<Collision> cs = new ArrayList<Collision>();
-        tree.update(circles);
-		tree.getAllCollisions(cs, timeLimit, pm, sm, vm);
+        for (int i = 0; i < entities.size(); i++) {
+        	Entity e = entities.get(i);
+        	Vector2 p = pm.get(e).vec;
+        	float r = sm.get(e).radius;
+        	Vector2 v = pm.get(e).vec;
+        	
+        	Circle vc = new Circle(p, (float) (r+FastMath.sqrt(v.len2())));
+        	Circle old = circles.put(e, vc);
+        	
+        	tree.update(e, old, vc);
+        }
+//		System.out.println("colUpd: "+(System.nanoTime()-time)*1e-6+" ms");
+		tree.getAllCollisions(cs, timeLimit, pm, sm, vm); // TODO slow
 //		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
 		
         while (!cs.isEmpty()) {
@@ -93,9 +107,6 @@ public class CollisionSystem extends IntervalEntitySystem {
             		cs.remove(i);
             	} else {
             		col.t -= c.t;
-            		if (col.t < 0) {
-            			cs.remove(i);
-            		}
             	}
             }
             Vector2 p1 = pm.get(c.e1).vec;
@@ -108,7 +119,6 @@ public class CollisionSystem extends IntervalEntitySystem {
             
 			Circle vc1 = new Circle(p1, r1+v1.len());
 			Circle old1 = circles.put(c.e1, vc1);
-			
 			Circle vc2 = new Circle(p2, r2+v2.len());
 			Circle old2 = circles.put(c.e2, vc2);
 			
@@ -291,11 +301,13 @@ public class CollisionSystem extends IntervalEntitySystem {
 		Vector2 v = vm.get(e).vec;
 		Circle vc = new Circle(p, r+v.len());
 		tree.add(e, vc);
+		circles.put(e,  vc);
 	}
 
 	@Override
 	protected void removed(Entity e) {
 		tree.remove(e);
+		circles.remove(e);
 	}
 
 }

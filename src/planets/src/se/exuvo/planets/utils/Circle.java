@@ -13,4 +13,9 @@ public class Circle {
 		this.r = r;
 		this.b = new Bounds(p, r);
 	}
+	
+	@Override
+	public String toString() {
+		return "[" + p.toString() + " " + r + "]";
+	}
 }
