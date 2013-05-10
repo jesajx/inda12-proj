@@ -19,9 +19,8 @@ public class Circle {
 	float r;
 	
 	Entity entity;
+	List<Entity> subentities;
 	List<Circle> circles;
-	boolean overlaps;
-	boolean fits;
 	
 	public Circle(Vector2 pos, float r, Entity e) {
 		this.pos = pos;
@@ -30,12 +29,33 @@ public class Circle {
 	}
 	
 	public Circle(Circle a, Circle b) {
+        Vector2 p = b.pos.cpy().sub(a.pos);
+        this.r = a.r + p.len() + b.r;
+        this.pos = p.div(2).add(b.pos);
+
 		circles = new ArrayList<Circle>();
 		circles.add(a);
 		circles.add(b);
-		fits = true;
+
+        subentities = new ArrayList<Entity>();
+        if (a.entity != null) {
+            subentities.add(a.entity);
+        }
+        if (a.subentities != null) {
+            subentities.add(a.subentities);
+        }
+
+        if (b.entity != null) {
+            subentities.add(b.entity);
+        }
+        if (b.subentities != null) {
+            subentities.add(b.subentities);
+        }
 	}
 
+    /**
+     * Checks if this Circle completely encapsules c.
+     */
 	public boolean fits(Circle c) {
 		float k = r-c.r; // max dist from this.pos
 		return k > 0 && c.pos.cpy().sub(pos).len2() < k*k;
@@ -61,39 +81,86 @@ public class Circle {
 		return c.pos.cpy().sub(pos).len2() < k*k;
 	}
 	
-	private Circle add(Circle c) {
+    /** Assumes this.fits(c) */
+	private void add(Circle c) {
+        if (subentities == null) {
+            subentities = new ArrayList<Entity>();
+        }
+        if (c.entity != null) {
+            subentities.add(c.entity);
+        }
+        if (c.subentities != null) {
+            subentities.addAll(c.subentities);
+        }
+
 		if (circles == null) {
 			circles = new ArrayList<Circle>();
-			circles.add(c);
 		} else {
-			int overlapNo = 0;
 			for (int i = 0; i < circles.size(); i++) {
 				Circle k = circles.get(i);
-				// TODO
+                if (k.fits(c)) {
+                    k.add(c);
+                    return;
+                }
 			}
 		}
-		
-		return null;
+        circles.add(c);
 	}
 	
 	public static Circle resolve(Circle a, Circle b) { // TODO
-		if (a.overlaps(b)) {
-			int fit = a.getFit(b);
-			if (fit == -2) {
-				return a.add(b);
-			} else {
-				if (fit >= 0) {
-					return a.add(b);
-				} else {
-					return b.add(a);
-				}
-			}
-		} else {
-			return new Circle(a,b);
-		}
+        int fit = a.getFit(b);
+        if (fit == -2) {
+            return new Circle(a, b);
+        } else if (fit >= 0) {
+            a.add(b);
+            return a;
+        } else {
+            b.add(a);
+            return b;
+        }
 	}
 	
-	
+    public void getAllCollisions(List<Collision> cs) {
+        for (int i = 0; i < circles.size(); i++) {
+            Circle a = circles.get(i);
+            a.getAllCollisions(cs);
+            if (entity != null) {
+                if (a.entity != null) {
+                    getCollision(entity, a.entity, cs);
+                }
+                if (a.subentities != null) {
+                    getCollisions(e, a.subentities, cs);
+                }
+            }
+            for (int j = i+1; j < circles.size(); j++) {
+                Circle b = circles.get(j);
+                if (a.entity != null) {
+                    if (b.entity != null) {
+                        getCollision(a.entity, b.entity, cs);
+                    }
+                    if (b.subentities != null) {
+                        getCollision(a.entity, b.subentities, cs);
+                    }
+                }
+            }
+        }
+
+    }
+
+
+    public static void getCollision(Entity e, List<Entity> entities, List<Collision> cs) {
+        for (Entity e2 : entities) {
+            getCollision(e, e2, cs);
+        }
+    }
+
+    public static void getCollision(Entity e1, Entity e2, List<Collision> cs) {
+        float t = CollisionSystem.collisionTime(e1, e2);
+        if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+            Collsision c = new Collision(e1, e2, t);
+            cs.add(c);
+        }
+    }
 	
 	public static Circle make(Entity e, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
 		Vector2 p = pm.get(e).vec;
@@ -105,7 +172,7 @@ public class Circle {
 	
 	public static Circle make(ImmutableBag<Entity> entities, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
 		if (entities.size() == 0) {
-			return null; // TODO or new Circle(new Vector2(), 0f) ?
+			return new Circle(new Vector2(), 0f);
 		}
 		Circle res = make(entities.get(0), pm, sm, vm);
 		for (int i = 1; i < entities.size(); i++) {
