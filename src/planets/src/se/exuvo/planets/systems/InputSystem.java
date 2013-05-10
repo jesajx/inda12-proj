@@ -411,8 +411,13 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		} else if (keycode == Input.Keys.N) {
 			nextPlanet = true;
 			return true;
+		} else if (keycode == Input.Keys.FORWARD_DEL) {
+			for (Entity e : selectedPlanets) {
+				e.deleteFromWorld();
+			}
+			return true;
 		}
-
+		
 		return false;
 	}
 
