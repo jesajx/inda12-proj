@@ -70,11 +70,11 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Override
 	protected void inserted(Entity e) {
 		tree.add(e, mm, pm);
-	};
+	}
 
 	@Override
 	protected void removed(Entity e) {
 		tree.remove(e, mm, pm);
-	};
+	}
 
 }

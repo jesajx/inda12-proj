@@ -18,14 +18,4 @@ public class Bounds {
 		ymin = p.y - r;
 		ymax = p.y + r;
 	}
-	
-	public static Bounds velCircle(Entity e, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
-		Vector2 p = pm.get(e).vec;
-		float r = sm.get(e).radius;
-		Vector2 v = vm.get(e).vec;
-		
-		r += (float) FastMath.sqrt(v.len2());
-		
-		return new Bounds(p, r);
-	}
 }

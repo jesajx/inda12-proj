@@ -2,8 +2,9 @@ package se.exuvo.planets.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
@@ -11,219 +12,245 @@ import se.exuvo.planets.systems.CollisionSystem;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
-import com.artemis.utils.FastMath;
 import com.badlogic.gdx.math.Vector2;
 
-public class ColQuadTree { // TODO create baseclass to share with GravQuadTree
+/**
+ * Tree used to speed up collision detection.
+ * A QuadTree node is at any moment in one of three states:
+ * stores entities, stores subtree or stores neither.
+ */
+public class ColQuadTree {
 	
-	public static int maxDepth = 254;
+	public static int maxDepth = 40;
 	
-	Vector2 pos; // bottom left
-	float side; // length of sides in Cube
-	int depth;
+	private Vector2 center;
+	private float side; // length of sides in Cube
+	private int depth;
 
-	ColQuadTree bl, br, tl, tr; // {bottom,top}{left,right}
-	List<Entity> entities;
-	List<Entity> subentities; // TODO or recurse?
-	
+	private List<Entity> entities;
+
+    private ColQuadTree[] subs;
+    public static final int BL = 0, BR = 1, TL = 2, TR = 3; // {bottom,top}{left,right}
 	
 	/**
 	 * Creates a new QuadTree spanning the given cube.
-	 * 
 	 * @param pos
-	 *            bottomLeft corner of cube
+	 *            center of cube
 	 * @param side
 	 *            length of each side in cube
 	 */
 	public ColQuadTree(Vector2 pos, float side) {
-		this.pos = pos;
+		this.center = pos;
 		this.side = side;
 	}
 	
 	
-	
-	public void add(Entity e, Bounds b) {
-		int q = getIntQuadrant(e, b);
-//		System.out.println(e+".add: "+q);
-		if (q == 0 || depth >= maxDepth) {
-			if (entities == null) {
-				entities = new ArrayList<Entity>();
-			}
-			entities.add(e);
-		} else {
-			if (bl == null) {
-				addSubtrees();
-			}
-			getQuadrant(q).add(e, b);
-			if (subentities == null) {
-				subentities = new ArrayList<Entity>();
-			}
-			subentities.add(e);
-		}
-	}
-	
+	public void add(Entity e, Circle vc) {
+        if (depth >= maxDepth) {
+            if (entities == null) {
+                entities = new ArrayList<Entity>();
+            }
+            entities.add(e);
+        } else {
+            if (subs == null) {
+                addSubtrees();
+            }
+            boolean[] q = getQuadrants(e, vc);
+            for (int i = 0; i < 4; i++) {
+                if (q[i]) {
+                    subs[i].add(e, vc);
+                }
+            }
+        }
+    }
+
+    public int getQuadrant(Vector2 p) {
+        if (p.x < center.x) {
+            if (p.y < center.y) {
+                return BL;
+            } else {
+                return TL;
+            }
+        } else {
+            if (p.y < center.y) {
+                return BR;
+            } else {
+                return TR;
+            }
+        }
+    }
+    
+    public boolean[] getQuadrants(Entity e, Circle vc) {
+        boolean[] res = new boolean[4];
+        if (depth < maxDepth) {
+            if (center.cpy().sub(vc.p).len2() < vc.r*vc.r) {
+                res[BL] = res[BR] = res[TL] = res[TR] = true;
+            } else { // TODO find shorter way
+                int q = getQuadrant(vc.p);
+                
+                if (vc.b.xmin < center.x) {
+                    if (vc.b.ymin < center.y && q != TR) {
+                        res[BL] = true;
+                    }
+                    if (vc.b.ymax >= center.y && q != BR) {
+                        res[TL] = true;
+                    }
+                }
+                if (vc.b.xmax >= center.x) {
+                    if (vc.b.ymin < center.y && q != TL) {
+                        res[BR] = true;
+                    }
+                    if (vc.b.ymax >= center.y && q != BL) {
+                        res[TR] = true;
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
 	private void addSubtrees() {
-		float subside = side / 2;
-
-		bl = new ColQuadTree(pos.cpy(), subside);
-
-		br = new ColQuadTree(pos.cpy(), subside);
-		br.pos.x += subside;
-
-		tl = new ColQuadTree(pos.cpy(), subside);
-		tl.pos.y += subside;
-
-		tr = new ColQuadTree(pos.cpy(), subside);
-		tr.pos.x += subside;
-		tr.pos.y += subside;
+		subs = new ColQuadTree[4];
 		
-		bl.depth = br.depth = tl.depth = tr.depth = this.depth - 1;
+		float subside = side / 2;
+        Vector2 k = new Vector2(subside, subside);
+
+		subs[TR] = new ColQuadTree(k.cpy().add(center), subside);
+		subs[BL] = new ColQuadTree(k.cpy().mul(-1f).add(center), subside);
+
+        k.set(-subside, subside);
+
+		subs[TL] = new ColQuadTree(k.cpy().add(center), subside);
+		subs[BR] = new ColQuadTree(k.cpy().mul(-1f).add(center), subside);
+		
+        int nextDepth = depth + 1;
+        for (ColQuadTree t : subs) {
+            t.depth = nextDepth;
+        }
 	}
 	
-	public ColQuadTree getQuadrant(int q) {
-		switch (q) {
-		case 1: return bl;
-		case 2: return tl;
-		case 3: return br;
-		case 4: return tr;
-		default: return null;
-		}
+	public void remove(Entity e) {
+	    if (depth >= maxDepth) {
+        	if (entities != null) {
+	            entities.remove(e);
+        	}
+        } else if (subs != null) {
+		    for (int i = 0; i < 4; i++) {
+	    		subs[i].remove(e);
+		    }
+        }
 	}
-	
-	public ColQuadTree getQuadrant(Entity e, Bounds b) {
-		return getQuadrant(getIntQuadrant(e, b));
+	public boolean remove(Entity e, Circle vc) {
+        if (depth >= maxDepth) {
+        	if (entities == null) {
+        		return false;
+        	}
+            return entities.remove(e);
+        }
+        if (subs == null) {
+            return false; // because depth < maxDepth
+        }
+        boolean[] q = getQuadrants(e, vc);
+        boolean success = true;
+        for (int i = 0; i < 4; i++) {
+        	if (q[i]) {
+        		success = subs[i].remove(e, vc) && success;
+        	}
+        }
+        return success;
 	}
-	public int getIntQuadrant(Entity e, Bounds b) {
-//		System.out.println(e+" "+b.xmin+" "+b.xmax+" "+b.ymin+" "+b.ymax);
-		float subside = side/2;
-		float xmid = pos.x + subside;
-		float ymid = pos.y + subside;
-//		System.out.println(subside+" "+xmid+" "+ymid);
-		if ((b.xmin < xmid && xmid <= b.xmax) || (b.ymin < ymid && ymid <= b.ymax)) { // spans multiple quadrants
-			return 0;
-		}
-		if (b.xmin < xmid) { // ==> xmax < xmid
-			if (b.ymin < ymid) {
-				return 1; // bl
-			} else {
-				return 2; // tl
-			}
-		} else {
-			if (b.ymin < ymid) {
-				return 3; // br
-			} else {
-				return 4; // tr
-			}
-		}
-	}
-	
-	public boolean remove(Entity e, Bounds b) {
-		ColQuadTree q = getQuadrant(e, b);
-		if (q == null) {
-			return entities.remove(e);
-		} else {
-			return q.remove(e, b);
-		}
-	}
+
+    public void update(Entity e, Circle old, Circle vc) {
+        if (depth < maxDepth && subs != null) {
+		    boolean[] q = getQuadrants(e, old);
+	        boolean[] qn = getQuadrants(e, vc);
+	        for (int i = 0; i < 4; i++) {
+	            if (q[i]) {
+	                if (qn[i]) {
+	                    subs[i].update(e, old, vc);
+	                } else {
+	                    subs[i].remove(e, old);
+	                }
+	            } else if (qn[i]) {
+	                subs[i].add(e, vc);
+	            }
+	        }
+        }
+    }
+    
+    public void clear() {
+    	entities = null;
+    	subs = null;
+    }
+    
+    public void update(Map<Entity, Circle> circles) { // TODO make faster
+    	clear();
+    	for (Entry<Entity, Circle> entry : circles.entrySet()) {
+    		Entity e = entry.getKey();
+    		Circle vc = entry.getValue();
+    		add(e, vc);
+    	}
+    }
 	
 	/**
 	 * Walk tree to find collisions involving e.
 	 */
-	public void getCollisions(Entity e, Bounds b, List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm, ComponentMapper<Mass> mm) {
-		ColQuadTree q = getQuadrant(e, b);
-		if (q == null) {
-			Vector2 p1 = pm.get(e).vec;
-			float r1 = sm.get(e).radius;
-			Vector2 v1 = vm.get(e).vec;
-			for (int i = 0; i < entities.size(); i++) {
-				Entity e2 = entities.get(i);
-				if (e2 != e) {
-					Vector2 p2 = pm.get(e2).vec;
-					float r2 = sm.get(e2).radius;
-					Vector2 v2 = vm.get(e2).vec;
-					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-					if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
-						Collision c = new Collision(e, e2, t);
-//						if (!alreadyExists(c, cs))
-							cs.add(c);
-				    }
-				}
-			}
-			if (subentities != null) {
-				for (Entity e2 : subentities) { // sublevels
-					Vector2 p2 = pm.get(e2).vec;
-					float r2 = sm.get(e2).radius;
-					Vector2 v2 = vm.get(e2).vec;
-					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-					if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
-						Collision c = new Collision(e, e2, t);
-//						if (!alreadyExists(c, cs))
-							cs.add(c);
-				    }
-				}
-			}
-		} else {
-			q.getCollisions(e, b, cs, timeLimit, pm, sm, vm, mm);
-		}
-	}
-	
-	public boolean alreadyExists(Collision c, List<Collision> cs) {
-		for (Collision col : cs) {
-        	if (col.e1 == c.e1 || col.e1 == c.e2 || col.e2 == c.e1 || col.e2 == c.e2) {
-        		return true;
+	public void getCollisions(Entity e, Circle vc, List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
+        Vector2 p1 = pm.get(e).vec;
+        float r1 = sm.get(e).radius;
+        if (entities != null) {
+            Vector2 v1 = vm.get(e).vec;
+            for (Entity e2 : entities) {
+                if (e != e2) {
+                    Vector2 p2 = pm.get(e2).vec;
+                    float r2 = sm.get(e2).radius;
+                    Vector2 v2 = vm.get(e2).vec;
+                    float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+                        Collision c = new Collision(e, e2, t);
+                        cs.add(c);
+                    }
+                }
+            }
+        } else if (subs != null) {
+        	boolean[] q = getQuadrants(e, vc);
+        	for (int i = 0; i < 4; i++) {
+        		if (q[i]) {
+        			subs[i].getCollisions(e, vc, cs, timeLimit, pm, sm, vm);
+        		}
         	}
-		}
-		return false;
+        }
 	}
-	
+
 	/**
 	 * Walk tree to find collisions.
+     * The same collisions may be detected multiple times,
+     * but this is alright because of the way
+     * se.exuvo.planets.systems.CollisionSystem works.
 	 */
-	public void getCollisions(List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm, ComponentMapper<Mass> mm) {
-		if (entities == null && subentities == null) {
-			return;
-		}
-		if (entities != null) {
-			for (int i = 0; i < entities.size(); i++) {
-				Entity e1 = entities.get(i);
-				Vector2 p1 = pm.get(e1).vec;
-				float r1 = sm.get(e1).radius;
-				Vector2 v1 = vm.get(e1).vec;
-				
-				
-				for (int j = i+1; j < entities.size(); j++) { // same level
-					Entity e2 = entities.get(j);
-					Vector2 p2 = pm.get(e2).vec;
-					float r2 = sm.get(e2).radius;
-					Vector2 v2 = vm.get(e2).vec;
-					float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-					if (!Float.isNaN(t) && t >= -1 && t < timeLimit) {
-						Collision c = new Collision(e1, e2, t);
-//						if (!alreadyExists(c, cs))
-							cs.add(c);
-				    }
-				}
-				if (subentities != null) {
-					for (Entity e2 : subentities) { // sublevels
-						Vector2 p2 = pm.get(e2).vec;
-						float r2 = sm.get(e2).radius;
-						Vector2 v2 = vm.get(e2).vec;
-						float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-						if (!Float.isNaN(t) && t >= -1 && t < timeLimit) {
-						Collision c = new Collision(e1, e2, t);
-//							if (!alreadyExists(c, cs))
-								cs.add(c);
-					    }
-					}
-				}
-			}
-		}
-		
-		if (bl != null) {
-			bl.getCollisions(cs, timeLimit, pm, sm, vm, mm);
-			br.getCollisions(cs, timeLimit, pm, sm, vm, mm);
-			tl.getCollisions(cs, timeLimit, pm, sm, vm, mm);
-			tr.getCollisions(cs, timeLimit, pm, sm, vm, mm);
+	public void getAllCollisions(List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
+        if (entities != null) {
+            for (int i = 0; i < entities.size(); i++) {
+                Entity e1 = entities.get(i);
+                Vector2 p1 = pm.get(e1).vec;
+                Vector2 v1 = vm.get(e1).vec;
+                float r1 = sm.get(e1).radius;
+                for (int j = i+1; j < entities.size(); j++) {
+                    Entity e2 = entities.get(j);
+                    Vector2 p2 = pm.get(e2).vec;
+                    Vector2 v2 = vm.get(e2).vec;
+                    float r2 = sm.get(e2).radius;
+                    float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+                        Collision c = new Collision(e1, e2, t);
+                        cs.add(c);
+                    }
+                }
+            }
+        } else if (subs != null) {
+        	for (ColQuadTree t : subs) {
+				t.getAllCollisions(cs, timeLimit, pm, sm, vm);
+        	}
 		}
 	}
 }

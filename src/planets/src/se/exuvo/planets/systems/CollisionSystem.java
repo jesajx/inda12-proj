@@ -11,7 +11,7 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Size;
 import se.exuvo.planets.components.Velocity;
-import se.exuvo.planets.utils.Bounds;
+import se.exuvo.planets.utils.Circle;
 import se.exuvo.planets.utils.ColQuadTree;
 import se.exuvo.planets.utils.Collision;
 import se.exuvo.settings.Settings;
@@ -34,6 +34,11 @@ public class CollisionSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Size> sm;
 	@Mapper ComponentMapper<Velocity> vm;
 	@Mapper ComponentMapper<Mass> mm;
+	
+        
+    public static float TREE_SIDE = 1e20f; // TODO
+	ColQuadTree tree = new ColQuadTree(new Vector2(), TREE_SIDE);
+	Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
 	
 	
 	/** Used to check if the game is paused. */
@@ -66,21 +71,11 @@ public class CollisionSystem extends IntervalEntitySystem {
     	
 		
         float timeLimit = 1f;
-        List<Collision> cs = new ArrayList<Collision>(); // TODO use faster, sorted collection.
-//        getCollisions(entities, cs, timeLimit); // TODO BOTTLE-NECK.
-        
-        float side = 1e20f;
-		ColQuadTree tree = new ColQuadTree(new Vector2(-side / 2, -side / 2), side);// TODO increase size of the universe.
-		Map<Entity, Bounds> bs = new HashMap<Entity,Bounds>();
-		for (int i = 0; i < entities.size(); i++) {
-			Entity e = entities.get(i);
-			Bounds b = Bounds.velCircle(e, pm, sm, vm);
-			bs.put(e, b);
-			tree.add(e, b);
-		}
-		tree.getCollisions(cs, timeLimit, pm, sm, vm, mm);
+        List<Collision> cs = new ArrayList<Collision>();
+        tree.update(circles);
+		tree.getAllCollisions(cs, timeLimit, pm, sm, vm);
 //		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
-        
+		
         while (!cs.isEmpty()) {
         	long timeH = System.nanoTime();
         	
@@ -103,17 +98,25 @@ public class CollisionSystem extends IntervalEntitySystem {
             		}
             	}
             }
-            Bounds b1 = Bounds.velCircle(c.e1, pm, sm, vm);
-            Bounds b2 = Bounds.velCircle(c.e2, pm, sm, vm);
+            Vector2 p1 = pm.get(c.e1).vec;
+            float r1 = sm.get(c.e1).radius;
+            Vector2 v1 = vm.get(c.e1).vec;
+			
+            Vector2 p2 = pm.get(c.e2).vec;
+            float r2 = sm.get(c.e2).radius;
+            Vector2 v2 = vm.get(c.e2).vec;
             
-            tree.remove(c.e1, bs.put(c.e1, b1));
-            tree.remove(c.e2, bs.put(c.e2, b1));
-            tree.add(c.e1, b1);
-            tree.add(c.e2, b2);
+			Circle vc1 = new Circle(p1, r1+v1.len());
+			Circle old1 = circles.put(c.e1, vc1);
+			
+			Circle vc2 = new Circle(p2, r2+v2.len());
+			Circle old2 = circles.put(c.e2, vc2);
+			
+            tree.update(c.e1, old1, vc1);
+            tree.update(c.e2, old2, vc2);
             
-            tree.getCollisions(c.e1, b1, cs, timeLimit, pm, sm, vm, mm);
-            tree.getCollisions(c.e2, b2, cs, timeLimit, pm, sm, vm, mm);
-//            getCollisions(entities, c.e1, c.e2, cs, timeLimit);
+            tree.getCollisions(c.e1, vc1, cs, timeLimit, pm, sm, vm);
+            tree.getCollisions(c.e2, vc2, cs, timeLimit, pm, sm, vm);
             timeH = System.nanoTime() - timeH;
 //	    	System.out.println("colHandl: "+timeH*1e-6+" ms");
         }
@@ -135,7 +138,7 @@ public class CollisionSystem extends IntervalEntitySystem {
         }
     }
     
-    /** compare only e1 and e2 to all other elements. */
+    /** Compare e1 and e2 to all other elements. */
     private void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, float timeLimit) { // O(n)
     	long time = System.nanoTime();
 		Vector2 p1 = pm.get(e1).vec;
@@ -159,7 +162,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 			    }
 			}
 			if (e2 != e3) {
-			    float t2 = collisionTime(p1, r1, v1, p3, r3, v3);
+			    float t2 = collisionTime(p2, r2, v2, p3, r3, v3);
 			    if (!Float.isNaN(t2) && t2 >= 0 && t2 < timeLimit) {
 			        cs.add(new Collision(e2, e3, t2));
 			    }
@@ -170,15 +173,15 @@ public class CollisionSystem extends IntervalEntitySystem {
     }
     
     
-    private void getCollisions(ImmutableBag<Entity> entities, List<Collision> cs, float timeLimit) { // O(n^2) // TODO EXTREMLY SLOW. NEEDS OPTIMIZATION.
+    private void getAllCollisions(ImmutableBag<Entity> entities, List<Collision> cs, float timeLimit) { // O(n^2) // TODO EXTREMLY SLOW. NEEDS OPTIMIZATION.
     	long time = System.nanoTime();
-		for (int i = 0; i < entities.size(); ++i) { // TODO recheck all? int j=0 instead?
+		for (int i = 0; i < entities.size(); ++i) {
 	    	Entity e1 = entities.get(i);
 			Vector2 p1 = pm.get(e1).vec;
 			float r1 = sm.get(e1).radius;
 			Vector2 v1 = vm.get(e1).vec;
 			
-			for (int j = i+1; j < entities.size(); ++j) { // TODO recheck all? int j=0 instead?
+			for (int j = i+1; j < entities.size(); ++j) {
 				Entity e2 = entities.get(j);
 				Vector2 p2 = pm.get(e2).vec;
 				float r2 = sm.get(e2).radius;
@@ -280,4 +283,19 @@ public class CollisionSystem extends IntervalEntitySystem {
 	protected boolean checkProcessing() {
 		return !insys.isPaused() && super.checkProcessing();
 	}
+	
+	@Override
+	protected void inserted(Entity e) {
+		Vector2 p = pm.get(e).vec;
+		float r = sm.get(e).radius;
+		Vector2 v = vm.get(e).vec;
+		Circle vc = new Circle(p, r+v.len());
+		tree.add(e, vc);
+	}
+
+	@Override
+	protected void removed(Entity e) {
+		tree.remove(e);
+	}
+
 }
