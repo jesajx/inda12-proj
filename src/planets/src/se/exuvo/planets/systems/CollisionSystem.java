@@ -74,7 +74,7 @@ public class CollisionSystem extends IntervalEntitySystem {
     	// http://gamedev.stackexchange.com/questions/39931/fast-accurate-2d-collision
     	// http://gamedev.stackexchange.com/questions/41941/faster-2d-collision-detection
     	
-        double timeLimit = 1f;
+        double timeLimit = world.getDelta();
         
     	if (collisions) {
 	        List<Collision> cs = new ArrayList<Collision>();
