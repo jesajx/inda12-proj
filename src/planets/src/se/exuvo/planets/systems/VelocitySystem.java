@@ -44,7 +44,7 @@ public class VelocitySystem extends EntityProcessingSystem { // TODO rename to V
 		Acceleration a = am.get(e);
 
 		// apply acceleration to velocity
-		v.vec.add(a.vec.mul(world.getDelta())); // v+=a
+		v.vec.add(a.vec.cpy().mul(world.getDelta())); // v+=a
 	}
 
 	/**

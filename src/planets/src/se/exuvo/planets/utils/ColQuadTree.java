@@ -208,6 +208,20 @@ public class ColQuadTree {
         		VectorD2 p1 = pm.get(e).vec;
 		        double r1 = rm.get(e).radius;
 	            VectorD2 v1 = vm.get(e).vec;
+	            
+	            for (Entity e2 : entities) {
+                    VectorD2 p2 = pm.get(e2).vec;
+                    double r2 = rm.get(e2).radius;
+                    VectorD2 v2 = vm.get(e2).vec;
+                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
+                        Collision c = new Collision(e, e2, t);
+                        if (!cs.contains(c)) {
+	                        cs.add(c);
+                        }
+                    }
+	            }
+	            
 	            for (Entity e2 : subentities) {
                     VectorD2 p2 = pm.get(e2).vec;
                     double r2 = rm.get(e2).radius;
@@ -237,8 +251,22 @@ public class ColQuadTree {
                 VectorD2 p1 = pm.get(e1).vec;
                 VectorD2 v1 = vm.get(e1).vec;
                 double r1 = sm.get(e1).radius;
+                
                 for (int j = i+1; j < entities.size(); j++) {
                     Entity e2 = entities.get(j);
+                    VectorD2 p2 = pm.get(e2).vec;
+                    VectorD2 v2 = vm.get(e2).vec;
+                    double r2 = sm.get(e2).radius;
+                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
+                        Collision c = new Collision(e1, e2, t);
+                        if (!cs.contains(c)) {
+	                        cs.add(c);
+                        }
+                    }
+                }
+                
+                for (Entity e2 : subentities) {
                     VectorD2 p2 = pm.get(e2).vec;
                     VectorD2 v2 = vm.get(e2).vec;
                     double r2 = sm.get(e2).radius;
@@ -248,6 +276,7 @@ public class ColQuadTree {
                         cs.add(c);
                     }
                 }
+                
             }
         } else if (subs != null) {
         	for (ColQuadTree t : subs) {
