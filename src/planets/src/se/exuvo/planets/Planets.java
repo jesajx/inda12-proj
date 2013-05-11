@@ -47,7 +47,8 @@ public class Planets extends Game implements Screen {
 	private TemplateUISystem templateSystem;
 	private HudRenderSystem hudSystem;
 	private HelpSystem helpSystem;
-	public float physicsStep = Settings.getFloat("PhysicsStep");
+	public float physicsInterval = Settings.getFloat("PhysicsStep"), accumulator;
+	private final int physicsSkip = 10;
 
 	/**
 	 * Initializes the game.
@@ -74,8 +75,8 @@ public class Planets extends Game implements Screen {
 		Gdx.input.setInputProcessor(multiplexer);
 
 		world.setSystem(gravSystem = new GravitationSystem(), true);
-		world.setSystem(accSystem = new VelocitySystem());
-		world.setSystem(collSystem = new CollisionSystem());
+		world.setSystem(accSystem = new VelocitySystem(), true);
+		world.setSystem(collSystem = new CollisionSystem(), true);
 //		world.setSystem(new PositionSystem());
 		world.setSystem(new PlanetRenderSystem(camera));
 		world.setSystem(new ParticleSystem(camera));
@@ -110,40 +111,43 @@ public class Planets extends Game implements Screen {
 	 * The main part of the game loop. Processes all systems and renders the screen.
 	 */
 	@Override
-	public void render(float deltaTotal) {
+	public void render(float delta) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
-		log.trace("Updating:" + deltaTotal);
-
-		for (float deltaSum = 0; deltaSum < deltaTotal;) {
-			float delta = Math.min(deltaTotal - deltaSum, physicsStep * 3);// Max update jump is 3 ticks
-			deltaSum += delta;
-			world.setDelta(delta);
-
-			if (inputSystem.isSpeedup()) {
-				if (inputSystem.isSSpeedup()) {
-					speed(200);
-				} else {
-					speed(10);
-				}
-			} else if (inputSystem.isSSpeedup()) {
-				speed(50);
+		if (inputSystem.isSpeedup()) {
+			if (inputSystem.isSSpeedup()) {
+				speed(200, delta);
 			} else {
-				speed(1);
+				speed(10, delta);
 			}
-
+		} else if (inputSystem.isSSpeedup()) {
+			speed(50, delta);
+		} else {
+			speed(1, delta);
 		}
 
 		camera.update();
-		world.setDelta(deltaTotal);
+		world.setDelta(delta);
 		world.process();
 	}
 
-	private void speed(int multiplier) {
-		for (int i = 1; i < multiplier; i++) {
-			gravSystem.process(); // update acc
-			accSystem.process(); // update vel
-			collSystem.process(); // update pos
+	private void speed(int multiplier, float delta) {
+		accumulator += delta * multiplier;
+		if (accumulator >= physicsInterval) {
+			int stepsBehind = (int) (accumulator / physicsInterval);
+
+			int step = Math.min(stepsBehind, physicsSkip);
+			world.setDelta(physicsInterval * step * 10);
+
+			System.out.println(stepsBehind + " " + step);
+
+//			for (int i = 0; i < multiplier; i++) {
+			gravSystem.process();
+			accSystem.process();
+			collSystem.process();
+//			}
+
+			accumulator -= step * physicsInterval;
 		}
 	}
 

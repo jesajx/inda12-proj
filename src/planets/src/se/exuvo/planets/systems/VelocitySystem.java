@@ -8,12 +8,13 @@ import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
+import com.artemis.systems.EntityProcessingSystem;
 import com.artemis.systems.IntervalEntityProcessingSystem;
 
 /**
  * System responsible for updating the {@link Velocity} of planets (usually), using their {@link Acceleration}.
  */
-public class VelocitySystem extends IntervalEntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it
+public class VelocitySystem extends EntityProcessingSystem { // TODO rename to VelocitySystem? since it is the velocities it
 // changes.
 	/** Mapper for Entities with the Velocity-aspect. */
 	@Mapper ComponentMapper<Velocity> vm;
@@ -26,7 +27,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem { // TODO ren
 	 * Creates a new AccelerationSystem.
 	 */
 	public VelocitySystem() {
-		super(Aspect.getAspectForAll(Velocity.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
+		super(Aspect.getAspectForAll(Velocity.class, Acceleration.class));
 	}
 
 	@Override
@@ -43,7 +44,7 @@ public class VelocitySystem extends IntervalEntityProcessingSystem { // TODO ren
 		Acceleration a = am.get(e);
 
 		// apply acceleration to velocity
-		v.vec.add(a.vec); // v+=a
+		v.vec.add(a.vec.mul(world.getDelta())); // v+=a
 	}
 
 	/**

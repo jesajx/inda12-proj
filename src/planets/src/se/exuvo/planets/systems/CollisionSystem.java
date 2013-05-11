@@ -15,20 +15,19 @@ import se.exuvo.planets.utils.Circle;
 import se.exuvo.planets.utils.ColQuadTree;
 import se.exuvo.planets.utils.Collision;
 import se.exuvo.planets.utils.VectorD2;
-import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
+import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
-import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.FastMath;
 import com.artemis.utils.ImmutableBag;
 
 /**
  * System responsible for checking for and handling collisions between planets.
  */
-public class CollisionSystem extends IntervalEntitySystem {
+public class CollisionSystem extends EntitySystem {
 
 	@Mapper ComponentMapper<Position> pm;
 	@Mapper ComponentMapper<Radius> rm;
@@ -49,7 +48,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 	
 	
     public CollisionSystem() {
-        super(Aspect.getAspectForAll(Position.class, Radius.class, Velocity.class, Mass.class, Acceleration.class), Settings.getFloat("PhysicsStep"));
+        super(Aspect.getAspectForAll(Position.class, Radius.class, Velocity.class, Mass.class, Acceleration.class));
     }
     
     @Override
@@ -300,7 +299,7 @@ public class CollisionSystem extends IntervalEntitySystem {
 	 */
 	@Override
 	protected boolean checkProcessing() {
-		return !insys.isPaused() && super.checkProcessing();
+		return !insys.isPaused();
 	}
 	
 	@Override

@@ -5,14 +5,12 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.utils.GravQuadTree;
 import se.exuvo.planets.utils.VectorD2;
-import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
-import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.ImmutableBag;
 
 /**

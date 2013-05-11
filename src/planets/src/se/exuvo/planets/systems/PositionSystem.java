@@ -2,18 +2,17 @@ package se.exuvo.planets.systems;
 
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Velocity;
-import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
-import com.artemis.systems.IntervalEntityProcessingSystem;
+import com.artemis.systems.EntityProcessingSystem;
 
 /**
  * System responsible for "moving" planets (usually) - updating their positions using their velocities.
  */
-public class PositionSystem extends IntervalEntityProcessingSystem {
+public class PositionSystem extends EntityProcessingSystem {
 
 	/** Mapper for entities with the Velocity-Aspect. */
 	@Mapper ComponentMapper<Velocity> vm;
@@ -24,7 +23,7 @@ public class PositionSystem extends IntervalEntityProcessingSystem {
 	private InputSystem insys;
 
 	public PositionSystem() {
-		super(Aspect.getAspectForAll(Velocity.class, Position.class), Settings.getFloat("PhysicsStep"));
+		super(Aspect.getAspectForAll(Velocity.class, Position.class));
 	}
 
 	@Override
@@ -40,7 +39,7 @@ public class PositionSystem extends IntervalEntityProcessingSystem {
 		Position p = pm.get(e);
 		Velocity v = vm.get(e);
 
-		p.vec.add(v.vec);
+		p.vec.add(v.vec.mul(world.getDelta()));
 	}
 
 	/**

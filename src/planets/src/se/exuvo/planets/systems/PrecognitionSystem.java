@@ -156,6 +156,12 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		// Add new entities
 		for (int i = 0; i < inserted.size(); i++) {
 			Entity e = inserted.get(i);
+			if(!e.isActive()){
+				throw new RuntimeException("wut?");
+			}
+			if(!e.isEnabled()){
+				throw new RuntimeException("wut2?");
+			}
 
 			Position p = pm.get(e);
 			Mass m = mm.get(e);
