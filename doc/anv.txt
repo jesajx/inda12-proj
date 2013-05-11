@@ -8,12 +8,10 @@ enheter vid fält
 
 pausa effekter
 
-
 set-dra velocity och add-dra velocity
 
-
-
 multi-select
+
 
 exuvo anteckningar:
 * = löst
@@ -30,4 +28,3 @@ tooltips
 *goto knapp eller lista med planeter så man hittar tillbaka
 *flytta kameran med vänster musknapp
 *följ planet funktion
-
