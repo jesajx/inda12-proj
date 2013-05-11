@@ -1,5 +1,7 @@
 package se.exuvo.planets;
 
+import org.apache.log4j.Logger;
+
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.systems.AudioSystem;
 import se.exuvo.planets.systems.HelpSystem;
@@ -14,6 +16,7 @@ import se.exuvo.planets.systems.ParticleSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
 import se.exuvo.planets.systems.PrecognitionSystem;
 import se.exuvo.planets.systems.UISystem;
+import se.exuvo.settings.Settings;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
@@ -32,6 +35,7 @@ import com.badlogic.gdx.math.Vector2;
  * The game and main application screen. This class holds the contents of the gameloop.
  */
 public class Planets extends Game implements Screen {
+	protected static final Logger log = Logger.getLogger(Planets.class);
 	private World world;
 	private OrthographicCamera camera;
 
@@ -43,6 +47,7 @@ public class Planets extends Game implements Screen {
 	private TemplateUISystem templateSystem;
 	private HudRenderSystem hudSystem;
 	private HelpSystem helpSystem;
+	public float physicsStep = Settings.getFloat("PhysicsStep");
 
 	/**
 	 * Initializes the game.
@@ -68,7 +73,7 @@ public class Planets extends Game implements Screen {
 		multiplexer.addProcessor(inputSystem);
 		Gdx.input.setInputProcessor(multiplexer);
 
-		world.setSystem(gravSystem = new GravitationSystem());
+		world.setSystem(gravSystem = new GravitationSystem(), true);
 		world.setSystem(accSystem = new VelocitySystem());
 		world.setSystem(collSystem = new CollisionSystem());
 //		world.setSystem(new PositionSystem());
@@ -97,7 +102,7 @@ public class Planets extends Game implements Screen {
 		// v^2 = F*r^2/m
 		// v^2 = a*r^2
 		// v^2 = G*M
-		
+
 		EntityFactory.createParticleEffect(world).addToWorld();
 	}
 
@@ -105,22 +110,32 @@ public class Planets extends Game implements Screen {
 	 * The main part of the game loop. Processes all systems and renders the screen.
 	 */
 	@Override
-	public void render(float delta) {
+	public void render(float deltaTotal) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
-		camera.update();
-		world.setDelta(delta);
+		log.trace("Updating:" + deltaTotal);
 
-		if (inputSystem.isSpeedup()) {
-			if (inputSystem.isSSpeedup()) {
-				speed(200);
+		for (float deltaSum = 0; deltaSum < deltaTotal;) {
+			float delta = Math.min(deltaTotal - deltaSum, physicsStep * 3);// Max update jump is 3 ticks
+			deltaSum += delta;
+			world.setDelta(delta);
+
+			if (inputSystem.isSpeedup()) {
+				if (inputSystem.isSSpeedup()) {
+					speed(200);
+				} else {
+					speed(10);
+				}
+			} else if (inputSystem.isSSpeedup()) {
+				speed(50);
 			} else {
-				speed(10);
+				speed(1);
 			}
-		} else if (inputSystem.isSSpeedup()) {
-			speed(50);
+
 		}
 
+		camera.update();
+		world.setDelta(deltaTotal);
 		world.process();
 	}
 

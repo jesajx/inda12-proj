@@ -150,7 +150,7 @@ public class GravQuadTree {
 	
 	
 	
-	public void updateAcceleration(Entity e, float theta, float G, ComponentMapper<Mass> mm, ComponentMapper<Position> pm, ComponentMapper<Acceleration> am) {
+	public void updateAcceleration(Entity e, float theta, float G, ComponentMapper<Mass> mm, ComponentMapper<Position> pm, ComponentMapper<Acceleration> am, float delta) {
 		if (isEmpty()) { // TODO also check if M is to small?
 			return;
 		}
@@ -181,10 +181,10 @@ public class GravQuadTree {
 				accVec.add(diff.mul(k));
 			}
 		} else {
-			bl.updateAcceleration(e, theta, G, mm, pm, am);
-			br.updateAcceleration(e, theta, G, mm, pm, am);
-			tl.updateAcceleration(e, theta, G, mm, pm, am);
-			tr.updateAcceleration(e, theta, G, mm, pm, am);
+			bl.updateAcceleration(e, theta, G, mm, pm, am, delta);
+			br.updateAcceleration(e, theta, G, mm, pm, am, delta);
+			tl.updateAcceleration(e, theta, G, mm, pm, am, delta);
+			tr.updateAcceleration(e, theta, G, mm, pm, am, delta);
 		}
 	}
 	

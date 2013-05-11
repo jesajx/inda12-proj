@@ -10,6 +10,7 @@ import se.exuvo.settings.Settings;
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
+import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.ImmutableBag;
@@ -17,7 +18,7 @@ import com.artemis.utils.ImmutableBag;
 /**
  * System responsible for updating the acceleration of planets, by calculating gravity between planets.
  */
-public class GravitationSystem extends IntervalEntitySystem {
+public class GravitationSystem extends EntitySystem {
 
 	// TODO move to separate Constants-class?
 	/**
@@ -39,7 +40,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Mapper ComponentMapper<Position> pm;
 
 	public GravitationSystem() {
-		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class), Settings.getFloat("PhysicsStep"));
+		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class));
 	}
 
 	@Override
@@ -60,7 +61,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 			Entity e = entities.get(i);
 			VectorD2 a = am.get(e).vec;
 			a.set(0f, 0f);
-			tree.updateAcceleration(entities.get(i), theta, G, mm, pm, am);
+			tree.updateAcceleration(entities.get(i), theta, G, mm, pm, am, world.getDelta());
 		}
 
 		time = System.nanoTime() - time;
@@ -75,6 +76,11 @@ public class GravitationSystem extends IntervalEntitySystem {
 	@Override
 	protected void removed(Entity e) {
 		tree.remove(e, mm, pm);
+	}
+
+	@Override
+	protected boolean checkProcessing() {
+		return true;
 	}
 
 }
