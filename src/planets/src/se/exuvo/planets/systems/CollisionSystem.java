@@ -255,8 +255,8 @@ public class CollisionSystem extends IntervalEntitySystem {
         VectorD2 p = p1.cpy().sub(p2);
 	    
         // normal and tangent
-        VectorD2 un = p.cpy().mul(FastMath.inverseSqrt(p.len2())); // normalize
-        VectorD2 ut = new VectorD2(-un.y, un.x);
+        VectorD2 un = p.cpy().nor();
+        VectorD2 ut = un.cpy().rotCC();
         
         // project on normal and tangent
         double n1 = un.dot(v1);
