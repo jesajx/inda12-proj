@@ -12,6 +12,7 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.planets.systems.InputSystem.PlanetSelectionChanged;
+import se.exuvo.planets.utils.VectorD2;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -48,7 +49,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 	// must be multiple of 2 for drawing to work correctly
 	private static int forwardComputationSteps = Settings.getInt("PrecognitionSteps");
-	private Vector2[][] futureSteps = new Vector2[Settings.getInt("PrecognitionMaxVisualPlanets")][forwardComputationSteps];
+	private VectorD2[][] futureSteps = new VectorD2[Settings.getInt("PrecognitionMaxVisualPlanets")][forwardComputationSteps];
 	private Bag<Entity> selectedPlanets, selectedFutures;
 
 	private World futureWorld;
@@ -89,7 +90,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 		for (int i = 0; i < futureSteps.length; i++) {
 			for (int j = 0; j < futureSteps[i].length; j++) {
-				futureSteps[i][j] = new Vector2();
+				futureSteps[i][j] = new VectorD2();
 			}
 		}
 
@@ -117,8 +118,8 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 			for (int i = 0; i < futureSteps.length && i < selectedFutures.size(); i++) {
 				for (int j = 0; j < futureSteps[i].length; j += 2) {
 					// TODO avoid possible concurrent read write
-					Vector2 p1 = futureSteps[i][j];
-					Vector2 p2 = futureSteps[i][j + 1];
+					Vector2 p1 = futureSteps[i][j].toVector2();
+					Vector2 p2 = futureSteps[i][j + 1].toVector2();
 
 					render.line(p1.x, p1.y, p2.x, p2.y); // draw between dots
 				}

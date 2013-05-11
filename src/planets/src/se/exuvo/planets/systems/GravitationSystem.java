@@ -4,6 +4,7 @@ import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.utils.GravQuadTree;
+import se.exuvo.planets.utils.VectorD2;
 import se.exuvo.settings.Settings;
 
 import com.artemis.Aspect;
@@ -12,7 +13,6 @@ import com.artemis.Entity;
 import com.artemis.annotations.Mapper;
 import com.artemis.systems.IntervalEntitySystem;
 import com.artemis.utils.ImmutableBag;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * System responsible for updating the acceleration of planets, by calculating gravity between planets.
@@ -27,7 +27,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 	private float G = 6.6726e-11f;
 	private float theta = 0.7f;
 	public float side = 1e20f; // TODO globalize
-	public GravQuadTree tree = new GravQuadTree(new Vector2(-side / 2, -side / 2), side);// TODO increase size of the universe.
+	public GravQuadTree tree = new GravQuadTree(new VectorD2(-side / 2, -side / 2), side);// TODO increase size of the universe.
 
 	/** Gives the system access to components with the Mass-Aspect. */
 	@Mapper ComponentMapper<Mass> mm;
@@ -58,7 +58,7 @@ public class GravitationSystem extends IntervalEntitySystem {
 
 		for (int i = 0; i < entities.size(); i++) { // update accelerations
 			Entity e = entities.get(i);
-			Vector2 a = am.get(e).vec;
+			VectorD2 a = am.get(e).vec;
 			a.set(0f, 0f);
 			tree.updateAcceleration(entities.get(i), theta, G, mm, pm, am);
 		}

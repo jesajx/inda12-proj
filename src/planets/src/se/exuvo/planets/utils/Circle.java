@@ -1,14 +1,13 @@
 package se.exuvo.planets.utils;
 
-import com.badlogic.gdx.math.Vector2;
 
 public class Circle {
 	
-	public Vector2 p;
-	public float r;
+	public VectorD2 p;
+	public double r;
 	public Bounds b;
 	
-	public Circle(Vector2 p, float r) {
+	public Circle(VectorD2 p, double r) {
 		this.p = p;
 		this.r = r;
 		this.b = new Bounds(p, r);

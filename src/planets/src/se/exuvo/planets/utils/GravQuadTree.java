@@ -10,7 +10,6 @@ import se.exuvo.planets.components.Position;
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.utils.FastMath;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * Tree data-structure used to speed up the GravitationSystem.
@@ -28,11 +27,11 @@ public class GravQuadTree {
 	// We could store these in a com.badlogic.gdx.math.Rectangle, but it would store
 	// 'side' twofold: width and height. Since we don't need that many methods from that class it
 	// was just as easy to implement what was needed directly instead.
-	Vector2 pos; // bottom left
-	float side; // length of sides in Cube
+	VectorD2 pos; // bottom left
+	double side; // length of sides in Cube
 
-	float mass; // total
-	Vector2 massVector; // the sum of each (planet*planet.mass). Divide with this.mass to get center.
+	double mass; // total
+	VectorD2 massVector; // the sum of each (planet*planet.mass). Divide with this.mass to get center.
 
 	GravQuadTree bl, br, tl, tr; // {bottom,top}{left,right}
 	Entity entity; // TODO necessary to store entity? if we only update using updateMassCenter it would be unncessary.
@@ -50,7 +49,7 @@ public class GravQuadTree {
 	 * @param side
 	 *            length of each side in cube
 	 */
-	public GravQuadTree(Vector2 pos, float side) {
+	public GravQuadTree(VectorD2 pos, double side) {
 		this.pos = pos;
 		this.side = side;
 		massVector = pos.cpy();
@@ -79,8 +78,8 @@ public class GravQuadTree {
 				this.entity = null;
 			}
 			quadrantOf(entity, mm, pm).add(entity, mm, pm);
-			float m = mm.get(entity).mass;
-			Vector2 p = pm.get(entity).vec;
+			double m = mm.get(entity).mass;
+			VectorD2 p = pm.get(entity).vec;
 			this.massVector.add(p.cpy().mul(m));
 			this.mass += m;
 			++size;
@@ -89,7 +88,7 @@ public class GravQuadTree {
 	}
 	
 	private void addSubtrees() {
-		float subside = side / 2;
+		double subside = side / 2;
 
 		bl = new GravQuadTree(pos.cpy(), subside);
 
@@ -118,8 +117,8 @@ public class GravQuadTree {
 			}
 		} else if (hasChildren()) {
 			GravQuadTree sub = quadrantOf(entity, mm, pm);
-			float oldMass = sub.mass;
-			Vector2 oldVector = sub.massVector.cpy();
+			double oldMass = sub.mass;
+			VectorD2 oldVector = sub.massVector.cpy();
 			
 			if (sub.remove(entity, mm, pm)) {
 				--size;
@@ -155,9 +154,9 @@ public class GravQuadTree {
 		if (isEmpty()) { // TODO also check if M is to small?
 			return;
 		}
-		float M = this.mass;
-		Vector2 p = pm.get(e).vec;
-		Vector2 diff;
+		double M = this.mass;
+		VectorD2 p = pm.get(e).vec;
+		VectorD2 diff;
 		
 //		if (contains(p)) { // TODO this is only necessary if theta>=1
 //			float m = mm.get(e).mass;
@@ -165,7 +164,7 @@ public class GravQuadTree {
 //		} else 
 			diff = this.massVector.cpy().div(M).sub(p);
 		
-		float d2 = diff.len2();
+		double d2 = diff.len2();
 		
 		// s/d < theta
 		if (this.entity != null || side*side < theta*theta*d2) { // TODO weight with mass.
@@ -175,10 +174,10 @@ public class GravQuadTree {
 			// F = G*m*M/d^2
 			// F = m*a
 			// a = G*M/d^2
-			float a = G*M/d2;
-			float k = (float) (a * FastMath.inverseSqrt(d2)); // normalize diff
-			if (!Float.isNaN(k)) {
-				Vector2 accVec = am.get(e).vec;
+			double a = G*M/d2;
+			double k = (float) (a * FastMath.inverseSqrt(d2)); // normalize diff
+			if (!Double.isNaN(k)) {
+				VectorD2 accVec = am.get(e).vec;
 				accVec.add(diff.mul(k));
 			}
 		} else {
@@ -203,7 +202,7 @@ public class GravQuadTree {
 	private void update(List<Entity> moved, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
 		if (hasEntity()) {
 			if (entity.isActive()) {
-				Vector2 p = pm.get(entity).vec;
+				VectorD2 p = pm.get(entity).vec;
 				if (!contains(p)) {
 					moved.add(entity);
 					--size;
@@ -236,7 +235,7 @@ public class GravQuadTree {
 	
 	
 	
-	public boolean contains(Vector2 pos) {
+	public boolean contains(VectorD2 pos) {
 		return pos.x >= this.pos.x && pos.x < this.pos.x + side
 				&& pos.y >= this.pos.y && pos.y < this.pos.y + side;
 	}
@@ -259,8 +258,8 @@ public class GravQuadTree {
 	
 	
 	private GravQuadTree quadrantOf(Entity e, ComponentMapper<Mass> mm, ComponentMapper<Position> pm) {
-		float subside = side/2;
-		Vector2 p = pm.get(e).vec;
+		double subside = side/2;
+		VectorD2 p = pm.get(e).vec;
 		if (p.x < pos.x + subside) {
 			if (p.y < pos.y + subside) {
 				return bl;

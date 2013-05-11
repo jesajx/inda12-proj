@@ -4,10 +4,11 @@ import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
-import se.exuvo.planets.components.Size;
-import se.exuvo.planets.components.Vector2Component;
+import se.exuvo.planets.components.Radius;
+import se.exuvo.planets.components.VectorD2Component;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.planets.systems.InputSystem.PlanetSelectionChanged;
+import se.exuvo.planets.utils.VectorD2;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
@@ -19,7 +20,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -35,10 +35,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
 import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 
-/**
- */
 public class UISystem extends VoidEntitySystem implements InputProcessor, PlanetSelectionChanged {
-	@Mapper ComponentMapper<Size> sm;
+	@Mapper ComponentMapper<Radius> rm;
 	@Mapper ComponentMapper<Position> pm;
 	@Mapper ComponentMapper<Colour> cm;
 	@Mapper ComponentMapper<Acceleration> am;
@@ -243,8 +241,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(mass, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(mass);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(mass);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
 						Mass m = mm.get(e);
 						m.mass = f;
@@ -256,8 +254,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(velocity.x, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(velocity.x);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(velocity.x);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
 						Velocity v = vm.get(e);
 						v.vec.x = f;
@@ -269,8 +267,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(velocity.y, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(velocity.y);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(velocity.y);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
 						Velocity v = vm.get(e);
 						v.vec.y = f;
@@ -282,8 +280,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(position.x, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(position.x);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(position.x);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
 						Position p = pm.get(e);
 						p.vec.x = f;
@@ -295,8 +293,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(position.y, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(position.y);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(position.y);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
 						Position p = pm.get(e);
 						p.vec.y = f;
@@ -308,10 +306,10 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		addTextFieldEnterListener(radius, new Runnable() {
 			@Override
 			public void run() {
-				float f = readFloatFromField(radius);
-				if (!Float.isNaN(f)) {
+				double f = readDoubleFromField(radius);
+				if (!Double.isNaN(f)) {
 					for (Entity e : selectedPlanets) {
-						Size s = sm.get(e);
+						Radius s = rm.get(e);
 						s.radius = f;
 					}
 				}
@@ -335,14 +333,14 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		});
 	}
 
-	private void addTextFieldFloatValidator(final TextField f) {
+	private void addTextFieldDoubleValidator(final TextField f) {
 		f.addListener(new InputListener() {
 			@Override
 			public boolean keyTyped(InputEvent event, char character) {
 				String s = readStringFromField(f);
 				try {
 					if (s != null) {
-						Float.parseFloat(s);
+						Double.parseDouble(s);
 					}
 					f.setColor(Color.WHITE);
 				} catch (RuntimeException e) {
@@ -372,12 +370,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	}
 
 	private void addFieldChangeListeners() {
-		addTextFieldFloatValidator(mass);
-		addTextFieldFloatValidator(radius);
-		addTextFieldFloatValidator(velocity.x);
-		addTextFieldFloatValidator(velocity.y);
-		addTextFieldFloatValidator(position.x);
-		addTextFieldFloatValidator(position.y);
+		addTextFieldDoubleValidator(mass);
+		addTextFieldDoubleValidator(radius);
+		addTextFieldDoubleValidator(velocity.x);
+		addTextFieldDoubleValidator(velocity.y);
+		addTextFieldDoubleValidator(position.x);
+		addTextFieldDoubleValidator(position.y);
 		addTextFieldColorValidator(color);
 	}
 
@@ -498,8 +496,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		return false;
 	}
 
-	private float massSum() {
-		float sum = 0;
+	private double massSum() {
+		double sum = 0;
 
 		for (Entity e : selectedPlanets) {
 			sum += mm.get(e).mass;
@@ -518,7 +516,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			}
 			
 			if (selectedPlanets.size() == 1) {
-				Size s = sm.get(selectedPlanets.get(0));
+				Radius s = rm.get(selectedPlanets.get(0));
 				radius.setMessageText("" + s.radius);
 			} else if (selectedPlanets.size() == 2) {
 				radius.setMessageText("" + pm.get(selectedPlanets.get(0)).vec.dst(pm.get(selectedPlanets.get(1)).vec));
@@ -526,10 +524,10 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				radius.setMessageText("");
 			}
 
-			float massSum = massSum();
-			Vector2 pos = Vector2Component.mean(pm, selectedPlanets);
-			Vector2 vel = Vector2Component.mean(vm, selectedPlanets);
-			Vector2 acc = Vector2Component.mean(am, selectedPlanets);
+			double massSum = massSum();
+			VectorD2 pos = VectorD2Component.mean(pm, selectedPlanets);
+			VectorD2 vel = VectorD2Component.mean(vm, selectedPlanets);
+			VectorD2 acc = VectorD2Component.mean(am, selectedPlanets);
 
 			mass.setMessageText("" + massSum);
 			velocity.x.setMessageText("" + vel.x);
@@ -551,34 +549,34 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		}
 	}
 
-	private float readFloatFromField(TextField tf) {
+	private double readDoubleFromField(TextField tf) {
 		String s = readStringFromField(tf);
 		if (s != null) {
 			try {
-				return Float.parseFloat(s);
+				return Double.parseDouble(s);
 			} catch (RuntimeException e) {
-				return Float.NaN;
+				return Double.NaN;
 			}
 		} else {
-			return Float.NaN;
+			return Double.NaN;
 		}
 	}
 
-	private float readFloatFromField(TextField tf, float min, float max) {
-		float f = readFloatFromField(tf);
-		if (Float.isNaN(f)) {
-			f = MathUtils.random(min, max);
+	private double readDoubleFromField(TextField tf, double min, double max) {
+		double f = readDoubleFromField(tf);
+		if (Double.isNaN(f)) {
+			f = MathUtils.random((float)min, (float)max);
 		}
 		return f;
 	}
 
-	public float getRadius() {
-		float f = readFloatFromField(radius, 4f, 15f);
+	public double getRadius() {
+		double f = readDoubleFromField(radius, 4f, 15f);
 		return f;
 	}
 
-	public float getMass() {
-		return readFloatFromField(mass, 1E8f, 1E12f);
+	public double getMass() {
+		return readDoubleFromField(mass, 1E8f, 1E12f);
 	}
 
 	public Color getColor() {
@@ -594,12 +592,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		}
 	}
 
-	public Vector2 getVelocity() {
-		return new Vector2(readFloatFromField(velocity.x, 0f, 0f), readFloatFromField(velocity.y, 0f, 0f));
+	public VectorD2 getVelocity() {
+		return new VectorD2(readDoubleFromField(velocity.x, 0f, 0f), readDoubleFromField(velocity.y, 0f, 0f));
 	}
 
-	public Vector2 getAcceleration() {
-		return new Vector2(readFloatFromField(acceleration.x, 0f, 0f), readFloatFromField(acceleration.y, 0f, 0f));
+	public VectorD2 getAcceleration() {
+		return new VectorD2(readDoubleFromField(acceleration.x, 0f, 0f), readDoubleFromField(acceleration.y, 0f, 0f));
 	}
 
 	private void clearUI() {

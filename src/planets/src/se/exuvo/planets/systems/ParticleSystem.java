@@ -12,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 
 public class ParticleSystem extends EntityProcessingSystem {
 	@Mapper	ComponentMapper<Particle> pam;
@@ -38,9 +39,9 @@ public class ParticleSystem extends EntityProcessingSystem {
 	
 	@Override
 	protected void process(Entity e) {
-		Position p = pm.get(e);
+		Vector2 p = pm.get(e).vec.toVector2();
 		ParticleEffect effect = pam.get(e).effect;
-		effect.setPosition(p.vec.x, p.vec.y);
+		effect.setPosition(p.x, p.y);
 		effect.draw(spriteBatch, Gdx.graphics.getDeltaTime());
 		if(effect.isComplete()){
 			e.deleteFromWorld();

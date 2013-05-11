@@ -2,7 +2,7 @@ package se.exuvo.planets.systems;
 
 import se.exuvo.planets.components.Colour;
 import se.exuvo.planets.components.Position;
-import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Radius;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
@@ -12,6 +12,7 @@ import com.artemis.systems.EntityProcessingSystem;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector2;
 
 /**
  * EntittySystem responsible for drawing planets on the screen.
@@ -21,7 +22,7 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 	/** Mapper for entities with the Position-aspect. */
 	@Mapper ComponentMapper<Position> pm;
 	/** Mapper for entities with the Size-aspect. */
-	@Mapper ComponentMapper<Size> sm;
+	@Mapper ComponentMapper<Radius> rm;
 	/** Mapper for entities with the Colour-aspect. */
 	@Mapper ComponentMapper<Colour> cm;
 
@@ -32,7 +33,7 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 	private ShapeRenderer render;
 
 	public PlanetRenderSystem(OrthographicCamera camera) {
-		super(Aspect.getAspectForAll(Position.class, Size.class));
+		super(Aspect.getAspectForAll(Position.class, Radius.class));
 		this.camera = camera;
 	}
 
@@ -55,8 +56,8 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 		// for each planet...
 
 		// get relevant planet-components
-		Position p = pm.get(e);
-		Size s = sm.get(e);
+		Vector2 p = pm.get(e).vec.toVector2();
+		double r = rm.get(e).radius;
 		Colour c = cm.getSafe(e);
 
 		if (c != null) {
@@ -64,10 +65,10 @@ public class PlanetRenderSystem extends EntityProcessingSystem {
 		}
 		// ...draw the planet.
 
-		if (s.radius / camera.zoom < 0.5) {// Ensure planet is at least 1 pixel on screen
-			render.filledCircle(p.vec.x, p.vec.y, camera.zoom, 3);
+		if (r / camera.zoom < 0.5) {// Ensure planet is at least 1 pixel on screen
+			render.filledCircle(p.x, p.y, camera.zoom, 3);
 		} else {
-			render.filledCircle(p.vec.x, p.vec.y, s.radius, (int) ((6 * (float) Math.cbrt(s.radius / camera.zoom))));
+			render.filledCircle(p.x, p.y, (float) r, (int) ((6 * (float) Math.cbrt(r / camera.zoom))));
 		}
 	}
 

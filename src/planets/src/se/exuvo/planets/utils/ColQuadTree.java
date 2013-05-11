@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import se.exuvo.planets.components.Position;
-import se.exuvo.planets.components.Size;
+import se.exuvo.planets.components.Radius;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.planets.systems.CollisionSystem;
 
 import com.artemis.ComponentMapper;
 import com.artemis.Entity;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * Tree used to speed up collision detection.
@@ -21,7 +20,7 @@ public class ColQuadTree {
 	
 	public static int maxDepth = 240;
 	
-	private Vector2 center;
+	private VectorD2 center;
 	private double side;
 	private int depth;
 
@@ -39,7 +38,7 @@ public class ColQuadTree {
 	 * @param side
 	 *            length of each side in cube
 	 */
-	public ColQuadTree(Vector2 pos, double side) {
+	public ColQuadTree(VectorD2 pos, double side) {
 		this.center = pos;
 		this.side = side;
 	}
@@ -133,7 +132,7 @@ public class ColQuadTree {
 
     
     
-    public int getQuadrant(Vector2 p) {
+    public int getQuadrant(VectorD2 p) {
         if (p.x < center.x) {
             if (p.y < center.y) {
                 return BL;
@@ -170,12 +169,12 @@ public class ColQuadTree {
     
     
 	private void addSubtree(int tree) {
-		float s = (float) (side / 2);
+		double s = side / 2;
 		switch (tree) {
-		case BL: subs[BL] = new ColQuadTree(new Vector2(-s, -s).add(center), s); break;
-		case BR: subs[BR] = new ColQuadTree(new Vector2(s, -s).add(center), s); break;
-		case TL: subs[TL] = new ColQuadTree(new Vector2(-s, s).add(center), s); break;
-		case TR: subs[TR] = new ColQuadTree(new Vector2(s, s).add(center), s); break;
+		case BL: subs[BL] = new ColQuadTree(new VectorD2(-s, -s).add(center), s); break;
+		case BR: subs[BR] = new ColQuadTree(new VectorD2(s, -s).add(center), s); break;
+		case TL: subs[TL] = new ColQuadTree(new VectorD2(-s, s).add(center), s); break;
+		case TR: subs[TR] = new ColQuadTree(new VectorD2(s, s).add(center), s); break;
 		default: throw new RuntimeException();
 		}
 		subs[tree].depth = depth + 1;
@@ -186,26 +185,26 @@ public class ColQuadTree {
 	/**
 	 * Walk tree to find collisions involving e.
 	 */
-	public void getCollisions(Entity e, Circle vc, List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
+	public void getCollisions(Entity e, Circle vc, List<Collision> cs, double timeLimit, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm) {
         if (subs != null) {
 	    	int q = getQuadrant(e, vc);
         	if (q == -1) {
-        		Vector2 p1 = pm.get(e).vec;
-		        float r1 = sm.get(e).radius;
-	            Vector2 v1 = vm.get(e).vec;
+        		VectorD2 p1 = pm.get(e).vec;
+		        double r1 = rm.get(e).radius;
+	            VectorD2 v1 = vm.get(e).vec;
 	            for (Entity e2 : subentities) {
-                    Vector2 p2 = pm.get(e2).vec;
-                    float r2 = sm.get(e2).radius;
-                    Vector2 v2 = vm.get(e2).vec;
-                    float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-                    if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+                    VectorD2 p2 = pm.get(e2).vec;
+                    double r2 = rm.get(e2).radius;
+                    VectorD2 v2 = vm.get(e2).vec;
+                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
                         Collision c = new Collision(e, e2, t);
                         cs.add(c);
                     }
 	            }
         	} else {
         		if (subs[q] != null) {
-        			subs[q].getCollisions(e, vc, cs, timeLimit, pm, sm, vm);
+        			subs[q].getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
         		}
         	}
         }
@@ -215,20 +214,20 @@ public class ColQuadTree {
 	/**
 	 * Walk tree to find collisions.
 	 */
-	public void getAllCollisions(List<Collision> cs, float timeLimit, ComponentMapper<Position> pm, ComponentMapper<Size> sm, ComponentMapper<Velocity> vm) {
+	public void getAllCollisions(List<Collision> cs, double timeLimit, ComponentMapper<Position> pm, ComponentMapper<Radius> sm, ComponentMapper<Velocity> vm) {
         if (entities != null) {
             for (int i = 0; i < entities.size(); i++) {
                 Entity e1 = entities.get(i);
-                Vector2 p1 = pm.get(e1).vec;
-                Vector2 v1 = vm.get(e1).vec;
-                float r1 = sm.get(e1).radius;
+                VectorD2 p1 = pm.get(e1).vec;
+                VectorD2 v1 = vm.get(e1).vec;
+                double r1 = sm.get(e1).radius;
                 for (int j = i+1; j < entities.size(); j++) {
                     Entity e2 = entities.get(j);
-                    Vector2 p2 = pm.get(e2).vec;
-                    Vector2 v2 = vm.get(e2).vec;
-                    float r2 = sm.get(e2).radius;
-                    float t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-                    if (!Float.isNaN(t) && t >= 0 && t < timeLimit) {
+                    VectorD2 p2 = pm.get(e2).vec;
+                    VectorD2 v2 = vm.get(e2).vec;
+                    double r2 = sm.get(e2).radius;
+                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
                         Collision c = new Collision(e1, e2, t);
                         cs.add(c);
                     }
