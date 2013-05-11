@@ -112,7 +112,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		acceleration.y.setDisabled(true);
 
 		Table buttonTable = new Table(skin);
-		window.add(buttonTable).expandX().fillX().row();
+		window.add(buttonTable).expandX().fillX().spaceTop(10);
 
 		TextButton remove = addButton("Delete planet", buttonTable, skin);
 		remove.addListener(new ChangeListener() {
