@@ -258,8 +258,14 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			public void run() {
 				double f = readDoubleFromField(velocity.x);
 				if (!Double.isNaN(f)) {
-					for (Entity e : selectedPlanets) {
-						Velocity v = vm.get(e);
+					if (selectedPlanets.size() > 1) {
+						VectorD2 mean = VectorD2Component.mean(vm, selectedPlanets);
+						for (Entity e : selectedPlanets) {
+							VectorD2 v = vm.get(e).vec;
+							v.add(-mean.x + f, 0f);
+						}
+					} else if (selectedPlanets.size() == 1){
+						Velocity v = vm.get(selectedPlanets.get(0));
 						v.vec.x = f;
 					}
 				}
@@ -271,8 +277,14 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			public void run() {
 				double f = readDoubleFromField(velocity.y);
 				if (!Double.isNaN(f)) {
-					for (Entity e : selectedPlanets) {
-						Velocity v = vm.get(e);
+					if (selectedPlanets.size() > 1) {
+						VectorD2 mean = VectorD2Component.mean(vm, selectedPlanets);
+						for (Entity e : selectedPlanets) {
+							VectorD2 v = vm.get(e).vec;
+							v.add(-mean.x + f, 0f);
+						}
+					} else if (selectedPlanets.size() == 1){
+						Velocity v = vm.get(selectedPlanets.get(0));
 						v.vec.y = f;
 					}
 				}
