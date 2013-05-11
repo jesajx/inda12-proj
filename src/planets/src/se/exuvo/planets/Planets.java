@@ -2,34 +2,28 @@ package se.exuvo.planets;
 
 import org.apache.log4j.Logger;
 
-import se.exuvo.planets.components.Position;
 import se.exuvo.planets.systems.AudioSystem;
-import se.exuvo.planets.systems.HelpSystem;
-import se.exuvo.planets.systems.PositionSystem;
-import se.exuvo.planets.systems.TemplateUISystem;
-import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.planets.systems.CollisionSystem;
 import se.exuvo.planets.systems.GravitationSystem;
+import se.exuvo.planets.systems.HelpSystem;
 import se.exuvo.planets.systems.HudRenderSystem;
 import se.exuvo.planets.systems.InputSystem;
 import se.exuvo.planets.systems.ParticleSystem;
 import se.exuvo.planets.systems.PlanetRenderSystem;
 import se.exuvo.planets.systems.PrecognitionSystem;
+import se.exuvo.planets.systems.TemplateUISystem;
 import se.exuvo.planets.systems.UISystem;
+import se.exuvo.planets.systems.VelocitySystem;
 import se.exuvo.settings.Settings;
 
-import com.artemis.ComponentMapper;
-import com.artemis.Entity;
 import com.artemis.World;
 import com.artemis.managers.GroupManager;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * The game and main application screen. This class holds the contents of the gameloop.
@@ -47,7 +41,8 @@ public class Planets extends Game implements Screen {
 	private TemplateUISystem templateSystem;
 	private HudRenderSystem hudSystem;
 	private HelpSystem helpSystem;
-	public float physicsInterval = Settings.getFloat("PhysicsStep"), accumulator;
+	private float accumulator;
+	public final float physicsInterval = Settings.getFloat("PhysicsStep");
 	private final int physicsSkip = Settings.getInt("PhysicsSkip");
 
 	/**
@@ -89,22 +84,6 @@ public class Planets extends Game implements Screen {
 		world.setSystem(new AudioSystem(), true);
 
 		world.initialize();
-
-		// F=G*m*M/d^2
-		// F=ma
-		// a = G*M/d^2
-
-		// a = v^2/r
-		// v^2 = a*r
-		// v^2 = G*M/r
-		// r =a*v^2
-
-		// F=m*v^2/r^2
-		// v^2 = F*r^2/m
-		// v^2 = a*r^2
-		// v^2 = G*M
-
-		EntityFactory.createParticleEffect(world).addToWorld();
 	}
 
 	/**
@@ -138,15 +117,13 @@ public class Planets extends Game implements Screen {
 			int step = Math.min(stepsBehind, physicsSkip);
 			accumulator -= step * physicsInterval;
 
-			System.out.println(stepsBehind + " " + step);
-
 			world.setDelta(physicsInterval * step * 10);
 
 			gravSystem.process();
 			accSystem.process();
 			collSystem.process();
 		}
-		
+
 		if (accumulator > physicsInterval * physicsSkip) {
 			accumulator = physicsInterval * physicsSkip;
 		}
