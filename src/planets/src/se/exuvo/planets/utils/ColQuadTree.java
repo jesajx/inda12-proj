@@ -72,26 +72,42 @@ public class ColQuadTree {
 		    int q = getQuadrant(e, old);
 	        int qn = getQuadrant(e, vc);
 	        
+	        
+	        
 	        if (q == -1) {
 	        	if (qn != -1) {
 	        		if (entities != null) {
 		        		entities.remove(e);
 	        		}
-	        		subs[qn].add(e, vc);
-	        	}
-	        } else {
-	        	if (q == qn) {
-	        		subs[q].update(e, old, vc);
-	        	} else {
-	        		subs[q].remove(e, vc);
-	        		if (qn == -1) {
-	        			if (entities == null) {
-	        				entities = new ArrayList<Entity>();
-	        			}
-        				entities.add(e);
-	        		} else {
+	        		if (subs != null) {
+		        		if (subs[qn] == null) {
+				        	addSubtree(qn);
+				        }
 		        		subs[qn].add(e, vc);
 	        		}
+	        	}
+	        } else {
+	        	
+	        	if (qn == -1) {
+	        		if (entities == null) {
+        				entities = new ArrayList<Entity>();
+        			}
+    				entities.add(e);
+	        	} else {
+        			if (subs == null) {
+        				subs = new ColQuadTree[4];
+        			}
+        			if (subs[qn] == null) {
+			        	addSubtree(qn);
+			        }
+        			if (qn == q) {
+        				subs[qn].update(e, old, vc);
+        			} else {
+        				if (subs != null && subs[q] != null) {
+        					subs[q].remove(e, old);
+        				}
+        				subs[qn].add(e, vc);
+        			}
 	        	}
 	        }
         }

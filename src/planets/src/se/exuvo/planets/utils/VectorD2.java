@@ -209,9 +209,9 @@ public class VectorD2 {
 	 * @return the distance squared.
 	 */
 	public double dst2(VectorD2 v) {
-		final double dx = x - v.x;
-		final double dy = y - v.y;
-		return dx+dy;
+		final double dx = v.x - x;
+		final double dy = v.y - y;
+		return dx*dx + dy*dy;
 	}
 	
 	/**

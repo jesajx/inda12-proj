@@ -140,7 +140,6 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 					closestPlanet = e;
 				}
 			}
-
 			if (minDist < 10 * camera.zoom) {
 				planet = closestPlanet;
 			}
