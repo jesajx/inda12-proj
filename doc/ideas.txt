@@ -1,5 +1,7 @@
+inte kunna placera planter i varandra.
+
 mass-placera planeter. t.ex. i en kvadrat, inom en cirkel, eller lite random
-inom ett område.
+inom ett område. eller i en linje som man drar ut med musen.
 
 lista med alla planeter. som det är så måste man starta om spelet om man satt
 ut en planet med t.ex. m=1e156
