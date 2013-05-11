@@ -433,6 +433,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		} else if (keycode == Input.Keys.N) {
 			nextPlanet = true;
 			return true;
+		} else if (keycode == Input.Keys.C) {
+			CollisionSystem c = world.getSystem(CollisionSystem.class);
+			c.collisions = !c.collisions; 
+			return true;
 		} else if (keycode == Input.Keys.FORWARD_DEL) {
 			for (Entity e : selectedPlanets) {
 				e.deleteFromWorld();
