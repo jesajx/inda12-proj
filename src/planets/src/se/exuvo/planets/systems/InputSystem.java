@@ -344,6 +344,10 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		// unproject screen coordinates to corresponding world position
 		camera.unproject(mouseTmp);
 		mouseVector.set(mouseTmp.x, mouseTmp.y);
+		if(Float.isNaN(camera.position.x)){
+			System.out.println("NaN TODO fix");
+			camera.position.set(0, 0, 0);
+		}
 	}
 
 	private void updateTrueMouse() {
@@ -504,8 +508,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
 //		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
 
-		if (camera.zoom > 2E17f) {
-			camera.zoom = 2E17f;
+		if (camera.zoom > 4.5E15f) {
+			camera.zoom = 4.5E15f;
 			zoomLevel = (float) (Math.log(camera.zoom) / Math.log(zoomSensitivity));
 		}
 
