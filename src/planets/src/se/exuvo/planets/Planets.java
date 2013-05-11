@@ -48,7 +48,7 @@ public class Planets extends Game implements Screen {
 	private HudRenderSystem hudSystem;
 	private HelpSystem helpSystem;
 	public float physicsInterval = Settings.getFloat("PhysicsStep"), accumulator;
-	private final int physicsSkip = 10;
+	private final int physicsSkip = Settings.getInt("PhysicsSkip");
 
 	/**
 	 * Initializes the game.
@@ -135,19 +135,16 @@ public class Planets extends Game implements Screen {
 		accumulator += delta * multiplier;
 		if (accumulator >= physicsInterval) {
 			int stepsBehind = (int) (accumulator / physicsInterval);
-
 			int step = Math.min(stepsBehind, physicsSkip);
-			world.setDelta(physicsInterval * step * 10);
+			accumulator -= step * physicsInterval;
 
 			System.out.println(stepsBehind + " " + step);
 
-//			for (int i = 0; i < multiplier; i++) {
+			world.setDelta(physicsInterval * step * 10);
+
 			gravSystem.process();
 			accSystem.process();
 			collSystem.process();
-//			}
-
-			accumulator -= step * physicsInterval;
 		}
 	}
 
