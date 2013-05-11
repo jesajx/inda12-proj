@@ -2,6 +2,7 @@ package se.exuvo.planets.systems;
 
 import se.exuvo.planets.components.Particle;
 import se.exuvo.planets.components.Position;
+import se.exuvo.planets.utils.VectorD2;
 
 import com.artemis.Aspect;
 import com.artemis.ComponentMapper;
@@ -39,9 +40,9 @@ public class ParticleSystem extends EntityProcessingSystem {
 	
 	@Override
 	protected void process(Entity e) {
-		Vector2 p = pm.get(e).vec.toVector2();
+		VectorD2 p = pm.get(e).vec;
 		ParticleEffect effect = pam.get(e).effect;
-		effect.setPosition(p.x, p.y);
+		effect.setPosition(p.X(), p.Y());
 		effect.draw(spriteBatch, Gdx.graphics.getDeltaTime());
 		if(effect.isComplete()){
 			e.deleteFromWorld();
