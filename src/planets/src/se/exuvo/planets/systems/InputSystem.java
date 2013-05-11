@@ -503,6 +503,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
 			potentialPush = false;
+			if(!pushPlanet){
+				lastCreatedPlanet = null;
+			}
 			return true;
 		} else if (button == Input.Buttons.LEFT) {
 			potentialMove = false;
