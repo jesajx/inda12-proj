@@ -42,7 +42,7 @@ public class ParticleSystem extends EntityProcessingSystem {
 	protected void process(Entity e) {
 		VectorD2 p = pm.get(e).vec;
 		ParticleEffect effect = pam.get(e).effect;
-		effect.setPosition(p.X(), p.Y());
+		effect.setPosition(p.floatX(), p.floatY());
 		effect.draw(spriteBatch, Gdx.graphics.getDeltaTime());
 		if(effect.isComplete()){
 			e.deleteFromWorld();

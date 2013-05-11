@@ -279,11 +279,11 @@ public class VectorD2 {
 		return new Vector2((float)x, (float)y);
 	}
 	
-	public float X(){
+	public float floatX(){
 		return (float) x;
 	}
 	
-	public float Y(){
+	public float floatY(){
 		return (float) y;
 	}
 	

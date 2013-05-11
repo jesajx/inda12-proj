@@ -202,12 +202,12 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			for (Entity e : selectedPlanets) {
 				VectorD2 p = pm.get(e).vec.cpy().add(diff);
 				float r = (float) rm.get(e).radius;
-				render.circle(p.X(), p.Y(), r);
+				render.circle(p.floatX(), p.floatY(), r);
 			}
 			render.end();
 
 			render.begin(ShapeType.Line);
-			render.line(mouseStartVector.X(), mouseStartVector.Y(), mouseVector.X(), mouseVector.Y());
+			render.line(mouseStartVector.floatX(), mouseStartVector.floatY(), mouseVector.floatX(), mouseVector.floatY());
 			render.end();
 
 			renderBatch.begin();
@@ -264,7 +264,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		if (follow && !selectedPlanets.isEmpty()) {
 			VectorD2 center = VectorD2Component.mean(pm, selectedPlanets);
-			camera.position.set(center.X(), center.Y(), 0);
+			camera.position.set(center.floatX(), center.floatY(), 0);
 		}
 
 		if (nextPlanet) {
@@ -291,7 +291,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				fireSelectionChangeEvent();
 
 				VectorD2 pos = pm.get(target).vec;
-				camera.position.set(pos.X(), pos.Y(), 0);
+				camera.position.set(pos.floatX(), pos.floatY(), 0);
 			}
 
 			nextPlanet = false;
@@ -318,7 +318,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			render.end();
 
 			diff.set(mouseTrueDiff).mul(camera.zoom);
-			camera.position.add(diff.X(), diff.Y(), 0);
+			camera.position.add(diff.floatX(), diff.floatY(), 0);
 		}
 	}
 
@@ -517,7 +517,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
 //			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
 
-			Vector3 diff = camera.position.cpy().sub(new Vector3(mouseVector.X(), mouseVector.Y(), 0f));
+			Vector3 diff = camera.position.cpy().sub(new Vector3(mouseVector.floatX(), mouseVector.floatY(), 0f));
 			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 
