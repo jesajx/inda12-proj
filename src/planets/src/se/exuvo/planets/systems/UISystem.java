@@ -159,6 +159,16 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 				world.getSystem(TemplateUISystem.class).show();
 			}
 		});
+		
+		buttonTable.row();
+
+		TextButton help = addButton("Help", buttonTable, skin);
+		help.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				world.getSystem(HelpSystem.class).show();
+			}
+		});
 
 		return stage;
 	}
@@ -448,11 +458,11 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		if (ui.keyDown(keycode)) {
 			return true;
 		}
-		if (keycode == Input.Keys.A) {
+		if (keycode == Input.Keys.Z) {
 			debug = (debug + 1) % 5;
 			d();
 		}
-		if (keycode == Input.Keys.Z) {
+		if (keycode == Input.Keys.X) {
 			debug--;
 			if (debug < 0) debug = 4;
 			d();

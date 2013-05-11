@@ -1,8 +1,5 @@
 package se.exuvo.planets.systems;
 
-import java.util.List;
-
-import se.exuvo.planets.templates.Template;
 import se.exuvo.planets.templates.TemplateLoader;
 
 import com.artemis.systems.VoidEntitySystem;
@@ -12,33 +9,28 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.esotericsoftware.tablelayout.BaseTableLayout.Debug;
 
 /**
  */
-public class TemplateUISystem extends VoidEntitySystem implements InputProcessor {
+public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 
 	private Stage ui;
 	private Window window;
-	private com.badlogic.gdx.scenes.scene2d.ui.List templateList;
-	private Label name, description;
 	private static int debug = 0;
 
-	public TemplateUISystem() {
+	public HelpSystem() {
 	}
 
 	@Override
 	protected void initialize() {
 		TemplateLoader.init();
 		ui = createUI();
-		updateSelection();
 		hide();
 	}
 
@@ -65,30 +57,22 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 		Stage stage = new Stage();
 		Skin skin = new Skin(Gdx.files.internal("resources/uiskin.json"));
 
-		window = new Window("Templates", skin);
-		window.setSize(width, height);
-		window.setPosition((realWidth - width) / 2, (realHeight - height) / 2);
+		window = new Window("Controls", skin);
 		stage.addActor(window);
 
-		name = new Label("", skin);
-		description = new Label("", skin);
-		
-		Table current = new Table(skin);
-		current.add(name).center().expandX().padBottom(20).row();
-		current.add(description).center().expandX().row();
-
-		List<Template> templates = TemplateLoader.getTemplates();
-		templateList = new com.badlogic.gdx.scenes.scene2d.ui.List(templates.toArray(), skin);
-		templateList.addListener(new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				updateSelection();
-			}
-		});
-		
-		ScrollPane sp = new ScrollPane(templateList, skin);
-		window.add(sp).expand().fill().prefWidth(width/2);
-		window.add(current).expand().top().padTop(20).prefWidth(width/2);
+		addHelpRow("Keys", "Description", window, skin);
+		addHelpRow("Right Mouse", "Create planet", window, skin);
+		addHelpRow("Right Mouse + drag", "Create and push planet", window, skin);
+		addHelpRow("Left Mouse", "Select Planets", window, skin);
+		addHelpRow("Left Mouse + shift", "Select multiple", window, skin);
+		addHelpRow("Left Mouse over planet + drag", "Move planet", window, skin);
+		addHelpRow("Left Mouse + shift + drag", "Move selected planets", window, skin);
+		addHelpRow("T", "track selected planets", window, skin);
+		addHelpRow("N", "Goto and select next planet", window, skin);
+		addHelpRow("CTRL", "Speed x10", window, skin);
+		addHelpRow("ALT", "Speed x50", window, skin);
+		addHelpRow("CTRL + ALT", "Speed x200", window, skin);
+		addHelpRow("", "", window, skin);
 
 		window.row();
 		TextButton back = new TextButton("Back", skin);
@@ -100,18 +84,22 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 			}
 		});
 		
-		TextButton load = new TextButton("Load", skin);
-		window.add(load).spaceTop(10);
-		load.addListener(new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				TemplateLoader.loadTemplate(TemplateLoader.getTemplates().get(templateList.getSelectedIndex()), world);
-				world.getSystem(AudioSystem.class).playLoad();
-				hide();
-			}
-		});
+		window.pack();
+		window.setPosition((realWidth - window.getWidth()) / 2, (realHeight - window.getHeight()) / 2);
 		
 		return stage;
+	}
+	
+	private void addHelpRow(String key, String description, Table window, Skin skin){
+		Label keyL = new Label(key, skin);
+		Label descL = new Label(description, skin);
+		
+		Table table = new Table();
+		table.add(keyL).left();
+		table.add(new Label("", skin)).spaceRight(20).spaceLeft(20).expandX();
+		table.add(descL).right();
+		
+		window.add(table).expandX().fillX().row();
 	}
 
 	@Override
@@ -119,12 +107,6 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 
 	}
 	
-	private void updateSelection(){
-		Template temp = TemplateLoader.getTemplates().get(templateList.getSelectedIndex());
-		name.setText(temp.getName());
-		description.setText(temp.getDescription());
-	}
-
 	public void hide() {
 		window.setVisible(false);
 		ui.unfocusAll();
@@ -157,6 +139,10 @@ public class TemplateUISystem extends VoidEntitySystem implements InputProcessor
 	@Override
 	public boolean keyDown(int keycode) {
 		if (ui.keyDown(keycode)) {
+			return true;
+		}
+		if (keycode == Input.Keys.H) {
+			show();
 			return true;
 		}
 		if (keycode == Input.Keys.Z) {

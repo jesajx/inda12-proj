@@ -2,6 +2,7 @@ package se.exuvo.planets;
 
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.systems.AudioSystem;
+import se.exuvo.planets.systems.HelpSystem;
 import se.exuvo.planets.systems.PositionSystem;
 import se.exuvo.planets.systems.TemplateUISystem;
 import se.exuvo.planets.systems.VelocitySystem;
@@ -41,6 +42,7 @@ public class Planets extends Game implements Screen {
 	private CollisionSystem collSystem;
 	private TemplateUISystem templateSystem;
 	private HudRenderSystem hudSystem;
+	private HelpSystem helpSystem;
 
 	/**
 	 * Initializes the game.
@@ -57,8 +59,10 @@ public class Planets extends Game implements Screen {
 		inputSystem = new InputSystem(camera);
 		uiSystem = new UISystem();
 		templateSystem = new TemplateUISystem();
+		helpSystem = new HelpSystem();
 
 		InputMultiplexer multiplexer = new InputMultiplexer();
+		multiplexer.addProcessor(helpSystem);
 		multiplexer.addProcessor(templateSystem);
 		multiplexer.addProcessor(uiSystem);
 		multiplexer.addProcessor(inputSystem);
@@ -75,6 +79,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(inputSystem);
 		world.setSystem(hudSystem = new HudRenderSystem(camera));
 		world.setSystem(templateSystem);
+		world.setSystem(helpSystem);
 		world.setSystem(new AudioSystem(), true);
 
 		world.initialize();
