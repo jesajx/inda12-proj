@@ -83,13 +83,7 @@ public class Planets extends Game implements Screen {
 		world.setSystem(new AudioSystem(), true);
 
 		world.initialize();
-		
-//		float m = 1e16f;// 1e15f;
-//		float v = 10f;// 6.f;
-//		float r = 10 * 6 * 6 * 6;// v*v*v;
-//		EntityFactory.createPlanet(world, 50f, m, new Vector2(r, 0), new Vector2(0, -v), Color.WHITE).addToWorld();
-//		EntityFactory.createPlanet(world, 50f, m, new Vector2(-r, 0), new Vector2(0, v), Color.YELLOW).addToWorld();
-//		
+
 		// F=G*m*M/d^2
 		// F=ma
 		// a = G*M/d^2
@@ -103,18 +97,6 @@ public class Planets extends Game implements Screen {
 		// v^2 = F*r^2/m
 		// v^2 = a*r^2
 		// v^2 = G*M
-		// these radii causes the game to crash.
-//		// sun
-		float sun_radius = 1.392684e9f/2; // m
-		float sun_mass = 1.9891e30f/1e30f; // kg
-//		EntityFactory.createPlanet(world, sun_radius, sun_mass, new Vector2(), new Vector2(), Color.YELLOW).addToWorld();
-//		
-//		// earth
-//		float earth_radius = 6371e3f/1e8f; // m
-//		float earth_mass =  5.9376e24f/1e30f; // kg
-//		float earth_aphelion = 152098232e3f;// m // 1.496e8f
-//		float earth_avg_speed = 29.78e3f; // m/s
-//		EntityFactory.createPlanet(world, earth_radius, earth_mass, new Vector2(earth_aphelion, 0), new Vector2(0, earth_avg_speed), Color.BLUE).addToWorld();
 		
 		EntityFactory.createParticleEffect(world).addToWorld();
 	}
@@ -125,10 +107,10 @@ public class Planets extends Game implements Screen {
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		
+
 		camera.update();
 		world.setDelta(delta);
-		
+
 		if (inputSystem.isSpeedup()) {
 			if (inputSystem.isSSpeedup()) {
 				speed(200);
@@ -138,7 +120,7 @@ public class Planets extends Game implements Screen {
 		} else if (inputSystem.isSSpeedup()) {
 			speed(50);
 		}
-		
+
 		world.process();
 	}
 
@@ -152,7 +134,7 @@ public class Planets extends Game implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
-		if(camera != null){
+		if (camera != null) {
 			camera.setToOrtho(false, width, height);
 			uiSystem.resize(width, height);
 			templateSystem.resize(width, height);
