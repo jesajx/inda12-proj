@@ -13,3 +13,19 @@ set-dra velocity och add-dra velocity
 
 
 multi-select
+
+exuvo anteckningar:
+* = löst
+*remove inget markerat
+*clear otydlig - användare tror den tömmer världen
+bättre färg väljare
+varning för stora värden på massor/radie som får programmet att krasha
+UI feltext fält för att meddela sånt?
+förändrat varnings ikon
+*zoom skala visare
+vettigare värden på autogenererade planeter
+*rename clear -> ui selection clear
+tooltips
+*goto knapp eller lista med planeter så man hittar tillbaka
+*flytta kameran med vänster musknapp
+*följ planet funktion
