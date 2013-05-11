@@ -52,7 +52,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private VectorD2 mouseVector, mouseStartVector, mouseTrue, mouseTrueDiff, mouseTrueStart;
 
 	// Buffers due to gui has to be done in the correct thread.
-	private boolean createPlanet, selectPlanet, potentialMove, potentialPush, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet, moveWindow;
+	private boolean createPlanet, selectPlanet, potentialMove, potentialPush, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet,
+			moveWindow;
 	private Bag<Entity> selectedPlanets;
 	private long potentialStart, potentialTimeDelay = Settings.getInt("moveDelay");
 	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
@@ -194,7 +195,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				checkPause();
 			}
 		}
-		
+
 		if (potentialPush) {
 			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
 					|| System.currentTimeMillis() - potentialStart > potentialTimeDelay) {
@@ -252,15 +253,15 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				// give the planet a velocity. (with the angle and magnitude the user showed)
 				diff.mul(pushForceMultiplier);
 
-				if(lastCreatedPlanet == null){
+				if (lastCreatedPlanet == null) {
 					for (Entity e : selectedPlanets) {
 						vm.get(e).vec.add(diff);
 					}
-				}else{
+				} else {
 					vm.get(lastCreatedPlanet).vec.add(diff);
 					lastCreatedPlanet = null;
 				}
-				
+
 				pushPlanet = false;
 				restorePause();
 			}
@@ -359,7 +360,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		// unproject screen coordinates to corresponding world position
 		camera.unproject(mouseTmp);
 		mouseVector.set(mouseTmp.x, mouseTmp.y);
-		if(Float.isNaN(camera.position.x)){
+		if (Float.isNaN(camera.position.x)) {
 			System.out.println("NaN TODO fix");
 			camera.position.set(0, 0, 0);
 		}
@@ -525,7 +526,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		// camera.zoom >= 1
 		camera.zoom = (float) Math.pow(zoomSensitivity, zoomLevel);
-		
+
 //		System.out.println("zoom:" + camera.zoom + "  zoomLevel:" + zoomLevel);
 
 		if (camera.zoom > 4.5E15f) {

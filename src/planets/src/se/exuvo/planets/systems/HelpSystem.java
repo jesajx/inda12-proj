@@ -24,8 +24,7 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 	private Window window;
 	private static int debug = 0;
 
-	public HelpSystem() {
-	}
+	public HelpSystem() {}
 
 	@Override
 	protected void initialize() {
@@ -83,22 +82,22 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 				hide();
 			}
 		});
-		
+
 		window.pack();
 		window.setPosition((realWidth - window.getWidth()) / 2, (realHeight - window.getHeight()) / 2);
-		
+
 		return stage;
 	}
-	
-	private void addHelpRow(String key, String description, Table window, Skin skin){
+
+	private void addHelpRow(String key, String description, Table window, Skin skin) {
 		Label keyL = new Label(key, skin);
 		Label descL = new Label(description, skin);
-		
+
 		Table table = new Table();
 		table.add(keyL).left();
 		table.add(new Label("", skin)).spaceRight(20).spaceLeft(20).expandX();
 		table.add(descL).right();
-		
+
 		window.add(table).expandX().fillX().row();
 	}
 
@@ -106,7 +105,7 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 	protected void end() {
 
 	}
-	
+
 	public void hide() {
 		window.setVisible(false);
 		ui.unfocusAll();
@@ -212,7 +211,7 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 		}
 		return false;
 	}
-	
+
 	public void resize(int width, int height) {
 		ui.setViewport(width, height, false);
 	}

@@ -25,7 +25,7 @@ public class EarthAndSun extends Template {
 
 	@Override
 	public String getDescription() {
-		return "these radii causes the game to crash.";
+		return "These radii cause\nthe game to crash.";
 	}
 
 }
