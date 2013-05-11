@@ -188,8 +188,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		}
 
 		if (potentialMove && !selectedPlanets.isEmpty()) {
-			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
-					|| System.currentTimeMillis() - potentialStart > potentialTimeDelay) {
+			if (potentialShake()) {
 				movePlanet = true;
 				potentialMove = false;
 				checkPause();
@@ -197,8 +196,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		}
 
 		if (potentialPush) {
-			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
-					|| System.currentTimeMillis() - potentialStart > potentialTimeDelay) {
+			if (potentialShake()) {
 				pushPlanet = true;
 				potentialPush = false;
 				checkPause();
@@ -341,6 +339,11 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	@Override
 	protected void end() {}
 
+	private boolean potentialShake() {
+		return mouseDiff().len() > potentialMoveMouseShake * camera.zoom
+				|| System.currentTimeMillis() - potentialStart > potentialTimeDelay;
+	}
+
 	private void checkPause() {
 		wasPaused = paused;
 		if (Settings.getBol("pauseWhenCreatingPlanets")) {
@@ -435,7 +438,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			return true;
 		} else if (keycode == Input.Keys.C) {
 			CollisionSystem c = world.getSystem(CollisionSystem.class);
-			c.collisions = !c.collisions; 
+			c.collisions = !c.collisions;
 			return true;
 		} else if (keycode == Input.Keys.FORWARD_DEL) {
 			for (Entity e : selectedPlanets) {
@@ -503,7 +506,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
 			potentialPush = false;
-			if(!pushPlanet){
+			if (!pushPlanet) {
 				lastCreatedPlanet = null;
 			}
 			return true;
