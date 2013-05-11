@@ -146,6 +146,10 @@ public class Planets extends Game implements Screen {
 			accSystem.process();
 			collSystem.process();
 		}
+		
+		if (accumulator > physicsInterval * physicsSkip) {
+			accumulator = physicsInterval * physicsSkip;
+		}
 	}
 
 	@Override
