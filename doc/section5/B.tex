@@ -1,0 +1,41 @@
+Programmet använder de utomstående bibloteken libgdx och artemis.
+
+Planeterna representeras av entities med följande komponenter.
+\begin{itemize}
+    \item Position (vektor)
+    \item Hastighet (vektor)
+    \item Acceleration (vektor)
+    \item Massa
+    \item Storlek (radie)
+    \item Färg (RGBA)
+\end{itemize}
+
+Fysiksystemen är:
+\begin{description}
+    \item[Gravitationssystemet] som beräknar gravitationsaccelerationen mellan planeter
+        och summerar dessa för varje planet.
+        Systemet uppdaterar alltså accelerationskomponenten för planterna.
+    \item[Hastighetssystemet] uppdaterar hastigheteskomponenten hos
+        planeter med accelerationskomponenten.
+    \item[Kollisionsystemet] undersöker om och när planter kommer kollidera
+        inom närmaste "tick" och hanterar dessa som elastiskta stötar.
+        Systemet är ansvarigt för att uppdatera positionskomponenten
+        hos planeter.
+    \item[Framtidssystemet] beräknar hur en markerad planet
+        kommer röra sig inom närmsta framtid och ritar detta på skärmen.
+    \item[Positionssystemet] används av framtidssystemet för att uppdatera
+        planeters positioner med deras hastigheter. Kollisionsystemet
+        är nämligen för långsamt för att framtidssystemet ska
+        vara användbart.
+\end{description}
+
+Användargränssnitt-systemen är.
+\begin{description}
+    \item[Inputsystemet] Hanterar markeringar, dragningar,
+        zoomning och liknande av planeter.
+        Systemet hanterar interaktion med simulator-världen.
+    \item[Planet-ritar-systemet] Ritar planeter i simulatorvärlden.
+    \item[Gränssnittssystemet] Hanterar vänstermenyn.
+    \item[Template-gränsnittssystemet] Hanterar template-menyn.
+\end{description}
+

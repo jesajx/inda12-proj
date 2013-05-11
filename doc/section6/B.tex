@@ -1,0 +1,62 @@
+
+Hur vi svarade på ovanstående frågor:
+\begin{enumerate}
+    \item Förflyttningen av planeter har delats upp i system och komponenter
+        som beskrivet i section~\ref{sec:design}.
+
+        \vspace{6pt}
+
+        Gravitationssystemet använder ett s.k. Quad Tree för att
+        spara positioner och massor.
+        Varje nod i trädet innehåller referenser till fyra under-träd, 
+        den totala massan av alla planeter i trädet och dess under-träd
+        och det s.k. masscentrum av massorna och planterna.
+        Varje planet jämförs sedan med trädet.
+        Om en nods masscentrum är tillräckligt långt bort kan
+        dess mass-total och -centrum
+        användas för att beräkna noden som en planet, snarare än att
+        dyka ner och jämföra med varje planet - vilket annars skulle göras
+        om nodens masscentrum är nära med jämförande planeten.
+
+        \vspace{6pt}
+
+        Kollisionsystemet använder också ett Quad Tree.
+        Skillnaden är att Gravitationsträdet spar planeter endast i
+        de s.k. löven (längst ner i trädet), medans kollisionträdet
+        spar planeter i alla noder.
+
+        Trädet delar in simulatorvärlden i kvadranter.
+        Varje under-träd till en nod motsvararer in kvadrant inom
+        den kvadrat noden motsvarar.
+
+        En s.k. hastighetscirkel skapas för varje planet - 
+        den har samma position som planeten, med dess radie
+        är planetes radie adderat med längden av planetens hastighetvektor.
+
+        Dessa cirklar passas sedan in i trädets rutnät - så djupt ner i
+        trädet som möjligt.
+
+        Varje planet kan sedan jämföras med alla planter djupar ner i trädet.
+
+    \item Kollisioner hanteras som elastiska stötar.
+        Kollisionsystemet har snabbats upp med ett Quad Tree som beskriver
+        ovan. Detta är en stor förbättrning från att alla planeter
+        jämförs med alla ($O(n^2)$), men programmet blir ändå långsamt med
+        många aktiva planeter.
+        Andra sätt har prövats men har inte visat sig vara snabbare.
+        Bland annat har trädet skrivits om så att planeter endast sparas
+        i löven, likt gravitationsträdet gör. Detta gör
+        dock att samma planet hamnar på flera platser i trädet, vilket
+        i slutändan gör att fler jämförelser görs, t.ex. mellan samma
+        planeter flera gånger.
+    \item Parallellisering har endast används i framtidssystemet.
+        % TODO fysik på egen tråd?
+    \item Framtidssystemet har implementerats, men utan kollisioner,
+        då dessa gjorde det för långsamt.
+\end{enumerate}
+
+Nya frågor med svar:
+
+\begin{Description}
+    \item[fråga] svar % TODO
+\end{Description}
