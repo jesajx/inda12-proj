@@ -179,8 +179,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 				// draw a triangle around the planet (showing that it's selected)
 				float k = (float) (r.radius * 3f);
-				render.triangle(p.x + k * cos90, p.y + k * sin90, p.x + k * cos210, p.y + k * sin210, p.x + k * cos330,
-								p.y + k* sin330);
+				render.triangle(p.x + k * cos90, p.y + k * sin90, p.x + k * cos210, p.y + k * sin210, p.x + k * cos330, p.y + k * sin330);
 			}
 
 			render.end();
@@ -201,14 +200,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			render.setColor(Color.WHITE);
 
 			for (Entity e : selectedPlanets) {
-				Vector2 p = pm.get(e).vec.cpy().add(diff).toVector2();
+				VectorD2 p = pm.get(e).vec.cpy().add(diff);
 				float r = (float) rm.get(e).radius;
-				render.circle(p.x, p.y, r);
+				render.circle(p.X(), p.Y(), r);
 			}
 			render.end();
 
 			render.begin(ShapeType.Line);
-			render.line((float)mouseStartVector.x, (float)mouseStartVector.y, (float)mouseVector.x, (float)mouseVector.y);
+			render.line(mouseStartVector.X(), mouseStartVector.Y(), mouseVector.X(), mouseVector.Y());
 			render.end();
 
 			renderBatch.begin();
@@ -219,24 +218,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		}
 
 		if (pushPlanet) {
-			// TODO I switched to normalization. Remove unnecessary comments if it works correctly.
-			// from where the planet was created (old mousePos) to the current mousePos
-//			float angle = MathUtils.atan2((float)(mouseVector.x - mouseStartVector.x), (float)(mouseStartVector.y - mouseVector.y));
-//
-//			float size = 10 * camera.zoom;
-//			float xr = size * MathUtils.cos(angle);
-//			float yr = size * MathUtils.sin(angle);
-			
-			VectorD2 v = new VectorD2(mouseStartVector.y - mouseVector.y, mouseVector.x - mouseStartVector.x).nor().mul(10*camera.zoom);
-			
-			// of triangle
-			Vector2 pointA = mouseStartVector.cpy().add(v).toVector2();
-			Vector2 pointB = mouseStartVector.cpy().sub(v).toVector2();
-//			Vector2 pointA = mouseStartVector.cpy().add(xr, yr).toVector2();
-//			Vector2 pointB = mouseStartVector.cpy().sub(xr, yr).toVector2();
-			Vector2 pointC = mouseVector.toVector2();
+			// angle from where the mouse was when push started to the current mousePos
+			VectorD2 v = new VectorD2(mouseStartVector.y - mouseVector.y, mouseVector.x - mouseStartVector.x).nor().mul(10 * camera.zoom);
 
 			// draw an arrow-like triangle from startMouse to current mousePos
+			Vector2 pointA = mouseStartVector.cpy().add(v).toVector2();
+			Vector2 pointB = mouseStartVector.cpy().sub(v).toVector2();
+			Vector2 pointC = mouseVector.toVector2();
+
 			render.begin(ShapeType.FilledTriangle);
 			render.setColor(Color.CYAN);
 			render.filledTriangle(pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y);
@@ -274,8 +263,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		}
 
 		if (follow && !selectedPlanets.isEmpty()) {
-			Vector2 center = VectorD2Component.mean(pm, selectedPlanets).toVector2();
-			camera.position.set(center.x, center.y, 0);
+			VectorD2 center = VectorD2Component.mean(pm, selectedPlanets);
+			camera.position.set(center.X(), center.Y(), 0);
 		}
 
 		if (nextPlanet) {
@@ -301,8 +290,8 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				selectedPlanets.add(target);
 				fireSelectionChangeEvent();
 
-				Vector2 pos = pm.get(target).vec.toVector2();
-				camera.position.set(pos.x, pos.y, 0);
+				VectorD2 pos = pm.get(target).vec;
+				camera.position.set(pos.X(), pos.Y(), 0);
 			}
 
 			nextPlanet = false;
@@ -313,23 +302,23 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			VectorD2 diff = mouseTrueStart.to(mouseTrue).mul(camera.zoom);
 
 			renderBatch.begin();
-			hudSys.font.draw(renderBatch, "" + (int) diff.x + ", " + (int) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
+			hudSys.font.draw(renderBatch, "" + (long) diff.x + ", " + (long) diff.y, hudSys.mouseX(), hudSys.mouseY() + 40);
 
 			diff.add(mouseStartVector);
 
-			hudSys.font.draw(renderBatch, "[" + (int) diff.x + ", " + (int) diff.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
+			hudSys.font.draw(renderBatch, "[" + (long) diff.x + ", " + (long) diff.y + "]", hudSys.mouseX(), hudSys.mouseY() + 20);
 			renderBatch.end();
 
-			// of line
 			Vector2 pointA = mouseStartVector.toVector2();
 			Vector2 pointB = diff.toVector2();
-			
+
+			render.setColor(Color.WHITE);
 			render.begin(ShapeType.Line);
 			render.line(pointA.x, pointA.y, pointB.x, pointB.y);
 			render.end();
 
 			diff.set(mouseTrueDiff).mul(camera.zoom);
-			camera.position.add((float)diff.x, (float)diff.y, 0);
+			camera.position.add(diff.X(), diff.Y(), 0);
 		}
 	}
 
@@ -430,7 +419,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 			}
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -524,7 +513,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 //			Det som var under musen innan scroll ska fortsätta vara där efter zoom
 //			http://stackoverflow.com/questions/932141/zooming-an-object-based-on-mouse-position
 
-			Vector3 diff = camera.position.cpy().sub(new Vector3((float)mouseVector.x, (float)mouseVector.y, 0f));
+			Vector3 diff = camera.position.cpy().sub(new Vector3(mouseVector.X(), mouseVector.Y(), 0f));
 			camera.position.sub(diff.sub(diff.cpy().div(oldZoom).mul(camera.zoom)));
 		}
 

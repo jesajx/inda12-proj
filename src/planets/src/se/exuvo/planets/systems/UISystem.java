@@ -102,6 +102,8 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		velocity = addField2("Velocity", window, skin);
 		position = addField2("Position", window, skin);
 		acceleration = addField2("Acceleration", window, skin);
+		
+		color.setMessageText("RRGGBB");
 
 		addFieldEnterListeners();
 		addFieldChangeListeners();
@@ -635,7 +637,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		} else {
 			mass.setMessageText("");
 			radius.setMessageText("");
-			color.setMessageText("");
+			color.setMessageText("RRGGBB");
 			velocity.x.setMessageText("");
 			velocity.y.setMessageText("");
 			acceleration.x.setMessageText("");

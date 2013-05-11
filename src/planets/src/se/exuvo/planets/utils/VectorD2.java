@@ -257,4 +257,13 @@ public class VectorD2 {
 	public Vector2 toVector2() {
 		return new Vector2((float)x, (float)y);
 	}
+	
+	public float X(){
+		return (float) x;
+	}
+	
+	public float Y(){
+		return (float) y;
+	}
+	
 }
