@@ -52,11 +52,12 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	private VectorD2 mouseVector, mouseStartVector, mouseTrue, mouseTrueDiff, mouseTrueStart;
 
 	// Buffers due to gui has to be done in the correct thread.
-	private boolean createPlanet, selectPlanet, potentialMove, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet, moveWindow;
+	private boolean createPlanet, selectPlanet, potentialMove, potentialPush, movePlanet, pushPlanet, releasePlanet, follow, nextPlanet, moveWindow;
 	private Bag<Entity> selectedPlanets;
-	private long potentialMoveStart, potentialMoveTimeDelay = Settings.getInt("moveDelay");
+	private long potentialStart, potentialTimeDelay = Settings.getInt("moveDelay");
 	private float potentialMoveMouseShake = Settings.getFloat("moveMouseSensitivity"), pushForceMultiplier = Settings
 			.getFloat("pushForceMultiplier");
+	private Entity lastCreatedPlanet;
 
 	private ShapeRenderer render;
 	private SpriteBatch renderBatch;
@@ -113,9 +114,9 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		updateMouse();
 
 		if (createPlanet) {
-			Entity planet = EntityFactory.createPlanet(world, uisystem.getRadius(), uisystem.getMass(), new VectorD2(mouseVector.x,
+			lastCreatedPlanet = EntityFactory.createPlanet(world, uisystem.getRadius(), uisystem.getMass(), new VectorD2(mouseVector.x,
 					mouseVector.y), uisystem.getVelocity(), uisystem.getColor());
-			planet.addToWorld();
+			lastCreatedPlanet.addToWorld();
 //			selectedPlanets.add(planet);
 
 			createPlanet = false;
@@ -187,9 +188,18 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 
 		if (potentialMove && !selectedPlanets.isEmpty()) {
 			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
-					|| System.currentTimeMillis() - potentialMoveStart > potentialMoveTimeDelay) {
+					|| System.currentTimeMillis() - potentialStart > potentialTimeDelay) {
 				movePlanet = true;
 				potentialMove = false;
+				checkPause();
+			}
+		}
+		
+		if (potentialPush) {
+			if (mouseDiff().len() > potentialMoveMouseShake * camera.zoom
+					|| System.currentTimeMillis() - potentialStart > potentialTimeDelay) {
+				pushPlanet = true;
+				potentialPush = false;
 				checkPause();
 			}
 		}
@@ -242,10 +252,15 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				// give the planet a velocity. (with the angle and magnitude the user showed)
 				diff.mul(pushForceMultiplier);
 
-				for (Entity e : selectedPlanets) {
-					vm.get(e).vec.add(diff);
+				if(lastCreatedPlanet == null){
+					for (Entity e : selectedPlanets) {
+						vm.get(e).vec.add(diff);
+					}
+				}else{
+					vm.get(lastCreatedPlanet).vec.add(diff);
+					lastCreatedPlanet = null;
 				}
-
+				
 				pushPlanet = false;
 				restorePause();
 			}
@@ -457,11 +472,13 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 		if (button == Input.Buttons.LEFT) {
 			selectPlanet = true;
 			potentialMove = true;
-			potentialMoveStart = System.currentTimeMillis();
+			potentialStart = System.currentTimeMillis();
 			return true;
 		} else if (button == Input.Buttons.RIGHT) {
 			if (selectedPlanets.isEmpty()) {
 				createPlanet = true;
+				potentialPush = true;
+				potentialStart = System.currentTimeMillis();
 			} else {
 				pushPlanet = true;
 				checkPause();
@@ -480,6 +497,7 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 	public boolean touchUp(int x, int y, int pointer, int button) {
 		if (button == Input.Buttons.RIGHT) {
 			releasePlanet = true;
+			potentialPush = false;
 			return true;
 		} else if (button == Input.Buttons.LEFT) {
 			potentialMove = false;
