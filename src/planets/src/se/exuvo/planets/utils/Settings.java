@@ -24,6 +24,7 @@ public class Settings extends se.exuvo.settings.Settings{
 		add("moveDelay", 200);
 		add("pushForceMultiplier", 0.1f);
 		add("PrecognitionMaxVisualPlanets", 10);
+		add("PhysicsSkip", 50);
 		
 		if(!start(conf,"planets")){
 			log.fatal("Failed to read settings from file, please fix. Exiting.");
