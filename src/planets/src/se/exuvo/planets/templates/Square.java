@@ -7,20 +7,23 @@ import com.artemis.World;
 import com.badlogic.gdx.graphics.Color;
 
 public class Square extends Template {
-	private int n = 50;
+	private int side = 30;
+	private int padding = 500;
+	private double radius = 100d;
+	private double mass = 1e10d;
+	
 	@Override
 	public void load(World world) {
-		int i = 100;
-		for (int x = 0; x < n; x++) {
-			for (int y = 0; y < n; y++) {
-				EntityFactory.createPlanet(world, i, 1e10f, new VectorD2(10*i*x, 10*i*y), new VectorD2(), Color.YELLOW).addToWorld();
+		for (int x = 0; x < side; x++) {
+			for (int y = 0; y < side; y++) {
+				EntityFactory.createPlanet(world, radius, mass, new VectorD2((radius+padding)*x, (radius+padding)*y), new VectorD2(), Color.YELLOW).addToWorld();
 			}
 		}
 	}
 
 	@Override
 	public String getDescription() {
-		return "A whole bunch of planets placed in\na grid, forming a square.\nThere is " + (n*n) + "planets in this template.";
+		return "A whole bunch of planets placed in\na grid, forming a square.\nThere is " + (side*side) + " planets in this template.";
 	}
 
 }
