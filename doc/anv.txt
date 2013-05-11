@@ -1,15 +1,12 @@
 rödmarkera fält i ui.
 clearknapp för varje fält.
+
 color presets ("BLACK", "GREEN", etc.).
 färgpalett
+
 enheter vid fält
-visa zoomLevel
-dra planeter (pos)
 
 pausa effekter
 
 
 set-dra velocity och add-dra velocity
-
-
-multi-select

@@ -226,14 +226,14 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 //			float size = 10 * camera.zoom;
 //			float xr = size * MathUtils.cos(angle);
 //			float yr = size * MathUtils.sin(angle);
+//			Vector2 pointA = mouseStartVector.cpy().add(xr, yr).toVector2();
+//			Vector2 pointB = mouseStartVector.cpy().sub(xr, yr).toVector2();
 			
-			VectorD2 v = new VectorD2(mouseStartVector.y - mouseVector.y, mouseVector.x - mouseStartVector.x).nor().mul(10*camera.zoom);
+			VectorD2 v = mouseDiff().rotCC().nor().mul(10*camera.zoom);
 			
 			// of triangle
 			Vector2 pointA = mouseStartVector.cpy().add(v).toVector2();
 			Vector2 pointB = mouseStartVector.cpy().sub(v).toVector2();
-//			Vector2 pointA = mouseStartVector.cpy().add(xr, yr).toVector2();
-//			Vector2 pointB = mouseStartVector.cpy().sub(xr, yr).toVector2();
 			Vector2 pointC = mouseVector.toVector2();
 
 			// draw an arrow-like triangle from startMouse to current mousePos

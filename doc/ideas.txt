@@ -1,13 +1,10 @@
 mass-placera planeter. t.ex. i en kvadrat, inom en cirkel, eller lite random
 inom ett område.
 
-lista med alla planeter. som det är så måste man starta om speled om man satt
+lista med alla planeter. som det är så måste man starta om spelet om man satt
 ut en planet med t.ex. m=1e156
 
 option för att programmet ska beräkna parametrar för att planeter ska orbitera.
-
-kunna makera och arbeta med flera planter samtidigt.
-På så sätt kan man hjälpa användaren skapa fungerande solsystem.
 
 svarta hål
 
@@ -19,8 +16,6 @@ varma solar
 
 achievementsystem eller på annat sätt "challenges" till användaren.
 
-template-solsystem
-
 spara vad man gjort i en fil.
 
 simplificera mass-systemet. t.ex. vi har planetsorlekar 1-10 och densiteter
@@ -29,9 +24,6 @@ istället för massa är för att det ger fler veriationer om de olika
 inställningarna samspelar (mer spännande/intressant så).
 
 bigbang - autogenererande system. (med snabbspolning)
-
-kunna zooma in och ut.
-radar/karta uppe i högra hörnet. universum blir lätt väldigt stora.
 
 
 (3D-universum) <-- tar nog för lång tid och kan behöva göra om ganska mycket.

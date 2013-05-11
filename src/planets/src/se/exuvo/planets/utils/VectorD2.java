@@ -180,6 +180,27 @@ public class VectorD2 {
 	}
 	
 	
+	/**
+	 * Rotates this VectorD2 90-degrees counter-clockwise.
+	 * @return a reference to this VectorD2.
+	 */
+	public VectorD2 rotCC() {
+		final double temp = y;
+		y = x;
+		x = -temp;
+		return this;
+	}
+	
+	/**
+	 * Rotates this VectorD2 90-degrees clockwise.
+	 * @return a reference to this VectorD2.
+	 */
+	public VectorD2 rotC() {
+		final double temp = y;
+		y = -x;
+		x = temp;
+		return this;
+	}
 	
 	/**
 	 * Normalizes this vector:
