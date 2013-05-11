@@ -38,6 +38,7 @@ public class CollisionSystem extends EntitySystem {
 	public static double MIN_SIDE = 1e1f;
     public static double TREE_SIDE =Double.MAX_VALUE;// MIN_SIDE * Math.pow(2, ColQuadTree.maxDepth); // TODO
     public boolean collisions = true;
+	private double contemporaryDelta = 7d;
 	ColQuadTree tree = new ColQuadTree(new VectorD2(), TREE_SIDE);
 	Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
 	
@@ -96,39 +97,63 @@ public class CollisionSystem extends EntitySystem {
 	        	long timeH = System.nanoTime();
 	        	
 	        	Collections.sort(cs); // reverse sort
-	        	Collision c = cs.remove(cs.size()-1);
+	        	double t = cs.remove(cs.size()-1).t;
+	        	
+	            timeLimit -= t;
+	            updatePlanetPositions(entities, t); // forward t time
 	            
-	            timeLimit -= c.t;
-	            updatePlanetPositions(entities, c.t); // forward t time
-	            handleCollision(c.e1, c.e2);
+	            List<Collision> toHandle = new ArrayList<Collision>();
 	            
-	            // remove collisions involving c.e1 or c.e2
-	            for (int i = cs.size() -1; i >= 0; --i) {
-	            	Collision col = cs.get(i);
-	            	if (col.e1 == c.e1 || col.e1 == c.e2 || col.e2 == c.e1 || col.e2 == c.e2) {
-	            		cs.remove(i);
+	            // get collisions happening at exactly the same time.
+	            for (int i = cs.size()-1; i >= 0; i--) {
+	            	Collision c = cs.get(i);
+	            	double diff = c.t - t;
+	            	if (diff > contemporaryDelta) { // c.t > t + delta
+	            		break;
 	            	} else {
-	            		col.t -= c.t;
+	            		if (!toHandle.contains(c)) { // i.e. contains clone
+		            		toHandle.add(c);
+	            		}
 	            	}
 	            }
-	            VectorD2 p1 = pm.get(c.e1).vec;
-	            double r1 = rm.get(c.e1).radius;
-	            VectorD2 v1 = vm.get(c.e1).vec;
-				
-	            VectorD2 p2 = pm.get(c.e2).vec;
-	            double r2 = rm.get(c.e2).radius;
-	            VectorD2 v2 = vm.get(c.e2).vec;
 	            
-				Circle vc1 = new Circle(p1, r1+v1.len());
-				Circle old1 = circles.put(c.e1, vc1);
-				Circle vc2 = new Circle(p2, r2+v2.len());
-				Circle old2 = circles.put(c.e2, vc2);
-				
-	            tree.update(c.e1, old1, vc1);
-	            tree.update(c.e2, old2, vc2);
+	            List<Entity> toUpdate = new ArrayList<Entity>();
 	            
-	            tree.getCollisions(c.e1, vc1, cs, timeLimit, pm, rm, vm);
-	            tree.getCollisions(c.e2, vc2, cs, timeLimit, pm, rm, vm);
+	            // handle
+	            for (Collision c : toHandle) {
+		            handleCollision(c.e1, c.e2);
+		            if (!toUpdate.contains(c.e1)){ 
+			            toUpdate.add(c.e1);
+		            }
+		            if (!toUpdate.contains(c.e2)) {
+			            toUpdate.add(c.e2);
+		            }
+		            
+		            // remove collisions involving c.e1 OR c.e2
+		            for (int j = cs.size() -1; j >= 0; --j) {
+		            	Collision col = cs.get(j);
+		            	if (col.e1 == c.e1 || col.e1 == c.e2 || col.e2 == c.e1 || col.e2 == c.e2) {
+		            		cs.remove(j);
+		            	} else {
+		            		col.t -= c.t;
+		            	}
+		            }
+	            }
+	            
+	            // update
+	            for (Entity e : toUpdate) {
+		            VectorD2 p = pm.get(e).vec;
+		            double r = rm.get(e).radius;
+		            VectorD2 v = vm.get(e).vec;
+					
+					Circle vc = new Circle(p, r+v.len());
+					Circle old = circles.put(e, vc);
+					
+		            tree.update(e, old, vc);
+
+		            tree.getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
+	            }
+	            
 	            timeH = System.nanoTime() - timeH;
 	//	    	System.out.println("colHandl: "+timeH*1e-6+" ms");
 	        }
@@ -228,9 +253,9 @@ public class CollisionSystem extends EntitySystem {
 		double r = r1+r2;
 		
 //		// if the planets are already moving away from each other.
-//	    if (v.dot(p) > 0) {
-//	        return Double.NaN;
-//	    }
+	    if (v.dot(p) > 0) {
+	        return Double.NaN;
+	    }
 	    
 		// TODO can formula be changed to use len2 instead?
 		double pLen = p.len();
@@ -258,9 +283,9 @@ public class CollisionSystem extends EntitySystem {
         VectorD2 p = p1.cpy().sub(p2);
         
         // if the planets are already moving away from each other.
-	    if (v1.cpy().sub(v2).dot(p) > 0) {
-	        return;
-	    }
+//	    if (v1.cpy().sub(v2).dot(p) > 0) {
+//	        return;
+//	    }
 	    
         // normal and tangent
         VectorD2 un = p.cpy().nor();
