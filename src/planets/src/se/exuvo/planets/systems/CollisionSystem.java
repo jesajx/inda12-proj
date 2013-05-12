@@ -177,7 +177,8 @@ public class CollisionSystem extends EntitySystem {
     }
     
     /** Compare e1 and e2 to all other elements. */
-    private void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, double timeLimit) { // O(n)
+    @Deprecated
+    public void getCollisions(ImmutableBag<Entity> entities, Entity e1, Entity e2, List<Collision> cs, double timeLimit) { // O(n)
     	long time = System.nanoTime();
 		VectorD2 p1 = pm.get(e1).vec;
 		double r1 = rm.get(e1).radius;
@@ -211,7 +212,9 @@ public class CollisionSystem extends EntitySystem {
     }
     
     
-    private void getAllCollisions(ImmutableBag<Entity> entities, List<Collision> cs, double timeLimit) { // O(n^2) // TODO EXTREMLY SLOW. NEEDS OPTIMIZATION.
+    /** SLOW. */
+    @Deprecated
+    public void getAllCollisions(ImmutableBag<Entity> entities, List<Collision> cs, double timeLimit) { // O(n^2)
     	long time = System.nanoTime();
 		for (int i = 0; i < entities.size(); ++i) {
 	    	Entity e1 = entities.get(i);
@@ -253,7 +256,7 @@ public class CollisionSystem extends EntitySystem {
 		double r = r1+r2;
 		
 //		// if the planets are already moving away from each other.
-	    if (v.dot(p) > 0) {
+	    if (v.dot(p) > 0) { // decreases lag.
 	        return Double.NaN;
 	    }
 	    
@@ -261,7 +264,7 @@ public class CollisionSystem extends EntitySystem {
 		double pLen = p.len();
 	    double vLen = v.len();
 	    
-	    return (pLen - (r)) / vLen; // TODO if neg.
+	    return (pLen - r) / vLen; // TODO if neg.
     }
             
     /**
@@ -282,11 +285,6 @@ public class CollisionSystem extends EntitySystem {
         
         VectorD2 p = p1.cpy().sub(p2);
         
-        // if the planets are already moving away from each other.
-//	    if (v1.cpy().sub(v2).dot(p) > 0) {
-//	        return;
-//	    }
-	    
         // normal and tangent
         VectorD2 un = p.cpy().nor();
         VectorD2 ut = un.cpy().rotCC();

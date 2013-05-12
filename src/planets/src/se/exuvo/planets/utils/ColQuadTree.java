@@ -169,13 +169,13 @@ public class ColQuadTree {
         	if (vc.b.xmax < center.x) {
         		if (vc.b.ymax < center.y) {
         			return BL;
-        		} else if (vc.b.ymin >= center.y) {
+        		} else if (vc.b.ymin > center.y) {
         			return TL;
         		}
-        	} else if (vc.b.xmin >= center.x) {
+        	} else if (vc.b.xmin > center.x) {
 				if (vc.b.ymax < center.y) {
 					return BR;
-        		} else if (vc.b.ymin >= center.y) {
+        		} else if (vc.b.ymin > center.y) {
         			return TR;
         		}
         	}
@@ -267,14 +267,16 @@ public class ColQuadTree {
                 }
                 
                 for (Entity e2 : subentities) {
-                    VectorD2 p2 = pm.get(e2).vec;
-                    VectorD2 v2 = vm.get(e2).vec;
-                    double r2 = sm.get(e2).radius;
-                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
-                        Collision c = new Collision(e1, e2, t);
-                        cs.add(c);
-                    }
+                	if (e2.isActive()) {
+	                    VectorD2 p2 = pm.get(e2).vec;
+	                    VectorD2 v2 = vm.get(e2).vec;
+	                    double r2 = sm.get(e2).radius;
+	                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+	                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
+	                        Collision c = new Collision(e1, e2, t);
+	                        cs.add(c);
+	                    }
+                	}
                 }
                 
             }
