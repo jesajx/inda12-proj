@@ -153,6 +153,8 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 	}
 
 	private void copyWorld(ImmutableBag<Entity> entities) {
+		inserted.removeAll(removed);//If something added has already been removed
+		
 		// Add new entities
 		for (int i = 0; i < inserted.size(); i++) {
 			Entity e = inserted.get(i);
