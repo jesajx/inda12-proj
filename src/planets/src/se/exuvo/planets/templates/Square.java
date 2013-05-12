@@ -10,7 +10,7 @@ public class Square extends Template {
 	private int side = 30;
 	private int padding = 500;
 	private double radius = 100d;
-	private double mass = 1e10d;
+	private double mass = 1e1d;
 	
 	@Override
 	public void load(World world) {

@@ -213,8 +213,6 @@ public class GravQuadTree {
 					mass = mm.get(entity).mass;
 					massVector.set(p).mul(mass);
 				}
-			} else {
-				throw new RuntimeException("det var det!");
 			}
 		} else if (hasChildren()){
 			bl.update(moved, mm, pm);
