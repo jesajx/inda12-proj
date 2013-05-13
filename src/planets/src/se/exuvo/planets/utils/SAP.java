@@ -94,8 +94,8 @@ public class SAP {
 //	}
 //	
 	public void getAllCollisions(List<Collision> cs, double timeLimit) {
-		T handler = new T();
-		Thread t = new Thread(handler);
+//		T handler = new T();
+//		Thread t = new Thread(handler);
 		List<BoundingBox> activeList = new ArrayList<BoundingBox>();
 		int jOffset = 0;
 		for (BoundingBox b1 : xList) {
