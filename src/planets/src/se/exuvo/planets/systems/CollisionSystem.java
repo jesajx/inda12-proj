@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
@@ -340,5 +342,4 @@ public class CollisionSystem extends EntitySystem {
 		tree.remove(e);
 		circles.remove(e);
 	}
-
 }

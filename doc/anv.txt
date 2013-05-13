@@ -1,6 +1,6 @@
 joh anteckningar:
 
-rödmarkera fält i ui.
+*rödmarkera fält i ui.
 clearknapp för varje fält.
 
 color presets ("BLACK", "GREEN", etc.).
@@ -10,9 +10,9 @@ enheter vid fält
 
 pausa effekter
 
-set-dra velocity och add-dra velocity
+*set-dra velocity och add-dra velocity
 
-multi-select
+*multi-select
 
 
 
