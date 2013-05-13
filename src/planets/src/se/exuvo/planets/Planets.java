@@ -116,7 +116,7 @@ public class Planets extends Game implements Screen {
 			int stepsBehind = (int) (accumulator / physicsInterval);
 			int step = Math.min(stepsBehind, physicsSkip);
 			accumulator -= step * physicsInterval;
-
+			
 			world.setDelta(physicsInterval * step * 10);
 
 			gravSystem.process();

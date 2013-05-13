@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
@@ -23,7 +21,6 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
-import com.artemis.utils.FastMath;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -86,12 +83,13 @@ public class CollisionSystem extends EntitySystem {
 	        	double r = rm.get(e).radius;
 	        	VectorD2 v = pm.get(e).vec;
 	        	
-	        	Circle vc = new Circle(p, r+FastMath.sqrt(v.len2()));
+	        	Circle vc = new Circle(p, r+v.len());
 	        	Circle old = circles.put(e, vc);
 	        	
 	        	tree.update(e, old, vc);
 	        }
 	//		System.out.println("colUpd: "+(System.nanoTime()-time)*1e-6+" ms");
+	        
 			tree.getAllCollisions(cs, timeLimit, pm, rm, vm); // TODO slow
 	//		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
 			
@@ -99,7 +97,7 @@ public class CollisionSystem extends EntitySystem {
 	        	long timeH = System.nanoTime();
 	        	
 	        	Collections.sort(cs); // reverse sort
-	        	double t = cs.remove(cs.size()-1).t;
+	        	double t = cs.get(cs.size()-1).t;
 	        	
 	            timeLimit -= t;
 	            updatePlanetPositions(entities, t); // forward t time
@@ -109,13 +107,11 @@ public class CollisionSystem extends EntitySystem {
 	            // get collisions happening at exactly the same time.
 	            for (int i = cs.size()-1; i >= 0; i--) {
 	            	Collision c = cs.get(i);
-	            	double diff = c.t - t;
-	            	if (diff > contemporaryDelta) { // c.t > t + delta
+	            	c.t -= t;
+	            	if (c.t > contemporaryDelta) { // c.t > t + delta
 	            		break;
 	            	} else {
-	            		if (!toHandle.contains(c)) { // i.e. contains clone
-		            		toHandle.add(c);
-	            		}
+	            		toHandle.add(c);
 	            	}
 	            }
 	            
@@ -157,15 +153,15 @@ public class CollisionSystem extends EntitySystem {
 	            }
 	            
 	            timeH = System.nanoTime() - timeH;
-	//	    	System.out.println("colHandl: "+timeH*1e-6+" ms");
+//		    	System.out.println("colHandl: "+timeH*1e-6+" ms");
 	        }
     	}
         
         updatePlanetPositions(entities, timeLimit);
         
     	time = System.nanoTime() - time;
-//    	System.out.println("colproc: "+time*1e-6+" ms");
-//    	System.out.println();
+    	System.out.println("colproc: "+time*1e-6+" ms");
+    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, double time) { // O(n)
@@ -256,7 +252,9 @@ public class CollisionSystem extends EntitySystem {
     	VectorD2 p = p1.cpy().sub(p2);
 		VectorD2 v = v1.cpy().sub(v2);
 		double r = r1+r2;
-		
+		if (p.len2() < r*r) {
+			return 0d;
+		}
 //		// if the planets are already moving away from each other.
 	    if (v.dot(p) > 0) { // decreases lag.
 	        return Double.NaN;

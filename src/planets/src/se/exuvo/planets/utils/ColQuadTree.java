@@ -68,50 +68,9 @@ public class ColQuadTree {
     }
 	
     public void update(Entity e, Circle old, Circle vc) {
-        if (depth < maxDepth) {
-		    int q = getQuadrant(e, old);
-	        int qn = getQuadrant(e, vc);
-	        
-	        
-	        
-	        if (q == -1) {
-	        	if (qn != -1) {
-	        		if (entities != null) {
-		        		entities.remove(e);
-	        		}
-	        		if (subs != null) {
-		        		if (subs[qn] == null) {
-				        	addSubtree(qn);
-				        }
-		        		subs[qn].add(e, vc);
-	        		}
-	        	}
-	        } else {
-	        	
-	        	if (qn == -1) {
-	        		if (entities == null) {
-        				entities = new ArrayList<Entity>();
-        			}
-    				entities.add(e);
-	        	} else {
-        			if (subs == null) {
-        				subs = new ColQuadTree[4];
-        			}
-        			if (subs[qn] == null) {
-			        	addSubtree(qn);
-			        }
-        			if (qn == q) {
-        				subs[qn].update(e, old, vc);
-        			} else {
-        				if (subs != null && subs[q] != null) {
-        					subs[q].remove(e, old);
-        				}
-        				subs[qn].add(e, vc);
-        			}
-	        	}
-	        }
-        }
-    }
+    	remove(e, old);
+    	add(e, vc);
+	}
     
     
     
@@ -119,16 +78,26 @@ public class ColQuadTree {
 	public void remove(Entity e) {
     	if (entities != null) {
             entities.remove(e);
+            if (entities.contains(e)) {
+            	throw new RuntimeException();
+            }
         }
+    	if (subentities != null) {
+    		subentities.remove(e);
+    	}
     	if (subs != null) {
-		    for (int i = 0; i < 4; i++) {
-		    	if (subs[i] != null) {
-		    		subs[i].remove(e);
+    		for (ColQuadTree t : subs) {
+		    	if (t != null) {
+		    		t.remove(e);
 		    	}
 		    }
         }
 	}
+
 	public void remove(Entity e, Circle vc) {
+    	if (subentities != null) {
+    		subentities.remove(e);
+    	}
 		int q = getQuadrant(e, vc);
         if (depth >= maxDepth || q == -1) {
         	if (entities != null) {
@@ -165,21 +134,19 @@ public class ColQuadTree {
     }
     
     public int getQuadrant(Entity e, Circle vc) {
-        if (depth < maxDepth) {
-        	if (vc.b.xmax < center.x) {
-        		if (vc.b.ymax < center.y) {
-        			return BL;
-        		} else if (vc.b.ymin > center.y) {
-        			return TL;
-        		}
-        	} else if (vc.b.xmin > center.x) {
-				if (vc.b.ymax < center.y) {
-					return BR;
-        		} else if (vc.b.ymin > center.y) {
-        			return TR;
-        		}
-        	}
-        }
+    	if (vc.b.xmax < center.x) {
+    		if (vc.b.ymax < center.y) {
+    			return BL;
+    		} else if (vc.b.ymin >= center.y) {
+    			return TL;
+    		}
+    	} else if (vc.b.xmin > center.x) {
+			if (vc.b.ymax < center.y) {
+				return BR;
+    		} else if (vc.b.ymin >= center.y) {
+    			return TR;
+    		}
+    	}
         return -1;
     }
     
@@ -187,10 +154,10 @@ public class ColQuadTree {
 	private void addSubtree(int tree) {
 		double s = side / 2;
 		switch (tree) {
-		case BL: subs[BL] = new ColQuadTree(new VectorD2(-s, -s).add(center), s); break;
-		case BR: subs[BR] = new ColQuadTree(new VectorD2(s, -s).add(center), s); break;
-		case TL: subs[TL] = new ColQuadTree(new VectorD2(-s, s).add(center), s); break;
-		case TR: subs[TR] = new ColQuadTree(new VectorD2(s, s).add(center), s); break;
+		case BL: subs[BL] = new ColQuadTree(center.cpy().add(-s/2, -s/2), s); break;
+		case BR: subs[BR] = new ColQuadTree(center.cpy().add(s/2, -s/2), s); break;
+		case TL: subs[TL] = new ColQuadTree(center.cpy().add(-s/2, s/2), s); break;
+		case TR: subs[TR] = new ColQuadTree(center.cpy().add(s/2, s/2), s); break;
 		default: throw new RuntimeException();
 		}
 		subs[tree].depth = depth + 1;
@@ -202,27 +169,14 @@ public class ColQuadTree {
 	 * Walk tree to find collisions involving e.
 	 */
 	public void getCollisions(Entity e, Circle vc, List<Collision> cs, double timeLimit, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm) {
-        if (subs != null) {
-	    	int q = getQuadrant(e, vc);
-        	if (q == -1) {
-        		VectorD2 p1 = pm.get(e).vec;
-		        double r1 = rm.get(e).radius;
-	            VectorD2 v1 = vm.get(e).vec;
-	            
-	            for (Entity e2 : entities) {
-                    VectorD2 p2 = pm.get(e2).vec;
-                    double r2 = rm.get(e2).radius;
-                    VectorD2 v2 = vm.get(e2).vec;
-                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
-                        Collision c = new Collision(e, e2, t);
-                        if (!cs.contains(c)) {
-	                        cs.add(c);
-                        }
-                    }
-	            }
-	            
-	            for (Entity e2 : subentities) {
+    	int q = getQuadrant(e, vc);
+    	if (q == -1) {
+    		VectorD2 p1 = pm.get(e).vec;
+	        double r1 = rm.get(e).radius;
+            VectorD2 v1 = vm.get(e).vec;
+            
+            for (Entity e2 : entities) {
+            	if (e != e2) {
                     VectorD2 p2 = pm.get(e2).vec;
                     double r2 = rm.get(e2).radius;
                     VectorD2 v2 = vm.get(e2).vec;
@@ -231,13 +185,24 @@ public class ColQuadTree {
                         Collision c = new Collision(e, e2, t);
                         cs.add(c);
                     }
-	            }
-        	} else {
-        		if (subs[q] != null) {
-        			subs[q].getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
-        		}
-        	}
-        }
+            	}
+            }
+            
+            for (Entity e2 : subentities) {
+                VectorD2 p2 = pm.get(e2).vec;
+                double r2 = rm.get(e2).radius;
+                VectorD2 v2 = vm.get(e2).vec;
+                double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+                if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
+                    Collision c = new Collision(e, e2, t);
+                    cs.add(c);
+                }
+            }
+    	} else {
+    		if (subs != null && subs[q] != null) {
+    			subs[q].getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
+    		}
+    	}
 	}
 
 	
@@ -249,38 +214,42 @@ public class ColQuadTree {
             for (int i = 0; i < entities.size(); i++) {
                 Entity e1 = entities.get(i);
                 VectorD2 p1 = pm.get(e1).vec;
-                VectorD2 v1 = vm.get(e1).vec;
                 double r1 = sm.get(e1).radius;
+                VectorD2 v1 = vm.get(e1).vec;
                 
                 for (int j = i+1; j < entities.size(); j++) {
                     Entity e2 = entities.get(j);
                     VectorD2 p2 = pm.get(e2).vec;
-                    VectorD2 v2 = vm.get(e2).vec;
                     double r2 = sm.get(e2).radius;
+                    VectorD2 v2 = vm.get(e2).vec;
+                    
                     double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
                     if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
                         Collision c = new Collision(e1, e2, t);
-                        if (!cs.contains(c)) {
-	                        cs.add(c);
-                        }
+                        cs.add(c);
                     }
                 }
                 
-                for (Entity e2 : subentities) {
-                	if (e2.isActive()) {
-	                    VectorD2 p2 = pm.get(e2).vec;
-	                    VectorD2 v2 = vm.get(e2).vec;
-	                    double r2 = sm.get(e2).radius;
-	                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
-	                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
-	                        Collision c = new Collision(e1, e2, t);
-	                        cs.add(c);
-	                    }
-                	}
+                if (subentities != null) {
+	                for (Entity e2 : subentities) {
+	                	if (e2.isActive()) {
+		                    VectorD2 p2 = pm.get(e2).vec;
+		                    double r2 = sm.get(e2).radius;
+		                    VectorD2 v2 = vm.get(e2).vec;
+		                    double t = CollisionSystem.collisionTime(p1, r1, v1, p2, r2, v2);
+		                    if (!Double.isNaN(t) && t >= 0 && t < timeLimit) {
+		                        Collision c = new Collision(e1, e2, t);
+		                        cs.add(c);
+		                    }
+	                	} else {
+	                		throw new RuntimeException();
+	                	}
+	                }
                 }
                 
             }
-        } else if (subs != null) {
+        }
+        if (subs != null) {
         	for (ColQuadTree t : subs) {
         		if (t != null) {
 					t.getAllCollisions(cs, timeLimit, pm, sm, vm);
