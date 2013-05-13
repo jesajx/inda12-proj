@@ -252,11 +252,19 @@ public class InputSystem extends EntitySystem implements InputProcessor {
 				diff.mul(pushForceMultiplier);
 
 				if (lastCreatedPlanet == null) {
-					for (Entity e : selectedPlanets) {
-						vm.get(e).vec.add(diff);
+					if (selectedPlanets.size() == 1 && (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
+						vm.get(selectedPlanets.get(0)).vec.set(diff);
+					} else {
+						for (Entity e : selectedPlanets) {
+							vm.get(e).vec.add(diff);
+						}
 					}
 				} else {
-					vm.get(lastCreatedPlanet).vec.add(diff);
+					if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
+						vm.get(lastCreatedPlanet).vec.set(diff);
+					} else {
+						vm.get(lastCreatedPlanet).vec.add(diff);
+					}
 					lastCreatedPlanet = null;
 				}
 

@@ -62,6 +62,7 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 		addHelpRow("Keys", "Description", window, skin);
 		addHelpRow("Right Mouse", "Create planet", window, skin);
 		addHelpRow("Right Mouse + drag", "Create and push planet", window, skin);
+		addHelpRow("Right Mouse + shift + drag", "Create and set planet trejectory", window, skin);
 		addHelpRow("Left Mouse", "Select Planets", window, skin);
 		addHelpRow("Left Mouse + shift", "Select multiple", window, skin);
 		addHelpRow("Left Mouse over planet + drag", "Move planet", window, skin);

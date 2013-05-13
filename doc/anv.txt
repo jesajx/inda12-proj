@@ -1,3 +1,5 @@
+joh anteckningar:
+
 rödmarkera fält i ui.
 clearknapp för varje fält.
 
@@ -13,8 +15,11 @@ set-dra velocity och add-dra velocity
 multi-select
 
 
+
+
 exuvo anteckningar:
-* = löst
+(* = löst)
+
 *remove inget markerat
 *clear otydlig - användare tror den tömmer världen
 bättre färg väljare

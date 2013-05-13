@@ -48,6 +48,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 	private static int debug = 0;
 
 	private Label massLabel, radiusLabel;
+	private Labels velocityLabels, positionLabels;
 	private TextField mass, radius, color;
 	private TextFields velocity, acceleration, position;
 	private Bag<Entity> selectedPlanets;
@@ -99,9 +100,17 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		mass = addField(massLabel = new Label("Mass", skin), window, skin);
 		radius = addField(radiusLabel = new Label("Radius", skin), window, skin);
 		color = addField("Color", window, skin);
-		velocity = addField2("Velocity", window, skin);
-		position = addField2("Position", window, skin);
-		acceleration = addField2("Acceleration", window, skin);
+		
+		velocity = new TextFields();
+		velocityLabels = new Labels();
+		addField2(velocity, velocityLabels, "Velocity", window, skin);
+		
+		position = new TextFields();
+		positionLabels = new Labels();
+		addField2(position, positionLabels, "Position", window, skin);
+		
+		acceleration = new TextFields();
+		addField2(acceleration, new Labels(), "Acceleration", window, skin);
 		
 		color.setMessageText("RRGGBB");
 
@@ -193,14 +202,13 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		return field;
 	}
 
-	private TextFields addField2(String name, Table rootTable, Skin skin) {
+	private void addField2(TextFields fields, Labels labels, String name, Table rootTable, Skin skin) {
 		Table table = new Table(skin);
 		rootTable.add(table).expandX().fillX().row();
 
 		Label label = new Label(name, skin);
-		Label labelX = new Label("X", skin);
-		Label labelY = new Label("Y", skin);
-		TextFields fields = new TextFields();
+		labels.x = new Label("X", skin);
+		labels.y = new Label("Y", skin);
 		fields.x = new TextField("", skin);
 		fields.y = new TextField("", skin);
 		addTextFieldListener(fields.x);
@@ -208,13 +216,12 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 		table.add(label).colspan(2);
 		table.row();
-		table.add(labelX).padRight(10).padLeft(5);
+		table.add(labels.x).padRight(10).padLeft(5);
 		table.add(fields.x).expandX().fillX();
 		table.row();
-		table.add(labelY).padRight(10).padLeft(5);;
+		table.add(labels.y).padRight(10).padLeft(5);;
 		table.add(fields.y).fillX();
 		table.row();
-		return fields;
 	}
 
 	private void addTextFieldListener(final TextField f) {
@@ -272,7 +279,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 						VectorD2 mean = VectorD2Component.mean(vm, selectedPlanets);
 						for (Entity e : selectedPlanets) {
 							VectorD2 v = vm.get(e).vec;
-							v.add(-mean.x + f, 0f);
+							v.add(-mean.x + f, 0d);
 						}
 					} else if (selectedPlanets.size() == 1){
 						Velocity v = vm.get(selectedPlanets.get(0));
@@ -291,7 +298,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 						VectorD2 mean = VectorD2Component.mean(vm, selectedPlanets);
 						for (Entity e : selectedPlanets) {
 							VectorD2 v = vm.get(e).vec;
-							v.add(-mean.y + f, 0f);
+							v.add(0d, -mean.y + f);
 						}
 					} else if (selectedPlanets.size() == 1){
 						Velocity v = vm.get(selectedPlanets.get(0));
@@ -310,7 +317,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 						VectorD2 mean = VectorD2Component.mean(pm, selectedPlanets);
 						for (Entity e : selectedPlanets) {
 							VectorD2 p = pm.get(e).vec;
-							p.add(-mean.x + f, 0f);
+							p.add(-mean.x + f, 0d);
 						}
 					} else if (selectedPlanets.size() == 1){
 						Position p = pm.get(selectedPlanets.get(0));
@@ -329,7 +336,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 						VectorD2 mean = VectorD2Component.mean(pm, selectedPlanets);
 						for (Entity e : selectedPlanets) {
 							VectorD2 p = pm.get(e).vec;
-							p.add(-mean.y + f, 0f);
+							p.add(0d, -mean.y + f);
 						}
 					} else if (selectedPlanets.size() == 1){
 						Position p = pm.get(selectedPlanets.get(0));
@@ -421,6 +428,9 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		}
 	}
 
+	private static class Labels {
+		Label x, y;
+	}
 	private static class TextFields {
 		TextField x, y;
 	}
@@ -554,6 +564,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			if (selectedPlanets.size() == 1) {
 				Radius s = rm.get(selectedPlanets.get(0));
 				radius.setMessageText("" + s.radius);
+				colorValidateDoubleLabel(radiusLabel, readDoubleFromField(radius), s.radius);
 			} else if (selectedPlanets.size() == 2) {
 				radius.setMessageText("" + pm.get(selectedPlanets.get(0)).vec.dst(pm.get(selectedPlanets.get(1)).vec));
 			} else {
@@ -572,9 +583,23 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 			acceleration.y.setMessageText("" + acc.y);
 			position.x.setMessageText("" + pos.x);
 			position.y.setMessageText("" + pos.y);
+			
+			colorValidateDoubleLabel(massLabel, readDoubleFromField(mass), massSum);
+			colorValidateDoubleLabel(velocityLabels.x, readDoubleFromField(velocity.x), vel.x);
+			colorValidateDoubleLabel(velocityLabels.y, readDoubleFromField(velocity.y), vel.y);
+			colorValidateDoubleLabel(positionLabels.x, readDoubleFromField(position.x), pos.x);
+			colorValidateDoubleLabel(positionLabels.y, readDoubleFromField(position.y), pos.y);
 		}
 	}
-
+	
+	private void colorValidateDoubleLabel(Label l, double shown, double real) {
+		if (shown == real || Double.isNaN(shown)) {
+			l.setColor(Color.WHITE);
+		} else {
+			l.setColor(Color.YELLOW);
+		}
+	}
+	
 	private String readStringFromField(TextField tf) {
 		if (tf.getText() != null && !tf.getText().equals("")) {
 			return tf.getText();
