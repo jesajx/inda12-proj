@@ -2,9 +2,8 @@ package se.exuvo.planets.systems;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Vector;
 
 import se.exuvo.planets.components.Acceleration;
 import se.exuvo.planets.components.Mass;
@@ -12,8 +11,8 @@ import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Radius;
 import se.exuvo.planets.components.Velocity;
 import se.exuvo.planets.utils.Circle;
-import se.exuvo.planets.utils.ColQuadTree;
 import se.exuvo.planets.utils.Collision;
+import se.exuvo.planets.utils.SAP;
 import se.exuvo.planets.utils.VectorD2;
 
 import com.artemis.Aspect;
@@ -21,6 +20,7 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
 import com.artemis.annotations.Mapper;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -34,12 +34,16 @@ public class CollisionSystem extends EntitySystem {
 	@Mapper ComponentMapper<Mass> mm;
 	
         
-	public static double MIN_SIDE = 1e1f;
-    public static double TREE_SIDE =Double.MAX_VALUE;// MIN_SIDE * Math.pow(2, ColQuadTree.maxDepth); // TODO
     public boolean collisions = true;
 	private double contemporaryDelta = 7d;
-	ColQuadTree tree = new ColQuadTree(new VectorD2(), TREE_SIDE);
-	Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
+	
+	public static double MIN_SIDE = 1e1f;
+    public static double TREE_SIDE =Double.MAX_VALUE;// MIN_SIDE * Math.pow(2, ColQuadTree.maxDepth); // TODO
+    
+	
+    private SAP sap;
+//	private ColQuadTree tree = new ColQuadTree(new VectorD2(), TREE_SIDE);
+//	private Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
 	
 	
 	/** Used to check if the game is paused. */
@@ -58,6 +62,7 @@ public class CollisionSystem extends EntitySystem {
     	}
 		insys = world.getSystem(InputSystem.class);
 		ausys = world.getSystem(AudioSystem.class);
+		sap = new SAP();
 	}
     
     /**
@@ -75,22 +80,25 @@ public class CollisionSystem extends EntitySystem {
     	
         double timeLimit = world.getDelta();
         
-    	if (collisions) {
+    	if (collisions && entities.size() > 1) {
 	        List<Collision> cs = new ArrayList<Collision>();
-	        for (int i = 0; i < entities.size(); i++) {
-	        	Entity e = entities.get(i);
-	        	VectorD2 p = pm.get(e).vec;
-	        	double r = rm.get(e).radius;
-	        	VectorD2 v = pm.get(e).vec;
-	        	
-	        	Circle vc = new Circle(p, r+v.len());
-	        	Circle old = circles.put(e, vc);
-	        	
-	        	tree.update(e, old, vc);
-	        }
-	//		System.out.println("colUpd: "+(System.nanoTime()-time)*1e-6+" ms");
+//	        for (int i = 0; i < entities.size(); i++) {
+//	        	Entity e = entities.get(i);
+//	        	VectorD2 p = pm.get(e).vec;
+//	        	double r = rm.get(e).radius;
+//	        	VectorD2 v = pm.get(e).vec;
+//	        	
+//	        	Circle vc = new Circle(p, r+v.len());
+//	        	Circle old = circles.put(e, vc);
+//	        	
+//	        	tree.update(e, old, vc);
+//	        }
+	        sap.update(entities, pm, rm, vm);
+	        sap.sort();
+	        sap.getAllCollisions(cs, timeLimit);
+//			System.out.println("colUpd: "+(System.nanoTime()-time)*1e-6+" ms");
 	        
-			tree.getAllCollisions(cs, timeLimit, pm, rm, vm); // TODO slow
+//			tree.getAllCollisions(cs, timeLimit, pm, rm, vm); // TODO slow
 	//		System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
 			
 	        while (!cs.isEmpty()) {
@@ -115,7 +123,7 @@ public class CollisionSystem extends EntitySystem {
 	            	}
 	            }
 	            
-	            List<Entity> toUpdate = new ArrayList<Entity>();
+	            Bag<Entity> toUpdate = new Bag<Entity>();
 	            
 	            // handle
 	            for (Collision c : toHandle) {
@@ -138,18 +146,21 @@ public class CollisionSystem extends EntitySystem {
 		            }
 	            }
 	            
+	            sap.update(toUpdate, pm, rm, vm);
+				sap.sort();
 	            // update
 	            for (Entity e : toUpdate) {
-		            VectorD2 p = pm.get(e).vec;
-		            double r = rm.get(e).radius;
-		            VectorD2 v = vm.get(e).vec;
-					
-					Circle vc = new Circle(p, r+v.len());
-					Circle old = circles.put(e, vc);
-					
-		            tree.update(e, old, vc);
-
-		            tree.getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
+//		            VectorD2 p = pm.get(e).vec;
+//		            double r = rm.get(e).radius;
+//		            VectorD2 v = vm.get(e).vec;
+//					
+//					Circle vc = new Circle(p, r+v.len());
+//					Circle old = circles.put(e, vc);
+//					
+//		            tree.update(e, old, vc);
+//
+//		            tree.getCollisions(e, vc, cs, timeLimit, pm, rm, vm);
+	            	sap.getCollisions(e, cs, timeLimit);
 	            }
 	            
 	            timeH = System.nanoTime() - timeH;
@@ -252,9 +263,9 @@ public class CollisionSystem extends EntitySystem {
     	VectorD2 p = p1.cpy().sub(p2);
 		VectorD2 v = v1.cpy().sub(v2);
 		double r = r1+r2;
-		if (p.len2() < r*r) {
-			return 0d;
-		}
+//		if (p.len2() < r*r) {
+//			return 0d;
+//		}
 //		// if the planets are already moving away from each other.
 	    if (v.dot(p) > 0) { // decreases lag.
 	        return Double.NaN;
@@ -331,13 +342,15 @@ public class CollisionSystem extends EntitySystem {
 		double r = rm.get(e).radius;
 		VectorD2 v = vm.get(e).vec;
 		Circle vc = new Circle(p, r+v.len());
-		tree.add(e, vc);
-		circles.put(e,  vc);
+//		tree.add(e, vc);
+//		circles.put(e,  vc);
+		sap.add(e, pm, rm, vm);
 	}
 
 	@Override
 	protected void removed(Entity e) {
-		tree.remove(e);
-		circles.remove(e);
+//		tree.remove(e);
+//		circles.remove(e);
+		sap.remove(e);
 	}
 }
