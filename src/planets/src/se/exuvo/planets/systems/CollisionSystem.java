@@ -35,13 +35,7 @@ public class CollisionSystem extends EntitySystem {
     public boolean collisions = true;
 	private double contemporaryDelta = 7d;
 	
-	public static double MIN_SIDE = 1e1f;
-    public static double TREE_SIDE =Double.MAX_VALUE;// MIN_SIDE * Math.pow(2, ColQuadTree.maxDepth); // TODO
-    
-	
     private SAP sap = new SAP();
-//	private ColQuadTree tree = new ColQuadTree(new VectorD2(), TREE_SIDE);
-//	private Map<Entity, Circle> circles = new HashMap<Entity, Circle>();
 	
 	
 	/** Used to check if the game is paused. */
@@ -55,9 +49,6 @@ public class CollisionSystem extends EntitySystem {
     
     @Override
 	protected void initialize() {
-    	if (TREE_SIDE > Double.MAX_VALUE) {
-    		throw new ArithmeticException("Too big TREE_SIDE: " + TREE_SIDE);
-    	}
 		insys = world.getSystem(InputSystem.class);
 		ausys = world.getSystem(AudioSystem.class);
 	}

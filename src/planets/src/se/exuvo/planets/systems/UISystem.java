@@ -112,7 +112,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 		acceleration = new TextFields();
 		addField2(acceleration, new Labels(), "Acceleration", window, skin);
 		
-		color.setMessageText("RRGGBB");
+		color.setMessageText("RRGGBB"); // TODO clear when user entersfield
 
 		addFieldEnterListeners();
 		addFieldChangeListeners();

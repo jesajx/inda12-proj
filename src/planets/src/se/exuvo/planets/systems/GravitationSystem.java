@@ -57,9 +57,11 @@ public class GravitationSystem extends EntitySystem {
 
 		for (int i = 0; i < entities.size(); i++) { // update accelerations
 			Entity e = entities.get(i);
-			VectorD2 a = am.get(e).vec;
-			a.set(0f, 0f);
-			tree.updateAcceleration(entities.get(i), theta, G, mm, pm, am, world.getDelta());
+			if (e.isActive()) { // TODO this check shouldn't be necessary.
+				VectorD2 a = am.get(e).vec;
+				a.set(0f, 0f);
+				tree.updateAcceleration(entities.get(i), theta, G, mm, pm, am, world.getDelta());
+			}
 		}
 
 		time = System.nanoTime() - time;

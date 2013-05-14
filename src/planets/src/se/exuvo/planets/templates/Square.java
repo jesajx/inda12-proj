@@ -23,7 +23,14 @@ public class Square extends Template {
 
 	@Override
 	public String getDescription() {
-		return "A whole bunch of planets\nplaced in a grid,\nforming a square.\nThere are " + (side*side) + " planets\nin this template.";
+		return "A whole bunch of planets\n" +
+				"placed in a grid-like pattern.\n" +
+				"There are " + (side*side) + " planets\n" +
+				"in this template - exceptionally good\n" +
+				"at causing collision-lagg.\n" +
+				"Also see what happens when\n"+
+				"collisions are turned off\n" +
+				"and some planets gain mass!";
 	}
 
 }

@@ -11,7 +11,7 @@ public class Simple extends Template {
 
 	@Override
 	public void load(World world) {
-		double m1 = 1e18, m2 = 1e4, m3 = 1e4,
+		double m1 = 1e19, m2 = 1e4, m3 = 1e4,
 				r1 = 2000d, r2 = 500, r3 = 400,
 				d1 = 0d, d2 = 1e4d, d3 = 2*d2;
 		VectorD2 p1, p2, p3, v1, v2, v3;
@@ -41,7 +41,8 @@ public class Simple extends Template {
 
 	@Override
 	public String getDescription() {
-		return "";
+		return "A simple system with a sun\n" +
+				"and two orbitals";
 	}
 
 }

@@ -75,27 +75,7 @@ public class SAP {
 			}
 		}
 	}
-//	
-//	private static class T implements Runnable {
-//		ConcurrentLinkedDeque<BoundingBoxPair> queue = new ConcurrentLinkedDeque<BoundingBoxPair>();
-//		boolean done = false;
-//		@Override
-//		public void run() {
-//			while (!done) {
-//				if (!queue.isEmpty()) {
-//					BoundingBoxPair p = queue.pollFirst();
-//					
-//					if (p.b1.ymin < p.b2.ymax && p.b1.ymax >= p.b2.ymin) {
-//						check(p.b1, p.b2, cs, timeLimit);
-//					}
-//				}
-//			}
-//		}
-//	}
-//	
 	public void getAllCollisions(List<Collision> cs, double timeLimit) {
-//		T handler = new T();
-//		Thread t = new Thread(handler);
 		List<BoundingBox> activeList = new ArrayList<BoundingBox>();
 		int jOffset = 0;
 		for (BoundingBox b1 : xList) {
@@ -103,12 +83,11 @@ public class SAP {
 				BoundingBox b2 = activeList.get(j);
 				
 				if (b1.xmax < b2.xmin) {
-					jOffset++; // instead of activeList.remove(b2);
+					activeList.remove(b2);
 				} else {
 					if (b1.ymin < b2.ymax && b1.ymax >= b2.ymin) {
 						check(b1, b2, cs, timeLimit);
 					}
-//					handler.queue.addLast(new BoundingBoxPair(b1, b2));
 					j++;
 				}
 			}

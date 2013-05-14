@@ -73,7 +73,7 @@ public class HelpSystem extends VoidEntitySystem implements InputProcessor {
 		addHelpRow("ALT", "Speed x50", window, skin);
 		addHelpRow("CTRL + ALT", "Speed x200", window, skin);
 		addHelpRow("C", "Toggle collisions", window, skin);
-		addHelpRow("Mouse Wheel", "Move camera", window, skin);
+		addHelpRow("Mouse Wheel-button", "Move camera", window, skin);
 		addHelpRow("Scroll", "Zoom", window, skin);
 
 		window.row();
