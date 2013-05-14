@@ -1,24 +1,31 @@
-Vi testar programmet när det blivit stabilt och de flesta funktioner är fungerande genom användartestning.
+Vi testade programmet när det blivit stabilt och de flesta funktioner
+är fungerande genom användartestning.
 
-Användartestningen skedde genom att ta tag i lämplig kth student efter en föreläsning och försöka få denne att utföra följande uppgifter:
+Användartestningen skedde genom att ta tag i lämplig kth student efter
+en föreläsning och försöka få denne att utföra följande uppgifter:
 \begin{enumerate}
     \item Skapa ett solsystem med en planet och en tillhörande måne.
     \item Skapa ett dubbelstjärnigt solsystem eventuellt med
         en tillhörande planet.
 \end{enumerate}
 
-Vi tog en student från inda12 som har goda fysik kunskaper och passar in på användar scenario 1.
+Vi tog en student från inda12 som har goda fysik kunskaper
+och passar in på användar scenario 1.
 Innan användaren började förklarade vi kort med ord (utan att visa)
 vad vi ville att hen skulle försöka utföra.
 Vi förklarade att det grafiska gränssnittet ännu inte är användarvänligt,
- vilket är anledningen till att vi utför testet, och att eventuella misslyckanden inte beror på användaren.
+vilket är anledningen till att vi utför testet, och att eventuella
+misslyckanden inte beror på användaren.
 
 Vi anmärkte tydligt att programmet är under utveckling och
 att det därför är det fullt möjligt att buggar gör uppgifterna omöjliga.
 Vi bad användaren att säga högt vad hen tänker så att vi kan förstå vad som
 behöver ändras/förtydligas för en användarvänlig design.
 
-Efter ca 1 minut så blev det uppenbart att kontrollerna inte var intuitiva nog då användaren inte förstod hur han skulle göra. Vi förklarade kort vilka mus- och tangent-knappar som gör vad och lät användaren fortsätta.
+Efter ca 1 minut så blev det uppenbart att kontrollerna inte var
+intuitiva nog då användaren inte förstod hur han skulle göra.
+Vi förklarade kort vilka mus- och tangent-knappar som gör vad och
+lät användaren fortsätta.
 
 TODO
 för stor massa och det blev otydlig infinite bug.
@@ -27,3 +34,71 @@ framtidsyn slutade fungera korrekt, visade endast nuvarande hastighet.
 Vi upptäckte bl.a. att även fast användaren hade goda fysik kunskaper så
 var det svårt att uppskatta vilka storleksordningar på massor som är
 lagom för för planeter på olika avstånd och med olika hastigheter.
+
+
+
+
+\begin{description}
+    \item[Det var otydligt hur färg ändrades (RGB-kod) och testpersonen
+    tyckte förinställda färger kunda ha varit bra (''BLÅ'', ''GRÅ'', etc.).]
+    Detta förtydligades genom att ''RRGGBB'' står i fältet om användaren inte
+    ändrat det. Färger ansågs som en mindre del av programmet och
+    då libgdx inte tycktes ha ett färgväljar-fönster inbyggt, deprioriterades
+    vidare förbättringar av färgväljningen.
+
+    \item[Det var otydligt om planetparametrar hade justerats efter ändringar i
+    fält. Användaren måste klicka enter i varje fält som ändrats.
+    Ingen respons ges om ändringen applicerats.]
+    Det förtydligades genom att rubriktexter till fälten (t.ex. ''Mass'')
+    skrevs i gulfärg om värdet i texten inte överensstämmde med värdet
+    motsvarande planet hade, annars i vit färg.
+
+    \item[När användaren höger-klicks-drar i en planet kan en hastighet
+    adderas till planetens nuvarande hastighet.
+    Användaren försökte bl.a. ändra riktining på eller stanna planeten
+    med funktionen, vilket var problematiskt då det är svårt och
+    användaren fick dra många gånger.]
+    Detta förbättrades genom att shift + höger-klicks-drag sätter hastigheten
+    snarare än adderar till den.
+
+    \item[Att kunna markera flera planeter och t.ex. justera deras gemensamma
+    hastighet hade varit användbart. Till exempel om användaren lyckas
+    skapa ett solsystem, men att de i sin helhet rör sig bortåt, skulle
+    användaren kunna nollställa den gemensamma hastigheten så att planeterna
+    fortsätter kretsa runt varandra, men att systemet i sin helhet inte rör
+    sig bortåt.]
+    Fler-planets-markering lades till: shift + vänster-klick markerar flera
+    planeter utan att avmarkera redan markerade planeter.
+    Fälten justerades så att t.ex. hastighet och position var en ''medelvärde''
+    av de markerade planeternas värden.
+
+
+    \item[Det kunde vara svårt att navigera mellan planeter.]
+    T-knappen kan användas för att slå av och på att skärmen följer
+    den markerade planeten. N-knappen kan användas för att skärmen
+    ska hoppa till och markera nästa planet (i ordningen de skapats).
+
+    \item[Det var svårt att avgöra hur mycket skärmen var ut-zoomad från
+    simulator-världen utan att sätta ut planeter och jämföra.]
+    Zoom-nivån lades till i nedre högra hörnet av skärmen, tillsammans
+    med en ''klammer'' som brukar finnas på många kartor.
+    Dessa visar hur stort avståndet är mellan taggarna på klammern är med
+    nuvarande ut-zoomning.
+
+    \item[Om inga värden angivits i fälten när en planet skapas, slumpas värden 
+    fram. Dessa värden var inte alltid rimliga.
+    Till exempel hade planeterna för låga massor för att de skulle generera
+    märkbar gravitation.]
+    slump värdena justerades.
+
+    \item[Någon form av hjälp-meny som beskriver kontrollerna hade
+    varit användbar.]
+    En knapp i vänstermenyn lades till, vilken öppnar ett kortfattat
+    hjälp-fönster när den trycks.
+
+\end{description}
+
+Vidare upptäcktes vissda buggar, t.ex. att programmet kraschar om
+''remove''-knappen klickas när ingen planet är markerad.
+
+
