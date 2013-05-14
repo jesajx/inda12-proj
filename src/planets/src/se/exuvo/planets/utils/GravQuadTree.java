@@ -178,7 +178,7 @@ public class GravQuadTree {
 			// F = m*a
 			// a = G*M/d^2
 			double a = G*M/d2;
-			double k = (float) (a * FastMath.inverseSqrt(d2)); // normalize diff
+			double k = (float) (a * FastMath.inverseSqrt(d2)); // normalizes diff
 			if (!Double.isNaN(k)) {
 				VectorD2 accVec = am.get(e).vec;
 				accVec.add(diff.mul(k).mul(delta));

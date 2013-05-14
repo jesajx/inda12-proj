@@ -23,7 +23,7 @@ public class GravitationSystem extends EntitySystem {
 	 * The Gravitational Constant. TODO Should have the same value as in reality if we want to use realistic masses/distances/times/etc. for
 	 * planets. This does however mean that planets need to have GIGANTIC masses, distances and time to properly orbit.
 	 */
-	private float G = 6.6726e-11f;
+	public static float G = 6.6726e-11f;
 	private float theta = 0.5f; // lower for accuracy, heighten for speed
 	public float side = 1e20f; // TODO globalize
 	public GravQuadTree tree = new GravQuadTree(new VectorD2(-side / 2, -side / 2), side);// TODO increase size of the universe.

@@ -26,7 +26,16 @@ public class EarthAndSun extends Template {
 
 	@Override
 	public String getDescription() {
-		return "Earth and sun\nwith realistic sizes\nand distance.";
+		return
+			"Star and planet with the\n" +
+			"realworld parameters of\n" +
+			"the sun and the earth.\n"+
+			"It's sort of buggy, but\n" +
+			"realistic! It should take\n" +
+			"an actual year for the\n" +
+			"earth to orbit the sun!\n" +
+			"Try it if you have a lot\n" +
+			"of time on your hands.";
 	}
 
 }
