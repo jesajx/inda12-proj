@@ -20,6 +20,9 @@ import com.artemis.utils.FastMath;
  * Each QuadTree object is in one of 3 states: has an entity, has 4 subtrees or has neither.
  */
 public class GravQuadTree {
+	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
+	// http://arborjs.org/docs/barnes-hut
+	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
 
 	// TODO should this class have direct access to entity-mappers (statically)?
 	// or pass as needed?

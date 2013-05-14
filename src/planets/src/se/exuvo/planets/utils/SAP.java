@@ -28,11 +28,11 @@ public class SAP {
 	
 	
 	/** No check is done if it already is in the SAP. */
-	public void add(Entity e, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm) {
+	public void add(Entity e, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm, double delta) {
 		VectorD2 p = pm.get(e).vec;
 		double r = rm.get(e).radius;
 		VectorD2 v = vm.get(e).vec;
-		BoundingBox b = new BoundingBox(e, p, r, v);
+		BoundingBox b = new BoundingBox(e, p, r, v, delta);
 		boxes.put(e, b);
 		xList.add(b);
 	}
@@ -42,7 +42,7 @@ public class SAP {
 		xList.remove(b);
 	}
 	
-	public void update(ImmutableBag<Entity> entities, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm) {
+	public void update(ImmutableBag<Entity> entities, ComponentMapper<Position> pm, ComponentMapper<Radius> rm, ComponentMapper<Velocity> vm, double delta) {
 		for (int i = 0; i < entities.size(); i++) {
 			Entity e = entities.get(i);
 			BoundingBox b = boxes.get(e);
@@ -50,7 +50,7 @@ public class SAP {
 			b.p = pm.get(e).vec;
 			b.r = rm.get(e).radius;
 			b.v = vm.get(e).vec;
-			b.update();
+			b.update(delta);
 		}
 	}
 	
@@ -140,16 +140,16 @@ public class SAP {
 		public double r;
 		public double xmin, xmax, ymin, ymax;
 		
-		public BoundingBox(Entity e, VectorD2 p, double r, VectorD2 v) {
+		public BoundingBox(Entity e, VectorD2 p, double r, VectorD2 v, double t) {
 			this.e = e;
 			this.p = p;
 			this.v = v;
 			this.r = r;
-			update();
+			update(t);
 		}
 		
-		public void update() {
-			double k = r + v.len();
+		public void update(double t) {
+			double k = r + v.len() * t;
 			xmin = p.x - k;
 			xmax = p.x + k;
 			ymin = p.y - k;

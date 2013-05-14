@@ -9,7 +9,6 @@ import se.exuvo.planets.components.Mass;
 import se.exuvo.planets.components.Position;
 import se.exuvo.planets.components.Radius;
 import se.exuvo.planets.components.Velocity;
-import se.exuvo.planets.utils.Circle;
 import se.exuvo.planets.utils.Collision;
 import se.exuvo.planets.utils.SAP;
 import se.exuvo.planets.utils.VectorD2;
@@ -81,7 +80,7 @@ public class CollisionSystem extends EntitySystem {
     	if (collisions && entities.size() > 1) {
 	        List<Collision> cs = new ArrayList<Collision>();
 	        
-	        sap.update(entities, pm, rm, vm);
+	        sap.update(entities, pm, rm, vm, timeLimit);
 	        sap.sort();
 	        sap.getAllCollisions(cs, timeLimit);
 //			System.out.println("colInit: "+(System.nanoTime()-time)*1e-6+" ms");
@@ -131,7 +130,7 @@ public class CollisionSystem extends EntitySystem {
 		            }
 	            }
 	            
-	            sap.update(toUpdate, pm, rm, vm);
+	            sap.update(toUpdate, pm, rm, vm, timeLimit);
 				sap.sort();
 	            // update
 	            for (Entity e : toUpdate) {
@@ -238,7 +237,7 @@ public class CollisionSystem extends EntitySystem {
     	VectorD2 p = p1.cpy().sub(p2);
 		VectorD2 v = v1.cpy().sub(v2);
 		double r = r1+r2;
-		if (p.len2() < r*r) {
+		if (p.len2() < r*r && v.len2() > 7d) {
 			return 0d;
 		}
 //		// if the planets are already moving away from each other.
@@ -313,7 +312,7 @@ public class CollisionSystem extends EntitySystem {
 	
 	@Override
 	protected void inserted(Entity e) {
-		sap.add(e, pm, rm, vm);
+		sap.add(e, pm, rm, vm, world.getDelta()); // TODO delta actually unnecessary here. (sap updated in processEntities() anyway)
 	}
 
 	@Override
