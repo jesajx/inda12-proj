@@ -164,17 +164,17 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 			if(!e.isEnabled()){
 				throw new RuntimeException("wut2?");
 			}
-
-			Position p = pm.get(e);
+			
+			Position p = pm.get(e); // TODO mapper.getSafe(e) ?
 			Mass m = mm.get(e);
 			Velocity v = vm.get(e);
 			Acceleration a = am.get(e);
 
 			// Copy entity
 			Entity eCopy = futureWorld.createEntity();
-			eCopy.addComponent(p.clone());
+			eCopy.addComponent(p.clone()); // TODO isn't this shallow copy? would mean both share the same Positon.vec, etc.
 			eCopy.addComponent(m.clone());
-			eCopy.addComponent(v.clone());
+			eCopy.addComponent(v.clone()); // TODO eCopy.addComponent(new Velocity(v.vec.cpy()))
 			eCopy.addComponent(a.clone());
 
 			eCopy.addToWorld();
