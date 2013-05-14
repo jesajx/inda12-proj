@@ -47,7 +47,7 @@ Hur vi svarade på ovanstående frågor:
 	
         Till varje planet skapas en \textit{hastighetscirkel} - 
         den har samma position som planeten, men dess radie
-        är planetes radie adderat med längden av planetens hastighetvektor,
+        är planetens radie adderat med längden av planetens hastighetvektor,
         likt: $c.r = p.r + p.v * t$.
         Cirkeln motsvarar alltså det område planeten kan påverka
         inom närmaste uppdatering.
@@ -81,7 +81,7 @@ Hur vi svarade på ovanstående frågor:
         Två kollisionshanteringsätt hade provats innan:
         alla planter jämförs med alla ($O(n^2)$),
         och en trädliknande struktur lik den i gravitationsystemet
-        (troligtvis $\Omega(n\log n$).
+        (troligtvis $\Omega(n\log n)$).
     \item Parallellisering har endast används i framtidssystemet.
         Uppdatering av accelerationer, hastigheter och positioner
         körs i lagom takt genom att beräkna med tidsskillnader
@@ -89,7 +89,7 @@ Hur vi svarade på ovanstående frågor:
         Om  motsvarande system skulle parallelliseras skulle dett troligtvis
         göras internt inom systemet (dvs. systemet skapar trådar
         och väntar på att dessa ska bli klara), vilket inte säkert
-        hade gjort systemet snabbare eftersom dessa beror till stor del
+        hade gjort systemet snabbare eftersom systemen beror till stor del
         på sekventiella beräkningar.
         Parallelliseringen hade därför troligtvis bestått av få
         trådar som exekverar en stor del av systemet var, eller
@@ -98,7 +98,7 @@ Hur vi svarade på ovanstående frågor:
         I det tidigare hade det troligtvis körts för få trådar för
         att det skulle gå snabbare och den senarer troligtvis för
         många trådar för att det skulle gå snabbare (och variabler
-        hade behövt låsas för att användas av alla).
+        hade behövt låsas och kontrolleras för att kunna användas av alla).
 
     \item Framtidssystemet har implementerats, men utan kollisioner
         då dessa gjorde det för långsamt.
