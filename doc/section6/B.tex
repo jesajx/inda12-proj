@@ -2,7 +2,7 @@
 Hur vi svarade på ovanstående frågor:
 \begin{enumerate}
     \item Förflyttningen av planeter har delats upp i system och komponenter
-        som beskrivet i section~\ref{sec:design}.
+        som beskrivet i 5 Programdesign.
 
         \vspace{6pt}
 
@@ -20,36 +20,31 @@ Hur vi svarade på ovanstående frågor:
 
         \vspace{6pt}
 
-        Kollisionsystemet använder också ett Quad Tree.
-        Skillnaden är att Gravitationsträdet spar planeter endast i
-        de s.k. löven (längst ner i trädet), medans kollisionträdet
-        spar planeter i alla noder.
+        Kollisionsystemet använder en s.k.
+        \textit{Sweep and Prune}-algoritm (SAP).
 
-        Trädet delar in simulatorvärlden i kvadranter.
-        Varje under-träd till en nod motsvararer in kvadrant inom
-        den kvadrat noden motsvarar.
-
-        En s.k. hastighetscirkel skapas för varje planet - 
-        den har samma position som planeten, med dess radie
+        Till varje planet skapas en s.k. hastighetscirkel - 
+        den har samma position som planeten, men dess radie
         är planetes radie adderat med längden av planetens hastighetvektor.
 
-        Dessa cirklar passas sedan in i trädets rutnät - så djupt ner i
-        trädet som möjligt.
+        HastighetsCirkeln passas sedan in i en fyrkant - dvs.
+        max och min värden beräknas i x- och y-led.
+        Planeterna sorteras sedan efter deras hastighetscirkels x-min.
 
-        Varje planet kan sedan jämföras med alla planter djupar ner i trädet.
+        Det är sedan lätt att kontrollera vilka cirklar som överlappar
+        i x-led.
+
+        Om två cirklar överlappar i x-led, kontrolleras de i y-led.
+        Om de även där överlappar kontrolleras om och hur
+        planeterna faktiskt kolliderar - genom beräkna tiderna de kolliderar.
 
     \item Kollisioner hanteras som elastiska stötar.
-        Kollisionsystemet har snabbats upp med ett Quad Tree som beskriver
-        ovan. Detta är en stor förbättrning från att alla planeter
-        jämförs med alla ($O(n^2)$), men programmet blir ändå långsamt med
+        Kollisionsystemet har snabbats upp som beskrivet ovan.
+        Detta är en stor förbättrning från att alla planeter
+        jämförs med alla ($O(n^2)$), även om programmet ändå blir långsamt med
         många aktiva planeter.
-        Andra sätt har prövats men har inte visat sig vara snabbare.
-        Bland annat har trädet skrivits om så att planeter endast sparas
-        i löven, likt gravitationsträdet gör. Detta gör
-        dock att samma planet hamnar på flera platser i trädet, vilket
-        i slutändan gör att fler jämförelser görs, t.ex. mellan samma
-        planeter flera gånger.
     \item Parallellisering har endast används i framtidssystemet.
     \item Framtidssystemet har implementerats, men utan kollisioner,
         då dessa gjorde det för långsamt.
 \end{enumerate}
+
