@@ -7,8 +7,8 @@ Hur vi svarade på ovanstående frågor:
         \vspace{6pt}
 
         Gravitationssystemet använder den s.k.
-        Barnes-Hur-simulations-algoritmen
-        \footnote{http://en.wikipedia.org/wiki/Barnes-Hut_simulation}
+        Barnes-Hut-simulations-algoritmen
+        \footnote{http://en.wikipedia.org/wiki/Barnes-Hut\_simulation}
         \footnote{http://arborjs.org/docs/barnes-hut}
         \footnote{http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html}
         för att beräkna accelerationer.
@@ -36,12 +36,16 @@ Hur vi svarade på ovanstående frågor:
         och positionen från hastigheten likt \verb#p += v*t#.
         Där \verb#t# är tid sedan förra uppdateringen.
 
-        \vspace{6pt}
+        \vspace{12pt}
 
         Kollisionsystemet använder en s.k.
-        \textit{Sweep and Prune}-algoritm (SAP).
+        \textit{Sweep and Prune}-algoritm (SAP)
+        \footnote{http://jitter-physics.com/wordpress/?tag=sweep-and-prune}
+        \footnote{http://www.codercorner.com/SAP.pdf}.
 
-        Till varje planet skapas en s.k. hastighetscirkel - 
+
+	
+        Till varje planet skapas en \textit{hastighetscirkel} - 
         den har samma position som planeten, men dess radie
         är planetes radie adderat med längden av planetens hastighetvektor,
         likt: $c.r = p.r + p.v * t$.

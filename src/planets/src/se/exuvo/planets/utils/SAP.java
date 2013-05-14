@@ -18,6 +18,9 @@ import com.artemis.ComponentMapper;
 import com.artemis.Entity;
 import com.artemis.utils.ImmutableBag;
 
+/**
+ * SweepAndPrune collision-detection data-structure.
+ */
 public class SAP {
 	// http://jitter-physics.com/wordpress/?tag=sweep-and-prune
 	// http://www.codercorner.com/SAP.pdf

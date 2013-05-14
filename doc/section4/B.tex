@@ -10,7 +10,7 @@ en föreläsning och försöka få denne att utföra följande uppgifter:
 \end{enumerate}
 
 Vi tog en student från inda12 som har goda fysik kunskaper
-och passar in på användar scenario 1.
+och passar in på användar scenario 1 (men också utförde scenario 2).
 Innan användaren började förklarade vi kort med ord (utan att visa)
 vad vi ville att hen skulle försöka utföra.
 Vi förklarade att det grafiska gränssnittet ännu inte är användarvänligt,
@@ -38,67 +38,90 @@ lagom för för planeter på olika avstånd och med olika hastigheter.
 
 
 
-\begin{description}
-    \item[Det var otydligt hur färg ändrades (RGB-kod) och testpersonen
-    tyckte förinställda färger kunda ha varit bra (''BLÅ'', ''GRÅ'', etc.).]
-    Detta förtydligades genom att ''RRGGBB'' står i fältet om användaren inte
-    ändrat det. Färger ansågs som en mindre del av programmet och
-    då libgdx inte tycktes ha ett färgväljar-fönster inbyggt, deprioriterades
-    vidare förbättringar av färgväljningen.
+\vspace{6pt}
 
-    \item[Det var otydligt om planetparametrar hade justerats efter ändringar i
-    fält. Användaren måste klicka enter i varje fält som ändrats.
-    Ingen respons ges om ändringen applicerats.]
-    Det förtydligades genom att rubriktexter till fälten (t.ex. ''Mass'')
-    skrevs i gulfärg om värdet i texten inte överensstämmde med värdet
-    motsvarande planet hade, annars i vit färg.
+\textbf{Det var otydligt hur färg ändrades (RGB-kod) och testpersonen
+tyckte förinställda färger kunda ha varit bra (''BLÅ'', ''GRÅ'', etc.).}
 
-    \item[När användaren höger-klicks-drar i en planet kan en hastighet
-    adderas till planetens nuvarande hastighet.
-    Användaren försökte bl.a. ändra riktining på eller stanna planeten
-    med funktionen, vilket var problematiskt då det är svårt och
-    användaren fick dra många gånger.]
-    Detta förbättrades genom att shift + höger-klicks-drag sätter hastigheten
-    snarare än adderar till den.
+Detta förtydligades genom att ''RRGGBB'' står i fältet om användaren inte
+ändrat det. Färger ansågs som en mindre del av programmet och
+då libgdx inte tycktes ha ett färgväljar-fönster inbyggt, deprioriterades
+vidare förbättringar av färgväljningen.
 
-    \item[Att kunna markera flera planeter och t.ex. justera deras gemensamma
-    hastighet hade varit användbart. Till exempel om användaren lyckas
-    skapa ett solsystem, men att de i sin helhet rör sig bortåt, skulle
-    användaren kunna nollställa den gemensamma hastigheten så att planeterna
-    fortsätter kretsa runt varandra, men att systemet i sin helhet inte rör
-    sig bortåt.]
-    Fler-planets-markering lades till: shift + vänster-klick markerar flera
-    planeter utan att avmarkera redan markerade planeter.
-    Fälten justerades så att t.ex. hastighet och position var en ''medelvärde''
-    av de markerade planeternas värden.
+\vspace{6pt}
+
+\textbf{Det var otydligt om planetparametrar hade justerats efter ändringar i
+fält. Användaren måste klicka enter i varje fält som ändrats.
+Ingen respons ges om ändringen applicerats.}
+
+Det förtydligades genom att rubriktexter till fälten (t.ex. ''Mass'')
+skrevs i gulfärg om värdet i texten inte överensstämmde med värdet
+motsvarande planet hade, annars i vit färg.
+
+\vspace{6pt}
+
+\textbf{När användaren höger-klicks-drar i en planet kan en hastighet
+adderas till planetens nuvarande hastighet.
+Användaren försökte bl.a. ändra riktining på eller stanna planeten
+med funktionen, vilket var problematiskt då det är svårt och
+användaren fick dra många gånger.}
+
+Detta förbättrades genom att shift + höger-klicks-drag sätter hastigheten
+snarare än adderar till den.
+
+\vspace{6pt}
+
+\textbf{Att kunna markera flera planeter och t.ex. justera deras gemensamma
+hastighet hade varit användbart. Till exempel om användaren lyckas
+skapa ett solsystem, men att de i sin helhet rör sig bortåt, skulle
+användaren kunna nollställa den gemensamma hastigheten så att planeterna
+fortsätter kretsa runt varandra, men att systemet i sin helhet inte rör
+sig bortåt.}
+
+Fler-planets-markering lades till: shift + vänster-klick markerar flera
+planeter utan att avmarkera redan markerade planeter.
+Fälten justerades så att t.ex. hastighet och position var en ''medelvärde''
+av de markerade planeternas värden.
 
 
-    \item[Det kunde vara svårt att navigera mellan planeter.]
-    T-knappen kan användas för att slå av och på att skärmen följer
-    den markerade planeten. N-knappen kan användas för att skärmen
-    ska hoppa till och markera nästa planet (i ordningen de skapats).
+\vspace{6pt}
 
-    \item[Det var svårt att avgöra hur mycket skärmen var ut-zoomad från
-    simulator-världen utan att sätta ut planeter och jämföra.]
-    Zoom-nivån lades till i nedre högra hörnet av skärmen, tillsammans
-    med en ''klammer'' som brukar finnas på många kartor.
-    Dessa visar hur stort avståndet är mellan taggarna på klammern är med
-    nuvarande ut-zoomning.
+\textbf{Det kunde vara svårt att navigera mellan planeter.}
 
-    \item[Om inga värden angivits i fälten när en planet skapas, slumpas värden 
-    fram. Dessa värden var inte alltid rimliga.
-    Till exempel hade planeterna för låga massor för att de skulle generera
-    märkbar gravitation.]
-    slump värdena justerades.
+T-knappen kan användas för att slå av och på att skärmen följer
+den markerade planeten. N-knappen kan användas för att skärmen
+ska hoppa till och markera nästa planet (i ordningen de skapats).
 
-    \item[Någon form av hjälp-meny som beskriver kontrollerna hade
-    varit användbar.]
-    En knapp i vänstermenyn lades till, vilken öppnar ett kortfattat
-    hjälp-fönster när den trycks.
+\vspace{6pt}
 
-\end{description}
+\textbf{Det var svårt att avgöra hur mycket skärmen var ut-zoomad från
+simulator-världen utan att sätta ut planeter och jämföra.}
 
-Vidare upptäcktes vissda buggar, t.ex. att programmet kraschar om
+Zoom-nivån lades till i nedre högra hörnet av skärmen, tillsammans
+med en ''klammer'' som brukar finnas på många kartor.
+Dessa visar hur stort avståndet är mellan taggarna på klammern är med
+nuvarande ut-zoomning.
+
+\vspace{6pt}
+
+\textbf{Om inga värden angivits i fälten när en planet skapas, slumpas värden 
+fram. Dessa värden var inte alltid rimliga.
+Till exempel hade planeterna för låga massor för att de skulle generera
+märkbar gravitation.}
+
+Slump-värdena justerades.
+
+\vspace{6pt}
+
+\textbf{Någon form av hjälp-meny som beskriver kontrollerna hade
+varit användbar.}
+
+En knapp i vänstermenyn lades till, vilken öppnar ett kortfattat
+hjälp-fönster när den trycks.
+
+\vspace{6pt}
+
+Vidare upptäcktes flera buggar, t.ex. att programmet kraschar om
 ''remove''-knappen klickas när ingen planet är markerad.
 
 

@@ -59,7 +59,7 @@ public class CollisionSystem extends EntitySystem {
     @Override
     protected void processEntities(ImmutableBag<Entity> entities) {
     	long time = System.nanoTime();
-        // TODO space partitioning. quadtree. barnes-hut
+        // space partitioning. quadtree. barnes-hut
     	// http://en.wikipedia.org/wiki/Barnes-Hut_simulation
     	// http://arborjs.org/docs/barnes-hut
     	// http://www.cs.princeton.edu/courses/archive/fall03/cs126/assignments/barnes-hut.html
