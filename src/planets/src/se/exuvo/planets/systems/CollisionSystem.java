@@ -136,8 +136,8 @@ public class CollisionSystem extends EntitySystem {
         updatePlanetPositions(entities, timeLimit);
         
     	time = System.nanoTime() - time;
-    	System.out.println("colproc: "+time*1e-6+" ms");
-    	System.out.println();
+//    	System.out.println("colproc: "+time*1e-6+" ms");
+//    	System.out.println();
     }
     
     private void updatePlanetPositions(ImmutableBag<Entity> entities, double time) { // O(n)

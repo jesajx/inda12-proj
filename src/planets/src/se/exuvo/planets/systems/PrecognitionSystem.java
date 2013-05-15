@@ -172,9 +172,9 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 
 			// Copy entity
 			Entity eCopy = futureWorld.createEntity();
-			eCopy.addComponent(p.clone()); // TODO isn't this shallow copy? would mean both share the same Positon.vec, etc.
+			eCopy.addComponent(p.clone());
 			eCopy.addComponent(m.clone());
-			eCopy.addComponent(v.clone()); // TODO eCopy.addComponent(new Velocity(v.vec.cpy()))
+			eCopy.addComponent(v.clone());
 			eCopy.addComponent(a.clone());
 
 			eCopy.addToWorld();
