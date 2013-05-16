@@ -81,7 +81,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 //		futureWorld.setSystem(new CollisionSystem());
 
 		futureWorld.initialize();
-		futureWorld.setDelta(Settings.getFloat("PhysicsStep"));
+		futureWorld.setDelta(Settings.getFloat("PhysicsStep") * 10);
 
 		world.getSystem(InputSystem.class).addListener(this);
 
@@ -146,22 +146,25 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 		// Remove old entities
 		for (int i = 0; i < removed.size(); i++) {
 			Entity e = removed.get(i);
-			futureWorld.deleteEntity(toFuture.get(e));
-			toFuture.remove(e);
+			Entity e2 = toFuture.get(e);
+			if (e2 != null) {
+				futureWorld.deleteEntity(e2);
+				toFuture.remove(e);
+			}
 		}
 		removed.clear();
 	}
 
 	private void copyWorld(ImmutableBag<Entity> entities) {
-		inserted.removeAll(removed);//If something added has already been removed
-		
+		inserted.removeAll(removed);// If something added has already been removed
+
 		// Add new entities
 		for (int i = 0; i < inserted.size(); i++) {
 			Entity e = inserted.get(i);
-			if(!e.isActive()){
+			if (!e.isActive()) {
 				throw new RuntimeException("wut?");
 			}
-			if(!e.isEnabled()){
+			if (!e.isEnabled()) {
 				throw new RuntimeException("wut2?");
 			}
 

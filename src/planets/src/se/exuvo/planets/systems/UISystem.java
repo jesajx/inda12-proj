@@ -642,7 +642,7 @@ public class UISystem extends VoidEntitySystem implements InputProcessor, Planet
 
 	public Color getColor() {
 		String s = readStringFromField(color);
-		if (s != null) {
+		if (s != null && !s.equals("RRGGBB")) {
 			try {
 				return Color.valueOf(s);
 			} catch (RuntimeException e) {
