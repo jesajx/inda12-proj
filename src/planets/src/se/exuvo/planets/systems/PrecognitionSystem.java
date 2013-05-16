@@ -29,42 +29,52 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 
-public class PrecognitionSystem extends EntitySystem implements PlanetSelectionChanged {
+public class PrecognitionSystem extends EntitySystem implements
+		PlanetSelectionChanged {
 
-	@Mapper ComponentMapper<Position> pm;
-	@Mapper ComponentMapper<Acceleration> am;
-	@Mapper ComponentMapper<Mass> mm;
-	@Mapper ComponentMapper<Velocity> vm;
+	@Mapper
+	ComponentMapper<Position> pm;
+	@Mapper
+	ComponentMapper<Acceleration> am;
+	@Mapper
+	ComponentMapper<Mass> mm;
+	@Mapper
+	ComponentMapper<Velocity> vm;
 
 	ComponentMapper<Position> fpm;
 	ComponentMapper<Acceleration> fam;
 	ComponentMapper<Mass> fmm;
 	ComponentMapper<Velocity> fvm;
 
-	private Bag<Entity> inserted = new Bag<Entity>(), removed = new Bag<Entity>();
+	private Bag<Entity> inserted = new Bag<Entity>(),
+			removed = new Bag<Entity>();
 	private Map<Entity, Entity> toFuture = new HashMap<Entity, Entity>();
 
 	private OrthographicCamera camera;
 	private ShapeRenderer render;
 
 	// must be multiple of 2 for drawing to work correctly
-	private static int forwardComputationSteps = Settings.getInt("PrecognitionSteps");
-	private VectorD2[][] futureSteps = new VectorD2[Settings.getInt("PrecognitionMaxVisualPlanets")][forwardComputationSteps];
+	private static int forwardComputationSteps = Settings
+			.getInt("PrecognitionSteps");
+	private VectorD2[][] futureSteps = new VectorD2[Settings
+			.getInt("PrecognitionMaxVisualPlanets")][forwardComputationSteps];
 	private Bag<Entity> selectedPlanets, selectedFutures;
 
 	private World futureWorld;
-	private ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
-		@Override
-		public Thread newThread(Runnable arg0) {
-			Thread t = new Thread(arg0);
-			t.setPriority(Thread.MIN_PRIORITY);
-			return t;
-		}
-	});
+	private ExecutorService executor = Executors
+			.newSingleThreadExecutor(new ThreadFactory() {
+				@Override
+				public Thread newThread(Runnable arg0) {
+					Thread t = new Thread(arg0);
+					t.setPriority(Thread.MIN_PRIORITY);
+					return t;
+				}
+			});
 	private Future<?> task;
 
 	public PrecognitionSystem(OrthographicCamera camera) {
-		super(Aspect.getAspectForAll(Mass.class, Acceleration.class, Position.class, Velocity.class));
+		super(Aspect.getAspectForAll(Mass.class, Acceleration.class,
+				Position.class, Velocity.class));
 		this.camera = camera;
 	}
 
@@ -168,7 +178,7 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 				throw new RuntimeException("wut2?");
 			}
 
-			Position p = pm.get(e);
+			Position p = pm.get(e); // TODO mapper.getSafe(e) ?
 			Mass m = mm.get(e);
 			Velocity v = vm.get(e);
 			Acceleration a = am.get(e);
@@ -196,7 +206,9 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 			Acceleration a = am.get(e);
 
 			Entity eCopy = key.getValue();
-			fpm.get(eCopy).vec.set(p.vec);
+			fpm.get(eCopy).
+			vec.set(
+					p.vec);
 			fmm.get(eCopy).mass = m.mass;
 			fvm.get(eCopy).vec.set(v.vec);
 			fam.get(eCopy).vec.set(a.vec);
@@ -233,7 +245,8 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 						}
 						futureWorld.process();
 
-						for (int j = 0; j < selectedFutures.size() && j < futureSteps.length; j++) {
+						for (int j = 0; j < selectedFutures.size()
+								&& j < futureSteps.length; j++) {
 							futureSteps[j][i].set(fpm.get(selectedFutures.get(j)).vec);
 						}
 					}
@@ -241,7 +254,8 @@ public class PrecognitionSystem extends EntitySystem implements PlanetSelectionC
 //					System.out.println(start);
 				} catch (Throwable t) {
 					t.printStackTrace();
-				} finally {}
+				} finally {
+				}
 			}
 		});
 	}
